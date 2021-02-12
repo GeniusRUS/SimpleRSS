@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">SimpleRSS</string>
+
+    <string name="subscriptions_add_text">Добавить</string>
+
+    <string name="add_new_subscription_address_hint">Добавить по URL</string>
+    <string name="add_new_subscription_check">Проверить адрес</string>
+    <string name="add_new_subscription_save">Сохранить адрес</string>
+
+    <string name="error_data_format_exception">Лента для данного адреса не найдена</string>
+    <string name="error_illegal_argument_url">Некорретный формат адреса</string>
+
+    <string name="content_description_image">Изображение</string>
+</resources>
