@@ -37,9 +37,9 @@
     </fragment>
     <fragment
         android:id="@+id/addFragment"
-        android:name="com.genius.srss.ui.add.AddFragment"
+        android:name="com.genius.srss.ui.add.subscription.AddSubscriptionFragment"
         android:label="fragment_add"
-        tools:layout="@layout/fragment_add">
+        tools:layout="@layout/fragment_add_subscription">
         <action
             android:id="@+id/action_addFragment_to_feedFragment"
             app:destination="@id/feedFragment"

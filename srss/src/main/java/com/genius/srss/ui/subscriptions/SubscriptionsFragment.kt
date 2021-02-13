@@ -1,10 +1,14 @@
 package com.genius.srss.ui.subscriptions
 
+import android.animation.AnimatorSet
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.webkit.URLUtil
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
 import androidx.navigation.fragment.findNavController
@@ -13,8 +17,11 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.utils.bindings.viewBinding
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
+import com.ub.utils.dpToPx
 import dev.chrisbanes.insetter.applySystemWindowInsetsToMargin
 import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
 import moxy.MvpAppCompatFragment
@@ -45,6 +52,8 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     }
 
     private val binding: FragmentSubscriptionsBinding by viewBinding(FragmentSubscriptionsBinding::bind)
+
+    private var activeAnimation: AnimatorSet? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -85,6 +94,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
         }
 
+        ViewCompat.setTooltipText(binding.addFolder, getString(R.string.subscriptions_add_folder_text))
+        ViewCompat.setTooltipText(binding.addSubscription, getString(R.string.subscriptions_add_subscription_text))
+        ViewCompat.setTooltipText(binding.fab, getString(R.string.subscriptions_add_text_open))
+        binding.addFolder.setOnClickListener(this)
+        binding.addSubscription.setOnClickListener(this)
         binding.fab.setOnClickListener(this)
         binding.subscriptionsContent.adapter = adapter
         binding.subscriptionsContent.setHasFixedSize(true)
@@ -125,6 +139,15 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.fab -> {
+                if (activeAnimation?.isRunning != true) {
+                    binding.fab.rotateImage(toClose = binding.addSubscription.isInvisible)
+                    transformFab(toExtend = binding.addSubscription.isInvisible)
+                }
+            }
+            R.id.add_folder -> {
+
+            }
+            R.id.add_subscription -> {
                 val direction =
                     SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFragment(
                         null
@@ -136,5 +159,88 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
 
     override fun onItemDismiss(position: Int) {
         presenter.removeSubscriptionByPosition(position)
+    }
+
+    private fun transformFab(toExtend: Boolean) {
+        activeAnimation?.end()
+        val animationList = listOf(
+            AnimatorSet().apply {
+                interpolator = AccelerateDecelerateInterpolator()
+                playTogether(
+                    binding.addFolder.animator(
+                        View.TRANSLATION_Y,
+                        if (toExtend) {
+                            binding.addFolder.height + binding.fab.dpToPx(8)
+                        } else {
+                            0F
+                        },
+                        if (toExtend) {
+                            0F
+                        } else {
+                            binding.addFolder.height + binding.fab.dpToPx(8)
+                        },
+                    ),
+                    binding.addFolder.animator(
+                        View.ALPHA,
+                        if (toExtend) 0F else 1F,
+                        if (toExtend) 1F else 0F
+                    ),
+                    binding.addSubscription.animator(
+                        View.TRANSLATION_Y,
+                        if (toExtend) {
+                            binding.addSubscription.height + binding.addFolder.height + binding.fab.dpToPx(16)
+                        } else {
+                            0F
+                        },
+                        if (toExtend) {
+                            0F
+                        } else {
+                            binding.addSubscription.height + binding.addFolder.height + binding.fab.dpToPx(16)
+                        }
+                    ),
+                    binding.addSubscription.animator(
+                        View.ALPHA,
+                        if (toExtend) 0F else 1F,
+                        if (toExtend) 1F else 0F
+                    )
+                )
+                duration = 275
+            }
+        ).run {
+            if (!toExtend) {
+                asReversed()
+            } else this
+        }
+        AnimatorSet().apply {
+            activeAnimation = this
+            interpolator = AccelerateDecelerateInterpolator()
+            playSequentially(animationList)
+            if (toExtend) {
+                doOnStart {
+                    if (view != null) {
+                        binding.addFolder.isVisible = true
+                        binding.addSubscription.isVisible = true
+                        ViewCompat.setTooltipText(binding.fab, getString(R.string.subscriptions_add_text_close))
+                    }
+                }
+            } else {
+                doOnEnd {
+                    if (view != null) {
+                        binding.addFolder.isInvisible = true
+                        binding.addSubscription.isInvisible = true
+                        ViewCompat.setTooltipText(binding.fab, getString(R.string.subscriptions_add_folder_text))
+                        activeAnimation = null
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun FloatingActionButton.rotateImage(toClose: Boolean) {
+        ViewCompat.animate(this)
+            .rotation(if (toClose) 225F else 0F)
+            .withLayer()
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
     }
 }

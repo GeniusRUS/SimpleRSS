@@ -1,4 +1,4 @@
-package com.genius.srss.ui.add
+package com.genius.srss.ui.add.subscription
 
 import android.os.Bundle
 import android.view.MenuItem
@@ -9,7 +9,7 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.genius.srss.R
-import com.genius.srss.databinding.FragmentAddBinding
+import com.genius.srss.databinding.FragmentAddSubscriptionBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.utils.bindings.viewBinding
 import com.google.android.material.snackbar.Snackbar
@@ -30,19 +30,19 @@ interface AddView : MvpView {
     fun onSourceAdded(feedUrl: String)
 }
 
-class AddFragment : MvpAppCompatFragment(R.layout.fragment_add), AddView, View.OnClickListener {
+class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subscription), AddView, View.OnClickListener {
 
     @Inject
-    lateinit var provider: Provider<AddPresenter>
+    lateinit var provider: Provider<AddSubscriptionPresenter>
 
-    private val presenter: AddPresenter by moxyPresenter {
+    private val presenter: AddSubscriptionPresenter by moxyPresenter {
         DIManager.appComponent.inject(this)
         provider.get()
     }
 
-    private val binding: FragmentAddBinding by viewBinding(FragmentAddBinding::bind)
+    private val binding: FragmentAddSubscriptionBinding by viewBinding(FragmentAddSubscriptionBinding::bind)
 
-    private val arguments: AddFragmentArgs by navArgs()
+    private val arguments: AddSubscriptionFragmentArgs by navArgs()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -107,7 +107,7 @@ class AddFragment : MvpAppCompatFragment(R.layout.fragment_add), AddView, View.O
     }
 
     override fun onSourceAdded(feedUrl: String) {
-        val direction = AddFragmentDirections.actionAddFragmentToFeedFragment(feedUrl)
+        val direction = AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(feedUrl)
         findNavController().navigate(direction)
     }
 }

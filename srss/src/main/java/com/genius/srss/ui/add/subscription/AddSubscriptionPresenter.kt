@@ -1,4 +1,4 @@
-package com.genius.srss.ui.add
+package com.genius.srss.ui.add.subscription
 
 import com.genius.srss.R
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
@@ -14,12 +14,12 @@ import java.util.zip.DataFormatException
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
-class AddPresenter @Inject constructor(
+class AddSubscriptionPresenter @Inject constructor(
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao
 ) : MvpPresenter<AddView>() {
 
-    private var state: AddStateModel by Delegates.observable(AddStateModel()) { _, _, newState ->
+    private var state: AddSubscriptionStateModel by Delegates.observable(AddSubscriptionStateModel()) { _, _, _ ->
 
     }
 
@@ -73,6 +73,6 @@ class AddPresenter @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "AddPresenter"
+        private const val TAG = "AddSubscriptionPresenter"
     }
 }

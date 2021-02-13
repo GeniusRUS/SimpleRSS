@@ -1,2 +1,2 @@
-include ':srss'
+include(":srss")
 rootProject.name = "SRSS"

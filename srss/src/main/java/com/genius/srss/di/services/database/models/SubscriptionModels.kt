@@ -14,7 +14,7 @@ data class SubscriptionDatabaseModel(
 data class SubscriptionFolderDatabaseModel(
     @PrimaryKey
     val folderId: String,
-    val title: String,
+    val name: String,
     val dateOfCreation: Long
 )
 
@@ -23,8 +23,10 @@ data class SubscriptionFolderDatabaseModel(
     primaryKeys = ["urlToLoad", "folderId"]
 )
 data class SubscriptionFolderCrossRefDatabaseModel(
-    val urlToLoad: Long,
-    val folderId: Long
+    @ColumnInfo(index = true)
+    val urlToLoad: String,
+    @ColumnInfo(index = true)
+    val folderId: String
 )
 
 data class SubscriptionWithFolders (
