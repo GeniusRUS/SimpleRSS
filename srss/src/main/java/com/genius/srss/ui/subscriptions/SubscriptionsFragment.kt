@@ -145,7 +145,9 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                 }
             }
             R.id.add_folder -> {
-
+                val direction =
+                    SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFolderFragment()
+                findNavController().navigate(direction)
             }
             R.id.add_subscription -> {
                 val direction =

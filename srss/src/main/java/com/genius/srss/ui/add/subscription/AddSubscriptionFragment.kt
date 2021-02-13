@@ -24,13 +24,13 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 @OneExecution
-interface AddView : MvpView {
+interface AddSubscriptionView : MvpView {
     fun showErrorMessage(@StringRes messageId: Int)
     fun onAvailableToSave(isAvailableToSave: Boolean)
     fun onSourceAdded(feedUrl: String)
 }
 
-class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subscription), AddView, View.OnClickListener {
+class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subscription), AddSubscriptionView, View.OnClickListener {
 
     @Inject
     lateinit var provider: Provider<AddSubscriptionPresenter>

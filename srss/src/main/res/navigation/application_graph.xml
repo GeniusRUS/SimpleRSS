@@ -23,8 +23,11 @@
             <argument
                 android:name="urlToAdd"
                 app:argType="string"
-                app:nullable="true"/>
+                app:nullable="true" />
         </action>
+        <action
+            android:id="@+id/action_subscriptionsFragment_to_addFolderFragment"
+            app:destination="@id/addFolderFragment" />
     </fragment>
     <fragment
         android:id="@+id/feedFragment"
@@ -48,6 +51,11 @@
         <argument
             android:name="urlToAdd"
             app:argType="string"
-            app:nullable="true"/>
+            app:nullable="true" />
     </fragment>
+    <fragment
+        android:id="@+id/addFolderFragment"
+        android:name="com.genius.srss.ui.add.folder.AddFolderFragment"
+        android:label="fragment_add_folder"
+        tools:layout="@layout/fragment_add_folder" />
 </navigation>

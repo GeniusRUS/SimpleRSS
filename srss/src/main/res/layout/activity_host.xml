@@ -13,5 +13,5 @@
         android:layout_height="match_parent"
         android:name="androidx.navigation.fragment.NavHostFragment"
         app:defaultNavHost="true"
-        app:navGraph="@navigation/main_graph"/>
+        app:navGraph="@navigation/application_graph"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

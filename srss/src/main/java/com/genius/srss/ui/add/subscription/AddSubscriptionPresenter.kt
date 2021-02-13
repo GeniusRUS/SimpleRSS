@@ -17,7 +17,7 @@ import kotlin.properties.Delegates
 class AddSubscriptionPresenter @Inject constructor(
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao
-) : MvpPresenter<AddView>() {
+) : MvpPresenter<AddSubscriptionView>() {
 
     private var state: AddSubscriptionStateModel by Delegates.observable(AddSubscriptionStateModel()) { _, _, _ ->
 
