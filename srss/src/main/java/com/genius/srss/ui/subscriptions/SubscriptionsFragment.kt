@@ -11,8 +11,11 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
@@ -22,8 +25,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
-import dev.chrisbanes.insetter.applySystemWindowInsetsToMargin
-import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
+import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
 import moxy.ktx.moxyPresenter
@@ -38,7 +40,7 @@ interface SubscriptionsView : MvpView {
 
 class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptions),
     SubscriptionsView,
-    BaseListAdapter.BaseListClickListener<SubscriptionItemModel>, View.OnClickListener,
+    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, View.OnClickListener,
     ItemTouchCallback.TouchListener {
 
     private val adapter: SubscriptionsListAdapter by lazy { SubscriptionsListAdapter() }
@@ -89,7 +91,9 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             val callback = ItemTouchCallback(
                 this,
                 icon,
-                Color.TRANSPARENT
+                Color.TRANSPARENT,
+                listOf(SubscriptionsListAdapter.SubscriptionFolderViewHolder::class),
+                lifecycleScope
             )
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
         }
@@ -103,18 +107,43 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         binding.subscriptionsContent.adapter = adapter
         binding.subscriptionsContent.setHasFixedSize(true)
         adapter.listListener = this
+        binding.subscriptionsContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    if (activeAnimation?.isRunning != true && binding.addSubscription.isVisible) {
+                        binding.fab.rotateImage(toClose = false)
+                        transformFab(toExtend = false)
+                    }
+                }
+            }
+        })
+        (binding.subscriptionsContent.layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (adapter.currentList[position] is SubscriptionFolderItemModel) 1 else 2
+            }
+        }
 
-        binding.fab.applySystemWindowInsetsToMargin(
-            bottom = true,
-            right = true
-        )
+        binding.fab.applyInsetter {
+            type(ime = true, statusBars = true, navigationBars = true) {
+                margin(
+                    right = true,
+                    bottom = true
+                )
+            }
+            consume(false)
+        }
 
-        binding.subscriptionsContent.applySystemWindowInsetsToPadding(
-            left = true,
-            top = true,
-            right = true,
-            bottom = true
-        )
+        binding.subscriptionsContent.applyInsetter {
+            type(ime = true, statusBars = true, navigationBars = true) {
+                padding(
+                    left = true,
+                    top = true,
+                    right = true,
+                    bottom = true
+                )
+            }
+            consume(false)
+        }
 
         presenter.updateFeed()
     }
@@ -129,11 +158,15 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         adapter.update(state.feedList)
     }
 
-    override fun onClick(view: View, item: SubscriptionItemModel, position: Int) {
-        val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
-            item.urlToLoad ?: return
-        )
-        findNavController().navigate(direction)
+    override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
+        if (item is SubscriptionItemModel) {
+            val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
+                item.urlToLoad ?: return
+            )
+            findNavController().navigate(direction)
+        } else if (item is SubscriptionFolderItemModel) {
+
+        }
     }
 
     override fun onClick(v: View?) {
@@ -161,6 +194,10 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
 
     override fun onItemDismiss(position: Int) {
         presenter.removeSubscriptionByPosition(position)
+    }
+
+    override fun onDragHolderToPosition(holderPosition: Int, targetPosition: Int) {
+        presenter.handleHolderMove(holderPosition, targetPosition)
     }
 
     private fun transformFab(toExtend: Boolean) {

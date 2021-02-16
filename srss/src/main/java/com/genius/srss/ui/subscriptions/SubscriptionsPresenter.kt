@@ -1,6 +1,8 @@
 package com.genius.srss.ui.subscriptions
 
+import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
+import com.genius.srss.di.services.database.models.SubscriptionFolderCrossRefDatabaseModel
 import com.ub.utils.LogUtils
 import kotlinx.coroutines.launch
 import moxy.MvpPresenter
@@ -19,9 +21,16 @@ class SubscriptionsPresenter @Inject constructor(
     fun updateFeed() {
         presenterScope.launch {
             try {
-                val subscriptions = subscriptionDao.loadSubscriptions()
+                val folders = subscriptionDao.loadAllFolders()
+                val subscriptions = subscriptionDao.loadSubscriptionsWithoutFolders()
                 state = state.copy(
-                    feedList = subscriptions.map {
+                    feedList = folders.map {
+                        SubscriptionFolderItemModel(
+                            it.id,
+                            it.name,
+                            subscriptionDao.getCrossRefCountByFolderId(it.id)
+                        )
+                    } + subscriptions.map {
                         SubscriptionItemModel(
                             it.title,
                             it.urlToLoad
@@ -37,13 +46,38 @@ class SubscriptionsPresenter @Inject constructor(
     fun removeSubscriptionByPosition(position: Int) {
         presenterScope.launch {
             try {
-                state.feedList[position].urlToLoad?.let { urlToRemove ->
-                    subscriptionDao.complexRemoveSubscriptionByUrl(urlToRemove)
+                (state.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
+                    subscription.urlToLoad?.let { urlToRemove ->
+                        subscriptionDao.complexRemoveSubscriptionByUrl(urlToRemove)
+                    }
                 }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             } finally {
                 updateFeed()
+            }
+        }
+    }
+
+    fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
+        presenterScope.launch {
+            try {
+                if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch
+                val holderToMove = state.feedList[holderPosition]
+                val targetOfMove = state.feedList[targetPosition]
+                when {
+                    holderToMove is SubscriptionItemModel && targetOfMove is SubscriptionFolderItemModel -> {
+                        subscriptionDao.saveSubscriptionFolderCrossRef(
+                            SubscriptionFolderCrossRefDatabaseModel(
+                                holderToMove.urlToLoad ?: return@launch,
+                                targetOfMove.id
+                            )
+                        )
+                        updateFeed()
+                    }
+                }
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
             }
         }
     }

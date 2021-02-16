@@ -17,7 +17,7 @@ import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.utils.bindings.viewBinding
 import com.ub.utils.base.BaseListAdapter
-import dev.chrisbanes.insetter.applySystemWindowInsetsToPadding
+import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
 import moxy.ktx.moxyPresenter
@@ -72,16 +72,26 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, Bas
         binding.feedContent.adapter = adapter
         adapter.listListener = this
 
-        binding.feedContent.applySystemWindowInsetsToPadding(
-            left = true,
-            right = true,
-            bottom = true
-        )
-        binding.collapsingToolbar.applySystemWindowInsetsToPadding(
-            left = true,
-            top = true,
-            right = true
-        )
+        binding.feedContent.applyInsetter {
+            type(ime = true, statusBars = true, navigationBars = true) {
+                padding(
+                    left = true,
+                    right = true,
+                    bottom = true
+                )
+            }
+            consume(false)
+        }
+        binding.collapsingToolbar.applyInsetter {
+            type(ime = true, statusBars = true, navigationBars = true) {
+                padding(
+                    left = true,
+                    top = true,
+                    right = true
+                )
+            }
+            consume(false)
+        }
 
         presenter.updateFeed(arguments.feedUrl)
     }

@@ -16,18 +16,26 @@
         app:cardCornerRadius="8dp">
 
         <LinearLayout
-            android:id="@+id/subscription_content"
+            android:id="@+id/folder_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="8dp">
 
             <TextView
-                android:id="@+id/feed_name"
+                android:id="@+id/folder_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="parent"
                 tools:text="@tools:sample/full_names"/>
+
+            <TextView
+                android:id="@+id/folder_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="@color/gray"
+                tools:text="@tools:sample/us_zipcodes"
+                tools:ignore="SmallSp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </FrameLayout>
