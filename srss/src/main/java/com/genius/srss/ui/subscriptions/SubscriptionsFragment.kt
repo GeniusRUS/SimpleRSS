@@ -165,7 +165,10 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             )
             findNavController().navigate(direction)
         } else if (item is SubscriptionFolderItemModel) {
-
+            val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
+                item.id
+            )
+            findNavController().navigate(direction)
         }
     }
 

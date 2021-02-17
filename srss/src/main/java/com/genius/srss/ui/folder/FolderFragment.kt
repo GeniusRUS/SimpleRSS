@@ -1,20 +1,16 @@
-package com.genius.srss.ui.feed
+package com.genius.srss.ui.folder
 
-import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabColorSchemeParams
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.core.content.ContextCompat
-import androidx.core.view.*
+import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.genius.srss.R
-import com.genius.srss.databinding.FragmentFeedBinding
+import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
-import com.genius.srss.di.services.converters.IConverters
+import com.genius.srss.ui.subscriptions.*
 import com.genius.srss.utils.bindings.viewBinding
 import com.ub.utils.base.BaseListAdapter
 import dev.chrisbanes.insetter.applyInsetter
@@ -26,31 +22,26 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 @AddToEndSingle
-interface FeedView : MvpView {
-    fun onStateChanged(state: FeedStateModel)
+interface FolderView : MvpView {
+    fun onStateChanged(state: FolderStateModel)
 }
 
-class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, BaseListAdapter.BaseListClickListener<FeedItemModel> {
+class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderView,
+    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
     @Inject
-    lateinit var provider: Provider<FeedPresenter>
+    lateinit var provider: Provider<FolderPresenter>
 
-    @Inject
-    lateinit var convertersProvider: Provider<IConverters>
-
-    private val presenter: FeedPresenter by moxyPresenter {
+    private val presenter: FolderPresenter by moxyPresenter {
         DIManager.appComponent.inject(this)
         provider.get()
     }
 
-    private val binding: FragmentFeedBinding by viewBinding(FragmentFeedBinding::bind)
+    private val adapter: SubscriptionsListAdapter by lazy { SubscriptionsListAdapter() }
 
-    private val adapter: FeedListAdapter by lazy {
-        DIManager.appComponent.inject(this)
-        FeedListAdapter(convertersProvider.get())
-    }
+    private val binding: FragmentFolderBinding by viewBinding(FragmentFolderBinding::bind)
 
-    private val arguments: FeedFragmentArgs by navArgs()
+    private val arguments: FolderFragmentArgs by navArgs()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -67,15 +58,16 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, Bas
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
-        binding.refresher.setOnRefreshListener {
-            presenter.updateFeed(arguments.feedUrl)
+        activity?.window?.let { window ->
+            WindowCompat.setDecorFitsSystemWindows(window, false)
         }
+
         binding.collapsingToolbar.isTitleEnabled = false
-        binding.feedContent.setHasFixedSize(true)
-        binding.feedContent.adapter = adapter
+        binding.folderContent.adapter = adapter
+        binding.folderContent.setHasFixedSize(true)
         adapter.listListener = this
 
-        binding.feedContent.applyInsetter {
+        binding.folderContent.applyInsetter {
             type(ime = true, statusBars = true, navigationBars = true) {
                 padding(
                     left = true,
@@ -96,7 +88,13 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, Bas
             consume(false)
         }
 
-        presenter.updateFeed(arguments.feedUrl)
+        presenter.updateFolderFeed(arguments.folderId)
+    }
+
+    override fun onDestroyView() {
+        adapter.listListener = null
+        binding.folderContent.adapter = null
+        super.onDestroyView()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -109,25 +107,19 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, Bas
         }
     }
 
-    override fun onDestroyView() {
-        adapter.listListener = null
-        binding.feedContent.adapter = null
-        super.onDestroyView()
-    }
-
-    override fun onStateChanged(state: FeedStateModel) {
-        adapter.update(state.feedContent)
-        binding.refresher.isRefreshing = state.isRefreshing
+    override fun onStateChanged(state: FolderStateModel) {
+        adapter.update(state.feedList)
         (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
     }
 
-    override fun onClick(view: View, item: FeedItemModel, position: Int) {
-        val colorScheme = CustomTabColorSchemeParams.Builder()
-            .setToolbarColor(ContextCompat.getColor(view.context, R.color.primary_dark_color))
-            .build()
-        val customTabsIntent = CustomTabsIntent.Builder()
-            .setDefaultColorSchemeParams(colorScheme)
-            .build()
-        customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
+    override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
+        if (item is SubscriptionItemModel) {
+            val direction = FolderFragmentDirections.actionFolderFragmentToFeedFragment(
+                item.urlToLoad ?: return
+            )
+            findNavController().navigate(direction)
+        } else if (item is SubscriptionFolderItemModel) {
+
+        }
     }
 }
