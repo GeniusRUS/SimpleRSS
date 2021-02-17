@@ -89,11 +89,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             context?.theme
         )?.let { icon ->
             val callback = ItemTouchCallback(
+                binding.subscriptionsContent,
                 this,
                 icon,
                 Color.TRANSPARENT,
-                listOf(SubscriptionsListAdapter.SubscriptionFolderViewHolder::class),
-                lifecycleScope
+                listOf(SubscriptionsListAdapter.SubscriptionFolderViewHolder::class)
             )
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
         }
