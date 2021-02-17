@@ -57,6 +57,11 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
 
         private val folderName: TextView = binding.folderName
         private val folderCount: TextView = binding.folderCount
+        private val folderContent: LinearLayout = binding.folderContent
+
+        init {
+            folderContent.setOnClickListener(this)
+        }
 
         fun bind(model: SubscriptionFolderItemModel) {
             folderName.text = model.name
