@@ -10,8 +10,20 @@
     <string name="add_new_subscription_check">Check address</string>
     <string name="add_new_subscription_save">Save address</string>
 
+    <string name="add_new_subscription_folder_hint">Folder name</string>
+    <string name="add_new_subscription_folder_save">Create a folder</string>
+    <string name="add_new_subscription_folder_must_be_not_empty">Please enter a name</string>
+
     <string name="error_data_format_exception">No feed was found for this address</string>
     <string name="error_illegal_argument_url">Incorrect address format</string>
 
     <string name="content_description_image">Picture</string>
+
+    <plurals name="subscriptions_folder_count_template">
+        <item quantity="zero">%1$d = No sources</item>
+        <item quantity="one">%1$d source</item>
+        <item quantity="few">%1$d sources</item>
+        <item quantity="many">%1$d sources</item>
+        <item quantity="other">%1$d sources</item>
+    </plurals>
 </resources>

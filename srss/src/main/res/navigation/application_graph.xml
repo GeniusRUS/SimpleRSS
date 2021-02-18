@@ -28,6 +28,13 @@
         <action
             android:id="@+id/action_subscriptionsFragment_to_addFolderFragment"
             app:destination="@id/addFolderFragment" />
+        <action
+            android:id="@+id/action_subscriptionsFragment_to_folderFragment"
+            app:destination="@id/folderFragment">
+            <argument
+                android:name="folderId"
+                app:argType="string" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/feedFragment"
@@ -58,4 +65,16 @@
         android:name="com.genius.srss.ui.add.folder.AddFolderFragment"
         android:label="fragment_add_folder"
         tools:layout="@layout/fragment_add_folder" />
+    <fragment
+        android:id="@+id/folderFragment"
+        android:name="com.genius.srss.ui.folder.FolderFragment"
+        android:label="fragment_folder"
+        tools:layout="@layout/fragment_folder">
+        <action
+            android:id="@+id/action_folderFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+        <argument
+            android:name="folderId"
+            app:argType="string" />
+    </fragment>
 </navigation>

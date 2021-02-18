@@ -42,6 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/add_new_subscription_address_hint"
+                android:imeOptions="actionDone"
                 android:inputType="textUri"
                 tools:text="https://google.ru/rss" />
         </com.google.android.material.textfield.TextInputLayout>

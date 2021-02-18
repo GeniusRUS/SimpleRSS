@@ -13,18 +13,18 @@ data class SubscriptionDatabaseModel(
 @Entity(tableName = "folders")
 data class SubscriptionFolderDatabaseModel(
     @PrimaryKey
-    val folderId: String,
+    val id: String,
     val name: String,
     val dateOfCreation: Long
 )
 
 @Entity(
     tableName = "subscription_folder",
-    primaryKeys = ["urlToLoad", "folderId"]
+    primaryKeys = ["urlOfSource", "folderId"]
 )
 data class SubscriptionFolderCrossRefDatabaseModel(
     @ColumnInfo(index = true)
-    val urlToLoad: String,
+    val urlOfSource: String,
     @ColumnInfo(index = true)
     val folderId: String
 )
@@ -35,10 +35,10 @@ data class SubscriptionWithFolders (
     @Relation(
         parentColumn = "urlToLoad",
         entity = SubscriptionFolderDatabaseModel::class,
-        entityColumn = "folderId",
+        entityColumn = "id",
         associateBy = Junction(
             value = SubscriptionFolderCrossRefDatabaseModel::class,
-            parentColumn = "urlToLoad",
+            parentColumn = "urlOfSource",
             entityColumn = "folderId"
         )
     )
@@ -49,13 +49,13 @@ data class FolderWithSubscriptions (
     @Embedded
     val folder: SubscriptionFolderDatabaseModel,
     @Relation(
-        parentColumn = "folderId",
+        parentColumn = "id",
         entity = SubscriptionDatabaseModel::class,
         entityColumn = "urlToLoad",
         associateBy = Junction(
             value = SubscriptionFolderCrossRefDatabaseModel::class,
             parentColumn = "folderId",
-            entityColumn = "urlToLoad"
+            entityColumn = "urlOfSource"
         )
     )
     val subscriptions: List<SubscriptionDatabaseModel>

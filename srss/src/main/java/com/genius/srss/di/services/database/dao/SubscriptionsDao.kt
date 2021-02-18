@@ -21,21 +21,24 @@ interface SubscriptionsDao {
     @Query("SELECT * FROM subscriptions WHERE urlToLoad == :urlToLoad")
     suspend fun loadSubscriptionById(urlToLoad: String): SubscriptionDatabaseModel?
 
-    @Query("SELECT * FROM subscriptions LEFT OUTER JOIN folders ON subscriptions.urlToLoad = folders.folderId WHERE folders.folderId IS NULL")
+    @Query("SELECT * FROM subscriptions LEFT OUTER JOIN subscription_folder ON subscriptions.urlToLoad = subscription_folder.urlOfSource WHERE subscription_folder.urlOfSource IS NULL")
     suspend fun loadSubscriptionsWithoutFolders(): List<SubscriptionDatabaseModel>
 
     @Query("SELECT * FROM folders")
     suspend fun loadAllFolders(): List<SubscriptionFolderDatabaseModel>
 
     @Transaction
-    @Query("SELECT * FROM folders WHERE folderId == :folderId LIMIT 1")
+    @Query("SELECT * FROM folders WHERE id == :folderId LIMIT 1")
     suspend fun loadFolderWithSubscriptionsById(folderId: String): FolderWithSubscriptions?
 
     @Transaction
     @Query("SELECT * FROM subscriptions WHERE urlToLoad == :urlToLoad LIMIT 1")
     suspend fun loadSubscriptionWithFoldersByUrl(urlToLoad: String): SubscriptionWithFolders?
 
-    @Query("DELETE FROM subscription_folder WHERE :folderId IS NULL OR folderId == :folderId AND :urlToLoad IS NULL OR urlToLoad == :urlToLoad")
+    @Query("SELECT COUNT(*) FROM subscription_folder WHERE folderId == :folderId")
+    suspend fun getCrossRefCountByFolderId(folderId: String): Int
+
+    @Query("DELETE FROM subscription_folder WHERE :folderId IS NULL OR folderId == :folderId AND :urlToLoad IS NULL OR urlOfSource == :urlToLoad")
     suspend fun removeCrossRefsById(folderId: String? = null, urlToLoad: String? = null)
 
     /**
@@ -47,7 +50,7 @@ interface SubscriptionsDao {
     /**
      * Do not must be used directly from the code, only in complex function [complexRemoveFolderById]
      */
-    @Query("DELETE FROM folders WHERE folderId == :folderId")
+    @Query("DELETE FROM folders WHERE id == :folderId")
     suspend fun removeFolderById(folderId: String)
 
     @Transaction

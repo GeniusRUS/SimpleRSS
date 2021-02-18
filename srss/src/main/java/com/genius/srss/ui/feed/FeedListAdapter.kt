@@ -22,16 +22,16 @@ class FeedListAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return SubscriptionItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
+        return FeedItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is SubscriptionItemViewHolder) {
+        if (holder is FeedItemViewHolder) {
             holder.bind(getItem(position))
         }
     }
 
-    inner class SubscriptionItemViewHolder(binding: RvFeedItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+    inner class FeedItemViewHolder(binding: RvFeedItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
         private val articleTitle: TextView = binding.articleTitle
         private val articleImage: ImageView = binding.image
