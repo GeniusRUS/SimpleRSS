@@ -1,17 +1,17 @@
 <resources>
     <string name="app_name">SimpleRSS</string>
 
-    <string name="subscriptions_add_text_open">Раскрыть опции</string>
-    <string name="subscriptions_add_text_close">Закрыть опции</string>
-    <string name="subscriptions_add_folder_text">Добавить папку</string>
-    <string name="subscriptions_add_subscription_text">Добавить ленту</string>
+    <string name="subscriptions_add_text_open">Expand options</string>
+    <string name="subscriptions_add_text_close">Close options</string>
+    <string name="subscriptions_add_folder_text">Add folder</string>
+    <string name="subscriptions_add_subscription_text">Add feed</string>
 
-    <string name="add_new_subscription_address_hint">Добавить по URL</string>
-    <string name="add_new_subscription_check">Проверить адрес</string>
-    <string name="add_new_subscription_save">Сохранить адрес</string>
+    <string name="add_new_subscription_address_hint">Add by URL</string>
+    <string name="add_new_subscription_check">Check address</string>
+    <string name="add_new_subscription_save">Save address</string>
 
-    <string name="error_data_format_exception">Лента для данного адреса не найдена</string>
-    <string name="error_illegal_argument_url">Некорретный формат адреса</string>
+    <string name="error_data_format_exception">No feed was found for this address</string>
+    <string name="error_illegal_argument_url">Incorrect address format</string>
 
-    <string name="content_description_image">Изображение</string>
+    <string name="content_description_image">Picture</string>
 </resources>
