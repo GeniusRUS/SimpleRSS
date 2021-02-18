@@ -13,11 +13,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.*
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
-import com.genius.srss.utils.bindings.viewBinding
 import com.ub.utils.base.BaseListAdapter
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment

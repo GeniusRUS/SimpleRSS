@@ -11,11 +11,11 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.subscriptions.*
-import com.genius.srss.utils.bindings.viewBinding
 import com.ub.utils.base.BaseListAdapter
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
