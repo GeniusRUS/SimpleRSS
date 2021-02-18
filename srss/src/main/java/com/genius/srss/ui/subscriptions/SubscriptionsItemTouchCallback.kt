@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.R
 import kotlin.reflect.KClass
 
-class ItemTouchCallback(
+class SubscriptionsItemTouchCallback(
     private val recyclerView: RecyclerView,
     private val listener: TouchListener,
     private val deleteIconDrawable: Drawable,

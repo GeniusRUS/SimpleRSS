@@ -22,6 +22,7 @@ class FolderPresenter @Inject constructor(
             try {
                 val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(folderId)
                 state = state.copy(
+                    folderId = folderId,
                     title = folderWithSubscriptions?.folder?.name,
                     feedList = folderWithSubscriptions?.subscriptions?.map {
                         SubscriptionItemModel(
@@ -30,6 +31,23 @@ class FolderPresenter @Inject constructor(
                         )
                     } ?: emptyList()
                 )
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
+            }
+        }
+    }
+
+    fun unlinkFolderByPosition(position: Int) {
+        presenterScope.launch {
+            try {
+                (state.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
+                    subscriptionsDao.removeCrossRefsById(
+                        urlToLoad = subscription.urlToLoad
+                    )
+                }
+                state.folderId?.let { folderId ->
+                    updateFolderFeed(folderId)
+                }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

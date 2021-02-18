@@ -1,12 +1,16 @@
 package com.genius.srss.ui.folder
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.ItemTouchHelper
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
@@ -27,7 +31,7 @@ interface FolderView : MvpView {
 }
 
 class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderView,
-    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
+    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, FolderTouchHelperCallback.TouchFolderListener {
 
     @Inject
     lateinit var provider: Provider<FolderPresenter>
@@ -67,6 +71,15 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         binding.folderContent.setHasFixedSize(true)
         adapter.listListener = this
 
+        ItemTouchHelper(
+            FolderTouchHelperCallback(
+                view.context,
+                this,
+                R.drawable.ic_vector_link_off_24dp,
+                Color.TRANSPARENT
+            )
+        ).attachToRecyclerView(binding.folderContent)
+
         binding.folderContent.applyInsetter {
             type(ime = true, statusBars = true, navigationBars = true) {
                 padding(
@@ -97,10 +110,18 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         super.onDestroyView()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_edit_button, menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
                 findNavController().popBackStack()
+                true
+            }
+            R.id.option_edit -> {
+
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -121,5 +142,9 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         } else if (item is SubscriptionFolderItemModel) {
 
         }
+    }
+
+    override fun onFolderDismiss(position: Int) {
+        presenter.unlinkFolderByPosition(position)
     }
 }

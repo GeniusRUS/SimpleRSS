@@ -10,6 +10,7 @@ import moxy.MvpPresenter
 import moxy.presenterScope
 import org.xmlpull.v1.XmlPullParserException
 import java.lang.IllegalArgumentException
+import java.net.UnknownServiceException
 import java.util.zip.DataFormatException
 import javax.inject.Inject
 import kotlin.properties.Delegates
@@ -50,6 +51,7 @@ class AddSubscriptionPresenter @Inject constructor(
                     is XmlPullParserException -> viewState.showErrorMessage(R.string.error_data_format_exception)
                     is DataFormatException -> viewState.showErrorMessage(R.string.error_data_format_exception)
                     is IllegalArgumentException -> viewState.showErrorMessage(R.string.error_illegal_argument_url)
+                    is UnknownServiceException -> viewState.showErrorMessage(R.string.error_http_insecure_format)
                 }
             }
         }
