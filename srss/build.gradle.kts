@@ -94,6 +94,8 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.3.0")
+    implementation("androidx.activity:activity-ktx:1.2.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.0")
 
     implementation("com.google.android.material:material:1.3.0")
 
@@ -107,7 +109,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
 
-    implementation("dev.chrisbanes.insetter:insetter:0.4.0")
+    implementation("dev.chrisbanes.insetter:insetter:0.5.0")
 
     implementation("com.github.moxy-community:moxy:$moxyVer")
     implementation("com.github.moxy-community:moxy-androidx:$moxyVer")
@@ -116,6 +118,7 @@ dependencies {
     kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
+    implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
@@ -128,7 +131,7 @@ dependencies {
     kapt("com.google.dagger:dagger-compiler:$daggerVer")
     kapt("com.google.dagger:dagger-android-processor:$daggerVer")
 
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
 }

@@ -3,29 +3,20 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.feed.FeedFragment">
+    tools:context=".ui.folder.FolderFragment">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refresher"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/folder_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/primary_color"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/feed_content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="8dp"
-            android:paddingTop="8dp"
-            android:overScrollMode="never"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/rv_feed_item"/>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        android:clipToPadding="false"
+        android:padding="8dp"
+        android:overScrollMode="never"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/rv_subscription_item"/>
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"

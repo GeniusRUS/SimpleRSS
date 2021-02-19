@@ -3,19 +3,19 @@ package com.genius.srss.ui.add.subscription
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentAddSubscriptionBinding
 import com.genius.srss.di.DIManager
-import com.genius.srss.utils.bindings.viewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.hideSoftKeyboard
-import dev.chrisbanes.insetter.Insetter
-import dev.chrisbanes.insetter.Side
+import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
 import moxy.ktx.moxyPresenter
@@ -59,12 +59,23 @@ class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subsc
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
-        Insetter.builder()
-            .applySystemWindowInsetsToPadding(Side.BOTTOM or Side.TOP)
-            .consumeSystemWindowInsets(Insetter.CONSUME_AUTO)
-            .applyToView(binding.rootView)
+        binding.rootView.applyInsetter {
+            type(ime = true, statusBars = true, navigationBars = true) {
+                margin(
+                    top = true,
+                    bottom = true
+                )
+            }
+            consume(true)
+        }
 
         binding.confirmButton.setOnClickListener(this)
+        binding.textField.setOnEditorActionListener { _, actionId, _ ->
+            return@setOnEditorActionListener if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.confirmButton.performClick()
+                true
+            } else false
+        }
 
         if (!arguments.urlToAdd.isNullOrEmpty()) {
             binding.textField.setText(arguments.urlToAdd)
