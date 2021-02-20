@@ -1,7 +1,7 @@
 package com.genius.srss.ui.folder
 
-import android.graphics.Color
 import android.os.Bundle
+import android.graphics.Color
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -80,6 +80,7 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
             )
         ).attachToRecyclerView(binding.folderContent)
 
+
         binding.folderContent.applyInsetter {
             type(ime = true, statusBars = true, navigationBars = true) {
                 padding(
@@ -121,7 +122,6 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
                 true
             }
             R.id.option_edit -> {
-
                 true
             }
             else -> super.onOptionsItemSelected(item)

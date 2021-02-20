@@ -1,31 +1,30 @@
 <resources>
     <string name="app_name">SimpleRSS</string>
 
-    <string name="subscriptions_add_text_open">Раскрыть опции</string>
-    <string name="subscriptions_add_text_close">Закрыть опции</string>
-    <string name="subscriptions_add_folder_text">Добавить папку</string>
-    <string name="subscriptions_add_subscription_text">Добавить ленту</string>
+    <string name="subscriptions_add_text_open">Expand options</string>
+    <string name="subscriptions_add_text_close">Close options</string>
+    <string name="subscriptions_add_folder_text">Add folder</string>
+    <string name="subscriptions_add_subscription_text">Add feed</string>
 
-    <string name="add_new_subscription_address_hint">Добавить по URL</string>
-    <string name="add_new_subscription_check">Проверить адрес</string>
-    <string name="add_new_subscription_save">Сохранить адрес</string>
+    <string name="add_new_subscription_address_hint">Add by URL</string>
+    <string name="add_new_subscription_check">Check address</string>
+    <string name="add_new_subscription_save">Save address</string>
 
-    <string name="add_new_subscription_folder_hint">Название папки</string>
-    <string name="add_new_subscription_folder_save">Создать папку</string>
-    <string name="add_new_subscription_folder_must_be_not_empty">Пожалуйста, введите имя</string>
+    <string name="add_new_subscription_folder_hint">Folder name</string>
+    <string name="add_new_subscription_folder_save">Create a folder</string>
+    <string name="add_new_subscription_folder_must_be_not_empty">Please enter a name</string>
 
-    <string name="folder_menu_edit_title">Редактировать</string>
+    <string name="error_data_format_exception">No feed was found for this address</string>
+    <string name="error_illegal_argument_url">Incorrect address format</string>
+    <string name="error_http_insecure_format">Http addresses are not supported</string>
 
-    <string name="error_data_format_exception">Лента для данного адреса не найдена</string>
-    <string name="error_illegal_argument_url">Некорретный формат адреса</string>
-    <string name="error_http_insecure_format">Адреса http не поддерживаются</string>
+    <string name="content_description_image">Picture</string>
 
-    <string name="content_description_image">Изображение</string>
-    
     <plurals name="subscriptions_folder_count_template">
-        <item quantity="one">%1$d источник</item>
-        <item quantity="few">%1$d источника</item>
-        <item quantity="many">%1$d источников</item>
-        <item quantity="other">%1$d источников</item>
+        <item quantity="zero">%1$d = No sources</item>
+        <item quantity="one">%1$d source</item>
+        <item quantity="few">%1$d sources</item>
+        <item quantity="many">%1$d sources</item>
+        <item quantity="other">%1$d sources</item>
     </plurals>
 </resources>
