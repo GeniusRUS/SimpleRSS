@@ -16,6 +16,7 @@
 
     <string name="error_data_format_exception">No feed was found for this address</string>
     <string name="error_illegal_argument_url">Incorrect address format</string>
+    <string name="error_http_insecure_format">Http addresses are not supported</string>
 
     <string name="content_description_image">Picture</string>
 

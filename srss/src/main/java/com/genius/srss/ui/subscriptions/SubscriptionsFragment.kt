@@ -11,15 +11,14 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
-import com.genius.srss.utils.bindings.viewBinding
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
@@ -41,7 +40,7 @@ interface SubscriptionsView : MvpView {
 class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptions),
     SubscriptionsView,
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, View.OnClickListener,
-    ItemTouchCallback.TouchListener {
+    SubscriptionsItemTouchCallback.TouchListener {
 
     private val adapter: SubscriptionsListAdapter by lazy { SubscriptionsListAdapter() }
 
@@ -88,7 +87,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             R.drawable.ic_vector_delete_outline_24px,
             context?.theme
         )?.let { icon ->
-            val callback = ItemTouchCallback(
+            val callback = SubscriptionsItemTouchCallback(
                 binding.subscriptionsContent,
                 this,
                 icon,

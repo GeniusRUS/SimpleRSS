@@ -2,6 +2,8 @@ package com.genius.srss.ui.feed
 
 import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -11,11 +13,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.*
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
-import com.genius.srss.utils.bindings.viewBinding
 import com.ub.utils.base.BaseListAdapter
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
@@ -30,7 +32,8 @@ interface FeedView : MvpView {
     fun onStateChanged(state: FeedStateModel)
 }
 
-class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, BaseListAdapter.BaseListClickListener<FeedItemModel> {
+class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
+    BaseListAdapter.BaseListClickListener<FeedItemModel> {
 
     @Inject
     lateinit var provider: Provider<FeedPresenter>
@@ -105,8 +108,16 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView, Bas
                 findNavController().popBackStack()
                 true
             }
+            R.id.option_edit -> {
+
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_edit_button, menu)
     }
 
     override fun onDestroyView() {

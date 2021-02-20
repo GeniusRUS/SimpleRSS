@@ -38,7 +38,7 @@ interface SubscriptionsDao {
     @Query("SELECT COUNT(*) FROM subscription_folder WHERE folderId == :folderId")
     suspend fun getCrossRefCountByFolderId(folderId: String): Int
 
-    @Query("DELETE FROM subscription_folder WHERE :folderId IS NULL OR folderId == :folderId AND :urlToLoad IS NULL OR urlOfSource == :urlToLoad")
+    @Query("DELETE FROM subscription_folder WHERE folderId IS NOT NULL AND folderId == :folderId OR urlOfSource IS NOT NULL AND urlOfSource == :urlToLoad")
     suspend fun removeCrossRefsById(folderId: String? = null, urlToLoad: String? = null)
 
     /**

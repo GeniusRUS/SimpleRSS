@@ -15,4 +15,5 @@
     <color name="default_background">#FBFBFB</color>
     <color name="default_background_inverted">#333333</color>
     <color name="button_text_color">#FFFFFF</color>
+    <color name="remove_color">#DC1B1E</color>
 </resources>

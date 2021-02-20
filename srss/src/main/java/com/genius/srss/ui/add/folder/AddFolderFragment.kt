@@ -8,10 +8,10 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.navigation.fragment.findNavController
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentAddFolderBinding
 import com.genius.srss.di.DIManager
-import com.genius.srss.utils.bindings.viewBinding
 import com.google.android.material.snackbar.Snackbar
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
