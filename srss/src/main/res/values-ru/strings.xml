@@ -7,6 +7,7 @@
     <string name="subscriptions_add_subscription_text">Добавить ленту</string>
 
     <string name="add_new_subscription_address_hint">Добавить по URL</string>
+    <string name="add_new_subscription_address_checking_process">Проверка</string>
     <string name="add_new_subscription_check">Проверить адрес</string>
     <string name="add_new_subscription_save">Сохранить адрес</string>
 
@@ -14,6 +15,7 @@
     <string name="add_new_subscription_folder_save">Создать папку</string>
     <string name="add_new_subscription_folder_must_be_not_empty">Пожалуйста, введите имя</string>
 
+    <string name="folder_menu_edit_title">Редактировать</string>
     <string name="error_data_format_exception">Лента для данного адреса не найдена</string>
     <string name="error_illegal_argument_url">Некорретный формат адреса</string>
     <string name="error_http_insecure_format">Адреса http не поддерживаются</string>

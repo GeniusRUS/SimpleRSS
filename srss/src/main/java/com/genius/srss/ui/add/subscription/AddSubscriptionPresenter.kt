@@ -35,6 +35,7 @@ class AddSubscriptionPresenter @Inject constructor(
     private fun checkSource(sourceUrl: String) {
         presenterScope.launch {
             try {
+                viewState.onLoadingSourceInfo(true)
                 val feed = networkSource.loadFeed(sourceUrl)
                 val subscriptions = subscriptionsDao.loadSubscriptions()
                 state = state.copy(
@@ -42,11 +43,12 @@ class AddSubscriptionPresenter @Inject constructor(
                     title = feed?.title,
                     timeOfAdd = System.currentTimeMillis()
                 )
-                viewState.onAvailableToSave(
+                viewState.onLoadingSourceInfo(isLoading = false,
                     isAvailableToSave = subscriptions.firstOrNull { it.urlToLoad == feed?.link } == null
                 )
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
+                viewState.onLoadingSourceInfo(false)
                 when (e) {
                     is XmlPullParserException -> viewState.showErrorMessage(R.string.error_data_format_exception)
                     is DataFormatException -> viewState.showErrorMessage(R.string.error_data_format_exception)

@@ -1,5 +1,6 @@
 package com.genius.srss.ui.add.subscription
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -13,6 +14,10 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentAddSubscriptionBinding
 import com.genius.srss.di.DIManager
+import com.github.razir.progressbutton.attachTextChangeAnimator
+import com.github.razir.progressbutton.bindProgressButton
+import com.github.razir.progressbutton.hideProgress
+import com.github.razir.progressbutton.showProgress
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.hideSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
@@ -25,8 +30,8 @@ import javax.inject.Provider
 
 @OneExecution
 interface AddSubscriptionView : MvpView {
+    fun onLoadingSourceInfo(isLoading : Boolean = false, isAvailableToSave: Boolean = false)
     fun showErrorMessage(@StringRes messageId: Int)
-    fun onAvailableToSave(isAvailableToSave: Boolean)
     fun onSourceAdded(feedUrl: String)
 }
 
@@ -70,6 +75,8 @@ class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subsc
         }
 
         binding.confirmButton.setOnClickListener(this)
+        bindProgressButton(binding.confirmButton)
+        binding.confirmButton.attachTextChangeAnimator()
         binding.textField.setOnEditorActionListener { _, actionId, _ ->
             return@setOnEditorActionListener if (actionId == EditorInfo.IME_ACTION_DONE) {
                 binding.confirmButton.performClick()
@@ -103,14 +110,23 @@ class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subsc
         }
     }
 
-    override fun onAvailableToSave(isAvailableToSave: Boolean) {
-        binding.confirmButton.setText(
-            if (isAvailableToSave) {
-                R.string.add_new_subscription_save
-            } else {
-                R.string.add_new_subscription_check
+    override fun onLoadingSourceInfo(isLoading: Boolean, isAvailableToSave: Boolean) {
+        binding.confirmButton.isEnabled = !isLoading
+
+        when {
+            isLoading -> {
+                binding.confirmButton.showProgress {
+                    buttonTextRes = R.string.add_new_subscription_address_checking_process
+                    progressColor = Color.WHITE
+                }
             }
-        )
+            isAvailableToSave -> {
+                binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
+            }
+            else -> {
+                binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
+            }
+        }
     }
 
     override fun showErrorMessage(messageId: Int) {

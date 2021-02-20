@@ -119,6 +119,7 @@ dependencies {
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
     implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
+    implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
