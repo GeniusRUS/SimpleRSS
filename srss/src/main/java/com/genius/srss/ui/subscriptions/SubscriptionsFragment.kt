@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import by.kirich1409.viewbindingdelegate.ViewBindingProperty
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
@@ -52,7 +53,8 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         presenterProvider.get()
     }
 
-    private val binding: FragmentSubscriptionsBinding by viewBinding(FragmentSubscriptionsBinding::bind)
+    private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> = viewBinding(FragmentSubscriptionsBinding::bind)
+    private val binding: FragmentSubscriptionsBinding by bindingDelegate
 
     private var activeAnimation: AnimatorSet? = null
 
@@ -150,6 +152,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     override fun onDestroyView() {
         adapter.listListener = null
         binding.subscriptionsContent.adapter = null
+        bindingDelegate.clear()
         super.onDestroyView()
     }
 
