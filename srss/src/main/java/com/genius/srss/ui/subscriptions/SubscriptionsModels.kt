@@ -5,7 +5,8 @@ import com.genius.srss.R
 import com.ub.utils.base.DiffComparable
 
 data class SubscriptionsStateModel(
-    val feedList: List<BaseSubscriptionModel> = listOf()
+    val feedList: List<BaseSubscriptionModel> = listOf(),
+    val isFullList: Boolean = false
 )
 
 sealed class BaseSubscriptionModel : DiffComparable {
