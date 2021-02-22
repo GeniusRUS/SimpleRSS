@@ -18,12 +18,17 @@ class SubscriptionsPresenter @Inject constructor(
         viewState.onStateChanged(newState)
     }
 
-    fun updateFeed() {
+    fun updateFeed(isFull: Boolean = state.isFullList) {
         presenterScope.launch {
             try {
                 val folders = subscriptionDao.loadAllFolders()
-                val subscriptions = subscriptionDao.loadSubscriptionsWithoutFolders()
+                val subscriptions = if (isFull) {
+                    subscriptionDao.loadSubscriptions()
+                } else {
+                    subscriptionDao.loadSubscriptionsWithoutFolders()
+                }
                 state = state.copy(
+                    isFullList = isFull,
                     feedList = folders.map {
                         SubscriptionFolderItemModel(
                             it.id,

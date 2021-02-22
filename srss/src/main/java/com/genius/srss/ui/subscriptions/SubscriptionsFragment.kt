@@ -4,6 +4,9 @@ import android.animation.AnimatorSet
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.webkit.URLUtil
@@ -41,7 +44,7 @@ interface SubscriptionsView : MvpView {
 class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptions),
     SubscriptionsView,
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, View.OnClickListener,
-    SubscriptionsItemTouchCallback.TouchListener {
+    SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
 
     private val adapter: SubscriptionsListAdapter by lazy { SubscriptionsListAdapter() }
 
@@ -53,10 +56,14 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         presenterProvider.get()
     }
 
-    private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> = viewBinding(FragmentSubscriptionsBinding::bind)
+    private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> = viewBinding(
+        FragmentSubscriptionsBinding::bind
+    )
     private val binding: FragmentSubscriptionsBinding by bindingDelegate
 
     private var activeAnimation: AnimatorSet? = null
+
+    private var scaleDetector: ScaleGestureDetector? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -84,6 +91,28 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
+        scaleDetector = ScaleGestureDetector(
+            context,
+            object : SimpleOnScaleGestureListener() {
+                private var scaleFactor = 1f
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    scaleFactor = detector.scaleFactor
+                    return true
+                }
+
+                override fun onScaleEnd(detector: ScaleGestureDetector) {
+                    if (scaleFactor > 1) {
+                        presenter.updateFeed(isFull = true)
+                    } else if (scaleFactor < 1) {
+                        presenter.updateFeed(isFull = false)
+                    }
+                    super.onScaleEnd(detector)
+                }
+            }
+        )
+
+        binding.subscriptionsContent.setOnTouchListener(this)
+
         ResourcesCompat.getDrawable(
             resources,
             R.drawable.ic_vector_delete_outline_24px,
@@ -99,8 +128,14 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
         }
 
-        ViewCompat.setTooltipText(binding.addFolder, getString(R.string.subscriptions_add_folder_text))
-        ViewCompat.setTooltipText(binding.addSubscription, getString(R.string.subscriptions_add_subscription_text))
+        ViewCompat.setTooltipText(
+            binding.addFolder,
+            getString(R.string.subscriptions_add_folder_text)
+        )
+        ViewCompat.setTooltipText(
+            binding.addSubscription,
+            getString(R.string.subscriptions_add_subscription_text)
+        )
         ViewCompat.setTooltipText(binding.fab, getString(R.string.subscriptions_add_text_open))
         binding.addFolder.setOnClickListener(this)
         binding.addSubscription.setOnClickListener(this)
@@ -154,6 +189,12 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         binding.subscriptionsContent.adapter = null
         bindingDelegate.clear()
         super.onDestroyView()
+    }
+
+    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        return if (event?.pointerCount?.compareTo(1) == 1) {
+            scaleDetector?.onTouchEvent(event) ?: false
+        } else v?.onTouchEvent(event) ?: false
     }
 
     override fun onStateChanged(state: SubscriptionsStateModel) {
@@ -232,14 +273,18 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                     binding.addSubscription.animator(
                         View.TRANSLATION_Y,
                         if (toExtend) {
-                            binding.addSubscription.height + binding.addFolder.height + binding.fab.dpToPx(16)
+                            binding.addSubscription.height + binding.addFolder.height + binding.fab.dpToPx(
+                                16
+                            )
                         } else {
                             0F
                         },
                         if (toExtend) {
                             0F
                         } else {
-                            binding.addSubscription.height + binding.addFolder.height + binding.fab.dpToPx(16)
+                            binding.addSubscription.height + binding.addFolder.height + binding.fab.dpToPx(
+                                16
+                            )
                         }
                     ),
                     binding.addSubscription.animator(
@@ -264,7 +309,10 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                     if (view != null) {
                         binding.addFolder.isVisible = true
                         binding.addSubscription.isVisible = true
-                        ViewCompat.setTooltipText(binding.fab, getString(R.string.subscriptions_add_text_close))
+                        ViewCompat.setTooltipText(
+                            binding.fab,
+                            getString(R.string.subscriptions_add_text_close)
+                        )
                     }
                 }
             } else {
@@ -272,7 +320,10 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                     if (view != null) {
                         binding.addFolder.isInvisible = true
                         binding.addSubscription.isInvisible = true
-                        ViewCompat.setTooltipText(binding.fab, getString(R.string.subscriptions_add_folder_text))
+                        ViewCompat.setTooltipText(
+                            binding.fab,
+                            getString(R.string.subscriptions_add_folder_text)
+                        )
                         activeAnimation = null
                     }
                 }
