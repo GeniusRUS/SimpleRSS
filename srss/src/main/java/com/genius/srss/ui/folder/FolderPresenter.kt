@@ -3,26 +3,33 @@ package com.genius.srss.ui.folder
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.ui.subscriptions.SubscriptionItemModel
 import com.ub.utils.LogUtils
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import moxy.MvpPresenter
 import moxy.presenterScope
-import javax.inject.Inject
 import kotlin.properties.Delegates
 
-class FolderPresenter @Inject constructor(
-    private val subscriptionsDao: SubscriptionsDao
+@AssistedFactory
+interface FolderPresenterFactory {
+    fun create(folderId: String?): FolderPresenter
+}
+
+class FolderPresenter @AssistedInject constructor(
+    private val subscriptionsDao: SubscriptionsDao,
+    @Assisted folderId: String
 ): MvpPresenter<FolderView>() {
 
-    private var state: FolderStateModel by Delegates.observable(FolderStateModel()) { _, _, newState ->
+    private var state: FolderStateModel by Delegates.observable(FolderStateModel(folderId = folderId)) { _, _, newState ->
         viewState.onStateChanged(newState)
     }
 
-    fun updateFolderFeed(folderId: String) {
+    fun updateFolderFeed() {
         presenterScope.launch {
             try {
-                val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(folderId)
+                val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
                 state = state.copy(
-                    folderId = folderId,
                     title = folderWithSubscriptions?.folder?.name,
                     feedList = folderWithSubscriptions?.subscriptions?.map {
                         SubscriptionItemModel(
@@ -45,9 +52,7 @@ class FolderPresenter @Inject constructor(
                         urlToLoad = subscription.urlToLoad
                     )
                 }
-                state.folderId?.let { folderId ->
-                    updateFolderFeed(folderId)
-                }
+                updateFolderFeed()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

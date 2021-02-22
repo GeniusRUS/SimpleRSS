@@ -34,11 +34,11 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, FolderTouchHelperCallback.TouchFolderListener {
 
     @Inject
-    lateinit var provider: Provider<FolderPresenter>
+    lateinit var provider: FolderPresenterFactory
 
     private val presenter: FolderPresenter by moxyPresenter {
         DIManager.appComponent.inject(this)
-        provider.get()
+        provider.create(arguments.folderId)
     }
 
     private val adapter: SubscriptionsListAdapter by lazy { SubscriptionsListAdapter() }
@@ -102,7 +102,7 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
             consume(false)
         }
 
-        presenter.updateFolderFeed(arguments.folderId)
+        presenter.updateFolderFeed()
     }
 
     override fun onDestroyView() {
