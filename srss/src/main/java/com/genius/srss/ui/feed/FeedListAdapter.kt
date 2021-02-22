@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.clear
 import coil.load
 import coil.size.Scale
+import com.genius.srss.R
 import com.genius.srss.databinding.RvFeedItemBinding
 import com.genius.srss.di.services.converters.IConverters
 import com.ub.utils.base.BaseListAdapter
@@ -52,6 +53,8 @@ class FeedListAdapter(
                 articleImage.isVisible = true
                 articleImage.load(model.pictureUrl) {
                     scale(Scale.FIT)
+                    placeholder(R.drawable.layer_list_image_placeholder)
+                    error(R.drawable.layer_list_image_placeholder)
                 }
             } else {
                 articleImage.isGone = true
