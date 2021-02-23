@@ -11,6 +11,7 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.*
+import androidx.core.widget.addTextChangedListener
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -19,6 +20,8 @@ import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
 import com.ub.utils.base.BaseListAdapter
+import com.ub.utils.hideSoftKeyboard
+import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
@@ -30,20 +33,22 @@ import javax.inject.Provider
 @AddToEndSingle
 interface FeedView : MvpView {
     fun onStateChanged(state: FeedStateModel)
+    fun onUpdateNameToEdit(nameToEdit: String?)
+    fun onScreenClose()
 }
 
 class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
     BaseListAdapter.BaseListClickListener<FeedItemModel> {
 
     @Inject
-    lateinit var provider: Provider<FeedPresenter>
+    lateinit var provider: FeedPresenterProvider
 
     @Inject
     lateinit var convertersProvider: Provider<IConverters>
 
     private val presenter: FeedPresenter by moxyPresenter {
         DIManager.appComponent.inject(this)
-        provider.get()
+        provider.create(arguments.feedUrl)
     }
 
     private val binding: FragmentFeedBinding by viewBinding(FragmentFeedBinding::bind)
@@ -52,6 +57,8 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         DIManager.appComponent.inject(this)
         FeedListAdapter(convertersProvider.get())
     }
+
+    private var menu: Menu? = null
 
     private val arguments: FeedFragmentArgs by navArgs()
 
@@ -71,13 +78,16 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         }
 
         binding.refresher.setOnRefreshListener {
-            presenter.updateFeed(arguments.feedUrl)
+            presenter.updateFeed()
         }
         binding.collapsingToolbar.isTitleEnabled = false
         binding.feedContent.setHasFixedSize(true)
         binding.feedContent.adapter = adapter
         adapter.listListener = this
 
+        binding.updateNameField.addTextChangedListener {
+            presenter.checkSaveAvailability(it?.toString())
+        }
         binding.feedContent.applyInsetter {
             type(ime = true, statusBars = true, navigationBars = true) {
                 padding(
@@ -99,17 +109,29 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
             consume(false)
         }
 
-        presenter.updateFeed(arguments.feedUrl)
+        presenter.updateFeed()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                findNavController().popBackStack()
+                if (presenter.isInEditMode) {
+                    presenter.changeEditMode(isEdit = false)
+                } else {
+                    findNavController().popBackStack()
+                }
                 true
             }
             R.id.option_edit -> {
-
+                presenter.changeEditMode(isEdit = true)
+                true
+            }
+            R.id.option_save -> {
+                presenter.updateSubscription(newSubscriptionName = binding.updateNameField.text?.toString())
+                true
+            }
+            R.id.option_delete -> {
+                presenter.deleteFeed()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -117,7 +139,10 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_edit_button, menu)
+        inflater.inflate(R.menu.menu_options_button, menu)
+        this.menu = menu
+        menu.findItem(R.id.option_delete).isVisible = false
+        menu.findItem(R.id.option_save).isVisible = false
     }
 
     override fun onDestroyView() {
@@ -130,6 +155,27 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         adapter.update(state.feedContent)
         binding.refresher.isRefreshing = state.isRefreshing
         (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
+
+        menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
+        menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
+        menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
+        binding.updateNameField.isGone = !state.isInEditMode
+        binding.refresher.isGone = state.isInEditMode
+
+        if (state.isInEditMode) {
+            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+            openSoftKeyboard(context ?: return, binding.updateNameField)
+        } else {
+            hideSoftKeyboard(context ?: return)
+        }
+    }
+
+    override fun onUpdateNameToEdit(nameToEdit: String?) {
+        binding.updateNameField.setText(nameToEdit)
+    }
+
+    override fun onScreenClose() {
+        findNavController().popBackStack()
     }
 
     override fun onClick(view: View, item: FeedItemModel, position: Int) {

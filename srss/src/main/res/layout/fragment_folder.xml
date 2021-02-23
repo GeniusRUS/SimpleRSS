@@ -36,7 +36,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:title="@tools:sample/cities"
-                tools:menu="@menu/menu_edit_button"/>
+                tools:menu="@menu/menu_options_button">
+
+                <EditText
+                    android:id="@+id/update_name_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/subscription_folder_edit_hint"
+                    android:autofillHints="none"
+                    android:imeOptions="actionNone"
+                    android:inputType="textCapSentences"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+            </androidx.appcompat.widget.Toolbar>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

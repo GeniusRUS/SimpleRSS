@@ -21,6 +21,9 @@ interface SubscriptionsDao {
     @Query("SELECT * FROM subscriptions WHERE urlToLoad == :urlToLoad")
     suspend fun loadSubscriptionById(urlToLoad: String): SubscriptionDatabaseModel?
 
+    @Query("UPDATE subscriptions SET title = :newTitle WHERE urlToLoad = :urlToLoad")
+    suspend fun updateSubscriptionTitleByUrl(urlToLoad: String, newTitle: String)
+
     @Query("SELECT * FROM subscriptions LEFT OUTER JOIN subscription_folder ON subscriptions.urlToLoad = subscription_folder.urlOfSource WHERE subscription_folder.urlOfSource IS NULL")
     suspend fun loadSubscriptionsWithoutFolders(): List<SubscriptionDatabaseModel>
 
@@ -30,6 +33,9 @@ interface SubscriptionsDao {
     @Transaction
     @Query("SELECT * FROM folders WHERE id == :folderId LIMIT 1")
     suspend fun loadFolderWithSubscriptionsById(folderId: String): FolderWithSubscriptions?
+
+    @Query("UPDATE folders SET name = :newName WHERE id = :folderId")
+    suspend fun updateFolderNameById(folderId: String, newName: String)
 
     @Transaction
     @Query("SELECT * FROM subscriptions WHERE urlToLoad == :urlToLoad LIMIT 1")
