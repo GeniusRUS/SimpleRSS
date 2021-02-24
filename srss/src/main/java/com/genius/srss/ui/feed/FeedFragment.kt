@@ -184,6 +184,8 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
             .build()
         val customTabsIntent = CustomTabsIntent.Builder()
             .setDefaultColorSchemeParams(colorScheme)
+            .setShareState(CustomTabsIntent.SHARE_STATE_ON)
+            .setUrlBarHidingEnabled(true)
             .build()
         customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
     }
