@@ -8,6 +8,8 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.core.view.isGone
+import androidx.core.widget.addTextChangedListener
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -17,17 +19,20 @@ import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.subscriptions.*
 import com.ub.utils.base.BaseListAdapter
+import com.ub.utils.hideSoftKeyboard
+import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
 import moxy.ktx.moxyPresenter
 import moxy.viewstate.strategy.alias.AddToEndSingle
 import javax.inject.Inject
-import javax.inject.Provider
 
 @AddToEndSingle
 interface FolderView : MvpView {
     fun onStateChanged(state: FolderStateModel)
+    fun onUpdateNameToEdit(nameToEdit: String?)
+    fun onScreenClose()
 }
 
 class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderView,
@@ -46,6 +51,8 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     private val binding: FragmentFolderBinding by viewBinding(FragmentFolderBinding::bind)
 
     private val arguments: FolderFragmentArgs by navArgs()
+
+    private var menu: Menu? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -80,7 +87,9 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
             )
         ).attachToRecyclerView(binding.folderContent)
 
-
+        binding.updateNameField.addTextChangedListener {
+            presenter.checkSaveAvailability(it?.toString())
+        }
         binding.folderContent.applyInsetter {
             type(ime = true, statusBars = true, navigationBars = true) {
                 padding(
@@ -112,16 +121,32 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_edit_button, menu)
+        inflater.inflate(R.menu.menu_options_button, menu)
+        this.menu = menu
+        menu.findItem(R.id.option_delete).isVisible = false
+        menu.findItem(R.id.option_save).isVisible = false
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                findNavController().popBackStack()
+                if (presenter.isInEditMode) {
+                    presenter.changeEditMode(isEdit = false)
+                } else {
+                    findNavController().popBackStack()
+                }
                 true
             }
             R.id.option_edit -> {
+                presenter.changeEditMode(isEdit = true)
+                true
+            }
+            R.id.option_save -> {
+                presenter.updateFolder(newFolderName = binding.updateNameField.text?.toString())
+                true
+            }
+            R.id.option_delete -> {
+                presenter.deleteFolder()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -131,6 +156,23 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     override fun onStateChanged(state: FolderStateModel) {
         adapter.update(state.feedList)
         (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
+
+        menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
+        menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
+        menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
+        binding.updateNameField.isGone = !state.isInEditMode
+        binding.folderContent.isGone = state.isInEditMode
+
+        if (state.isInEditMode) {
+            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+            openSoftKeyboard(context ?: return, binding.updateNameField)
+        } else {
+            hideSoftKeyboard(context ?: return)
+        }
+    }
+
+    override fun onUpdateNameToEdit(nameToEdit: String?) {
+        binding.updateNameField.setText(nameToEdit)
     }
 
     override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
@@ -146,5 +188,9 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
 
     override fun onFolderDismiss(position: Int) {
         presenter.unlinkFolderByPosition(position)
+    }
+
+    override fun onScreenClose() {
+        findNavController().popBackStack()
     }
 }

@@ -6,7 +6,9 @@ import java.util.*
 data class FeedStateModel(
     val isRefreshing: Boolean = false,
     val feedContent: List<FeedItemModel> = listOf(),
-    val title: String? = null
+    val title: String? = null,
+    val isInEditMode: Boolean = false,
+    val isAvailableToSave: Boolean = false
 )
 
 data class FeedItemModel(

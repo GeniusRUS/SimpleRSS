@@ -21,23 +21,20 @@ class FolderPresenter @AssistedInject constructor(
     @Assisted folderId: String
 ): MvpPresenter<FolderView>() {
 
-    private var state: FolderStateModel by Delegates.observable(FolderStateModel(folderId = folderId)) { _, _, newState ->
+    private var state: FolderStateModel by Delegates.observable(FolderStateModel(folderId = folderId)) { _, oldState, newState ->
+        if (!oldState.isInEditMode && newState.isInEditMode) {
+            viewState.onUpdateNameToEdit(oldState.title)
+        }
         viewState.onStateChanged(newState)
     }
+
+    val isInEditMode: Boolean
+        get() = state.isInEditMode
 
     fun updateFolderFeed() {
         presenterScope.launch {
             try {
-                val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
-                state = state.copy(
-                    title = folderWithSubscriptions?.folder?.name,
-                    feedList = folderWithSubscriptions?.subscriptions?.map {
-                        SubscriptionItemModel(
-                            it.title,
-                            it.urlToLoad
-                        )
-                    } ?: emptyList()
-                )
+                updateFolderFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -57,6 +54,64 @@ class FolderPresenter @AssistedInject constructor(
                 LogUtils.e(TAG, e.message, e)
             }
         }
+    }
+
+    fun changeEditMode(isEdit: Boolean) {
+        state = state.copy(
+            isInEditMode = isEdit
+        )
+    }
+
+    fun checkSaveAvailability(newFolderName: String?) {
+        presenterScope.launch {
+            try {
+                state = state.copy(
+                    isAvailableToSave = newFolderName?.isNotEmpty() == true && state.title != newFolderName
+                )
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
+            }
+        }
+    }
+
+    fun updateFolder(newFolderName: String?) {
+        presenterScope.launch {
+            try {
+                newFolderName?.let { newName ->
+                    subscriptionsDao.updateFolderNameById(state.folderId, newName)
+                }
+                updateFolderFeedInternal()
+                state = state.copy(
+                    isInEditMode = false
+                )
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
+            }
+        }
+    }
+
+    fun deleteFolder() {
+        presenterScope.launch {
+            try {
+                subscriptionsDao.complexRemoveFolderById(folderId = state.folderId)
+                viewState.onScreenClose()
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
+            }
+        }
+    }
+
+    private suspend fun updateFolderFeedInternal() {
+        val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
+        state = state.copy(
+            title = folderWithSubscriptions?.folder?.name,
+            feedList = folderWithSubscriptions?.subscriptions?.map {
+                SubscriptionItemModel(
+                    it.title,
+                    it.urlToLoad
+                )
+            } ?: emptyList()
+        )
     }
 
     companion object {
