@@ -71,18 +71,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         val externalUrl = activity?.intent?.extras?.getString(Intent.EXTRA_TEXT)
             ?: activity?.intent?.clipData?.getItemAt(0)?.text?.toString()
         externalUrl?.let { url ->
-            if (URLUtil.isValidUrl(url)) {
-                val direction =
-                    SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFragment(url)
-                findNavController().navigate(direction)
-            } else {
-                Snackbar.make(
-                    binding.rootView,
-                    R.string.error_illegal_argument_url,
-                    Snackbar.LENGTH_LONG
-                ).show()
-            }
-
+            handleUrlFromExternalSource(url)
             activity?.intent?.removeExtra(Intent.EXTRA_TEXT)
             activity?.intent?.clipData = null
         }
@@ -123,6 +112,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                 this,
                 icon,
                 Color.TRANSPARENT,
+                ResourcesCompat.getDrawable(
+                    resources,
+                    R.drawable.shape_default_background_border,
+                    context?.theme
+                ),
                 listOf(SubscriptionsListAdapter.SubscriptionFolderViewHolder::class)
             )
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
@@ -337,5 +331,19 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             .withLayer()
             .setInterpolator(AccelerateDecelerateInterpolator())
             .start()
+    }
+
+    private fun handleUrlFromExternalSource(url: String) {
+        if (URLUtil.isValidUrl(url)) {
+            val direction =
+                SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFragment(url)
+            findNavController().navigate(direction)
+        } else {
+            Snackbar.make(
+                binding.rootView,
+                R.string.error_illegal_argument_url,
+                Snackbar.LENGTH_LONG
+            ).show()
+        }
     }
 }

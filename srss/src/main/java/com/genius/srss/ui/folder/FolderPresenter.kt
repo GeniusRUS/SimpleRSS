@@ -44,9 +44,10 @@ class FolderPresenter @AssistedInject constructor(
     fun unlinkFolderByPosition(position: Int) {
         presenterScope.launch {
             try {
-                (state.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
-                    subscriptionsDao.removeCrossRefsById(
-                        urlToLoad = subscription.urlToLoad
+                (state.feedList[position] as? SubscriptionItemModel)?.urlToLoad?.let { urlToLoad ->
+                    subscriptionsDao.removeSingleCrossRefsByParameters(
+                        urlToLoad = urlToLoad,
+                        folderId = state.folderId
                     )
                 }
                 updateFolderFeed()

@@ -79,7 +79,7 @@ android {
     }
 }
 
-val daggerVer = "2.32"
+val daggerVer = "2.33"
 val moxyVer = "2.2.1"
 val roomVer = "2.2.6"
 val coroutineVer = "1.4.2"
@@ -119,7 +119,7 @@ dependencies {
     kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
-    implementation("com.kirich1409.viewbindingpropertydelegate:vbpd-noreflection:1.4.1")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.3")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")

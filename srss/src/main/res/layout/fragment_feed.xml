@@ -12,7 +12,7 @@
         android:id="@+id/refresher"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/primary_color"
+        app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/red"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.recyclerview.widget.RecyclerView
