@@ -3,11 +3,11 @@
     <color name="black">#FF000000</color>
     <color name="gray">#828282</color>
     <color name="gray_background">#33808080</color>
-    <color name="primary_color">#d68c43</color>
-    <color name="primary_dark_color">#ae6c2b</color>
     <color name="default_background">#FBFBFB</color>
     <color name="default_background_inverted">#333333</color>
     <color name="default_background_inverted_inactive">#33333333</color>
     <color name="button_text_color">#FFFFFF</color>
-    <color name="remove_color">#DC1B1E</color>
+    <color name="red">#DC1B1E</color>
+    <color name="red_light">#E3484A</color>
+    <color name="red_dark">#9A1215</color>
 </resources>

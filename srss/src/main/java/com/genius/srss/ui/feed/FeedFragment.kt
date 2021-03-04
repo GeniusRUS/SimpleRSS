@@ -180,7 +180,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
 
     override fun onClick(view: View, item: FeedItemModel, position: Int) {
         val colorScheme = CustomTabColorSchemeParams.Builder()
-            .setToolbarColor(ContextCompat.getColor(view.context, R.color.primary_dark_color))
+            .setToolbarColor(ContextCompat.getColor(view.context, R.color.red_dark))
             .build()
         val customTabsIntent = CustomTabsIntent.Builder()
             .setDefaultColorSchemeParams(colorScheme)

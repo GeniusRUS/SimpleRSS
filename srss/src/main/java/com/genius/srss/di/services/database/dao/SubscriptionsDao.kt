@@ -44,30 +44,42 @@ interface SubscriptionsDao {
     @Query("SELECT COUNT(*) FROM subscription_folder WHERE folderId == :folderId")
     suspend fun getCrossRefCountByFolderId(folderId: String): Int
 
-    @Query("DELETE FROM subscription_folder WHERE folderId IS NOT NULL AND folderId == :folderId OR urlOfSource IS NOT NULL AND urlOfSource == :urlToLoad")
-    suspend fun removeCrossRefsById(folderId: String? = null, urlToLoad: String? = null)
+    @Query("DELETE FROM subscription_folder WHERE urlOfSource == :urlToLoad AND folderId == :folderId")
+    suspend fun removeSingleCrossRefsByParameters(folderId: String? = null, urlToLoad: String? = null)
 
-    /**
-     * Do not must be used directly from the code, only in complex function [complexRemoveSubscriptionByUrl]
-     */
+    @Query("DELETE FROM subscription_folder WHERE folderId == :folderId")
+    suspend fun removeCrossRefsByFolderId(folderId: String)
+
+    @Query("DELETE FROM subscription_folder WHERE urlOfSource == :urlToLoad")
+    suspend fun removeCrossRefsByUrlOfSource(urlToLoad: String)
+
     @Query("DELETE FROM subscriptions WHERE urlToLoad == :urlToLoad")
+    @Deprecated(
+        message = "Do not must be used directly from the code, only in complex function",
+        replaceWith = ReplaceWith("complexRemoveSubscriptionByUrl(urlToLoad)"),
+        level = DeprecationLevel.ERROR
+    )
     suspend fun removeSubscriptionByUrl(urlToLoad: String)
 
-    /**
-     * Do not must be used directly from the code, only in complex function [complexRemoveFolderById]
-     */
     @Query("DELETE FROM folders WHERE id == :folderId")
+    @Deprecated(
+        message = "Do not must be used directly from the code, only in complex function",
+        replaceWith = ReplaceWith("complexRemoveFolderById(folderId)"),
+        level = DeprecationLevel.ERROR
+    )
     suspend fun removeFolderById(folderId: String)
 
+    @Suppress("DEPRECATION_ERROR")
     @Transaction
     suspend fun complexRemoveSubscriptionByUrl(urlToLoad: String) {
-        removeCrossRefsById(urlToLoad = urlToLoad)
+        removeCrossRefsByUrlOfSource(urlToLoad = urlToLoad)
         removeSubscriptionByUrl(urlToLoad = urlToLoad)
     }
 
+    @Suppress("DEPRECATION_ERROR")
     @Transaction
     suspend fun complexRemoveFolderById(folderId: String) {
-        removeCrossRefsById(folderId = folderId)
+        removeCrossRefsByFolderId(folderId = folderId)
         removeFolderById(folderId = folderId)
     }
 }

@@ -20,20 +20,6 @@
         tools:listitem="@layout/rv_subscription_item"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        android:layout_gravity="bottom|end"
-        android:contentDescription="@string/subscriptions_add_text_open"
-        android:src="@drawable/ic_vector_add_black_24dp"
-        app:backgroundTint="@color/primary_color"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_folder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,7 +29,8 @@
         android:src="@drawable/ic_vector_create_new_folder_black_24dp"
         android:visibility="invisible"
         app:fabSize="mini"
-        app:backgroundTint="@color/primary_color"
+        app:backgroundTint="@color/red"
+        app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/fab"
         app:layout_constraintEnd_toEndOf="@id/fab"
         app:layout_constraintStart_toStartOf="@id/fab"
@@ -59,9 +46,25 @@
         android:src="@drawable/ic_vector_rss_feed_black_24dp"
         android:visibility="invisible"
         app:fabSize="mini"
-        app:backgroundTint="@color/primary_color"
+        app:backgroundTint="@color/red"
+        app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/add_folder"
         app:layout_constraintEnd_toEndOf="@id/add_folder"
         app:layout_constraintStart_toStartOf="@id/add_folder"
         tools:visibility="visible"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="bottom|end"
+        android:contentDescription="@string/subscriptions_add_text_open"
+        android:src="@drawable/ic_vector_add_black_24dp"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/red"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

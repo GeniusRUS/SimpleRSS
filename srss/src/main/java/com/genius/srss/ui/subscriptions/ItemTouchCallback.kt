@@ -101,7 +101,7 @@ class ItemTouchCallback(
 
                             folder?.background = ResourcesCompat.getDrawable(
                                 recyclerView.context.resources,
-                                R.drawable.shape_primary_border,
+                                R.drawable.shape_default_background_border,
                                 recyclerView.context.theme
                             )
                             break

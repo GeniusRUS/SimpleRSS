@@ -8,12 +8,10 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.annotation.ColorInt
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_DRAG
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
 import androidx.recyclerview.widget.RecyclerView
-import com.genius.srss.R
 import kotlin.reflect.KClass
 
 class SubscriptionsItemTouchCallback(
@@ -22,6 +20,7 @@ class SubscriptionsItemTouchCallback(
     private val deleteIconDrawable: Drawable,
     @ColorInt
     private val backgroundColor: Int,
+    private val folderHighlightDrawable: Drawable?,
     private val excludedViewHolderTypes: List<KClass<out RecyclerView.ViewHolder>> = listOf()
 ) : ItemTouchHelper.Callback() {
 
@@ -99,11 +98,7 @@ class SubscriptionsItemTouchCallback(
                             folder = child
                             itemPosition = viewHolder.adapterPosition
 
-                            folder?.background = ResourcesCompat.getDrawable(
-                                recyclerView.context.resources,
-                                R.drawable.shape_primary_border,
-                                recyclerView.context.theme
-                            )
+                            folder?.background = folderHighlightDrawable
                             break
                         }
                     }
@@ -168,13 +163,23 @@ class SubscriptionsItemTouchCallback(
         } else if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
             if (folder != null) {
                 folder?.setBackgroundResource(0)
-                recyclerView.getChildViewHolder(recyclerView.getChildAt(itemPosition)).setIsRecyclable(true)
+                recyclerView.getChildAt(itemPosition)?.let { child ->
+                    recyclerView.getChildViewHolder(child).setIsRecyclable(true)
+                }
                 listener.onDragHolderToPosition(
                     itemPosition,
                     recyclerView.getChildAdapterPosition(folder ?: return)
                 )
             }
         }
+    }
+
+    override fun canDropOver(
+        recyclerView: RecyclerView,
+        current: RecyclerView.ViewHolder,
+        target: RecyclerView.ViewHolder
+    ): Boolean {
+        return current is SubscriptionsListAdapter.SubscriptionItemViewHolder && target is SubscriptionsListAdapter.SubscriptionFolderViewHolder
     }
 
     interface TouchListener {
