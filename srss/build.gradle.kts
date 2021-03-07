@@ -103,7 +103,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("com.unitbean.core:android:1.7.1")
+    implementation("io.github.unitbean:androidcore:1.8.0")
 
     implementation("io.coil-kt:coil:1.1.1")
 
@@ -119,7 +119,7 @@ dependencies {
     kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.3")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.4")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
