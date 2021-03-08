@@ -331,7 +331,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                         binding.addSubscription.isInvisible = true
                         ViewCompat.setTooltipText(
                             binding.fab,
-                            getString(R.string.subscriptions_add_folder_text)
+                            getString(R.string.subscriptions_add_text_open)
                         )
                         activeAnimation = null
                     }
