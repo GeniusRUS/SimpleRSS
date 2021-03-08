@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import by.kirich1409.viewbindingdelegate.ViewBindingProperty
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
@@ -141,7 +142,14 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
                     if (activeAnimation?.isRunning != true && binding.addSubscription.isVisible) {
-                        binding.fab.rotateImage(toClose = false)
+                        binding.fab.run {
+                            isActivated = false
+                            if (isRunning()) {
+                                stop()
+                            } else {
+                                start()
+                            }
+                        }
                         transformFab(toExtend = false)
                     }
                 }
@@ -213,7 +221,14 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         when (v?.id) {
             R.id.fab -> {
                 if (activeAnimation?.isRunning != true) {
-                    binding.fab.rotateImage(toClose = binding.addSubscription.isInvisible)
+                    binding.fab.run {
+                        isActivated = binding.addSubscription.isInvisible
+                        if (isRunning()) {
+                            stop()
+                        } else {
+                            start()
+                        }
+                    }
                     transformFab(toExtend = binding.addSubscription.isInvisible)
                 }
             }
@@ -316,21 +331,13 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                         binding.addSubscription.isInvisible = true
                         ViewCompat.setTooltipText(
                             binding.fab,
-                            getString(R.string.subscriptions_add_folder_text)
+                            getString(R.string.subscriptions_add_text_open)
                         )
                         activeAnimation = null
                     }
                 }
             }
         }.start()
-    }
-
-    private fun FloatingActionButton.rotateImage(toClose: Boolean) {
-        ViewCompat.animate(this)
-            .rotation(if (toClose) 225F else 0F)
-            .withLayer()
-            .setInterpolator(AccelerateDecelerateInterpolator())
-            .start()
     }
 
     private fun handleUrlFromExternalSource(url: String) {
@@ -345,5 +352,16 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                 Snackbar.LENGTH_LONG
             ).show()
         }
+    }
+
+    private fun FloatingActionButton.start() {
+        (drawable as? Animatable2Compat)?.start()
+    }
+
+    private fun FloatingActionButton.isRunning(): Boolean =
+        (drawable as? Animatable2Compat)?.isRunning ?: false
+
+    private fun FloatingActionButton.stop() {
+        (drawable as? Animatable2Compat)?.stop()
     }
 }

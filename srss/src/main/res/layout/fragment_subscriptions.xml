@@ -62,7 +62,7 @@
         android:layout_marginBottom="16dp"
         android:layout_gravity="bottom|end"
         android:contentDescription="@string/subscriptions_add_text_open"
-        android:src="@drawable/ic_vector_add_black_24dp"
+        android:src="@drawable/ic_vector_animate_plus_x"
         app:tint="@android:color/white"
         app:backgroundTint="@color/red"
         app:layout_constraintBottom_toBottomOf="parent"
