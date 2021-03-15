@@ -1,5 +1,7 @@
 package com.genius.srss.ui.feed
 
+import com.genius.srss.R
+import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.network.INetworkSource
 import com.ub.utils.LogUtils
@@ -19,6 +21,7 @@ interface FeedPresenterProvider {
 class FeedPresenter @AssistedInject constructor(
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
+    private val converters: SRSSConverters,
     @Assisted private val feedUrl: String
 ): MvpPresenter<FeedView>() {
 
@@ -41,6 +44,7 @@ class FeedPresenter @AssistedInject constructor(
                 updateFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
+                viewState.onShowError(R.string.subscription_feed_error)
             } finally {
                 state = state.copy(
                     isRefreshing = false
@@ -81,6 +85,7 @@ class FeedPresenter @AssistedInject constructor(
                 )
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
+                viewState.onShowError(R.string.subscription_feed_error)
             } finally {
                 state = state.copy(
                     isRefreshing = false
@@ -110,7 +115,9 @@ class FeedPresenter @AssistedInject constructor(
         val feed = networkSource.loadFeed(feedUrl) ?: return
         state = state.copy(
             feedContent = feed.items.map { item ->
-                val image = item.imageLink ?: item.enclosures.firstOrNull { it.type?.startsWith("image/") == true }?.link
+                val image = item.imageLink
+                    ?: item.enclosures.firstOrNull { it.type?.startsWith("image/") == true }?.link
+                    ?: converters.extractImageUrlFromText(item.description)
                 FeedItemModel(item.id, item.link, image, item.title, item.publicationDate)
             }
         )

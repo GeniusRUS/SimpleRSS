@@ -24,6 +24,8 @@
 
     <string name="subscription_folder_edit_hint">Новое имя папки</string>
     <string name="subscription_subscription_edit_hint">Новое имя ленты</string>
+    <string name="subscription_feed_error">Ошибка при получении ленты</string>
+    <string name="subscription_feed_error_action">Обновить</string>
 
     <string name="content_description_image">Изображение</string>
 

@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
@@ -19,6 +20,7 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
+import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.hideSoftKeyboard
 import com.ub.utils.openSoftKeyboard
@@ -35,6 +37,7 @@ interface FeedView : MvpView {
     fun onStateChanged(state: FeedStateModel)
     fun onUpdateNameToEdit(nameToEdit: String?)
     fun onScreenClose()
+    fun onShowError(@StringRes resId: Int)
 }
 
 class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
@@ -172,6 +175,14 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
 
     override fun onUpdateNameToEdit(nameToEdit: String?) {
         binding.updateNameField.setText(nameToEdit)
+    }
+
+    override fun onShowError(resId: Int) {
+        Snackbar.make(binding.rootView, resId, Snackbar.LENGTH_LONG)
+            .setAction(R.string.subscription_feed_error_action) {
+                presenter.updateFeed()
+            }
+            .show()
     }
 
     override fun onScreenClose() {
