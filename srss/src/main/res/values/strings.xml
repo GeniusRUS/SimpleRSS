@@ -24,6 +24,8 @@
 
     <string name="subscription_folder_edit_hint">New folder name</string>
     <string name="subscription_subscription_edit_hint">New subscription name</string>
+    <string name="subscription_feed_error">Error while receiving feed</string>
+    <string name="subscription_feed_error_action">Reload</string>
 
     <string name="content_description_image">Picture</string>
 
