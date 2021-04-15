@@ -1,6 +1,5 @@
 package com.genius.srss.ui.feed
 
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
@@ -12,7 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
-import androidx.core.view.*
+import androidx.core.view.WindowCompat
+import androidx.core.view.isGone
 import androidx.core.widget.addTextChangedListener
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -60,10 +60,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
 
     private val adapter: FeedListAdapter by lazy {
         DIManager.appComponent.inject(this)
-        val dividerDrawable = GradientDrawable().apply {
-            setColor(ContextCompat.getColor(requireContext(), R.color.divider_color))
-        }
-        FeedListAdapter(convertersProvider.get(), dividerDrawable)
+        FeedListAdapter(convertersProvider.get())
     }
 
     private var menu: Menu? = null
