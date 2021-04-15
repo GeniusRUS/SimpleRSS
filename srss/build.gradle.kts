@@ -79,10 +79,10 @@ android {
     }
 }
 
-val daggerVer = "2.33"
+val daggerVer = "2.34"
 val moxyVer = "2.2.1"
 val roomVer = "2.2.6"
-val coroutineVer = "1.4.2"
+val coroutineVer = "1.4.3"
 val navigationVer = "2.3.5"
 
 dependencies {

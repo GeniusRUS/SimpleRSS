@@ -1,13 +1,19 @@
 package com.genius.srss.di.services.converters
 
+import android.content.Context
+import android.text.format.DateUtils
+import com.genius.srss.R
 import com.ub.utils.year
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.inject.Inject
 import kotlin.coroutines.suspendCoroutine
 
-class SRSSConverters @Inject constructor() : IConverters {
+class SRSSConverters @Inject constructor(
+    private val context: Context
+) : IConverters {
 
     private val imgRegex = "<img[^>]+src\\s*=\\s*['\"]([^'\"]+)['\"][^>]*>"
 
@@ -20,7 +26,7 @@ class SRSSConverters @Inject constructor() : IConverters {
     }
 
     private val simpleDateShortFormat: SimpleDateFormat by lazy {
-        SimpleDateFormat("dd MMMM", Locale.getDefault())
+        SimpleDateFormat("d MMMM", Locale.getDefault())
     }
 
     override fun formatDateToString(date: Date): String {
@@ -28,7 +34,11 @@ class SRSSConverters @Inject constructor() : IConverters {
             time = date
         }.year
         return if (isCurrentYear) {
-            simpleDateShortFormat.format(date)
+            when {
+                DateUtils.isToday(date.time) -> context.getString(R.string.feed_date_today)
+                DateUtils.isToday(date.time + TimeUnit.DAYS.toMillis(1)) -> context.getString(R.string.feed_date_yesterday)
+                else -> simpleDateShortFormat.format(date)
+            }
         } else {
             simpleDateFullFormat.format(date)
         }

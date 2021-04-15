@@ -91,24 +91,14 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
             presenter.checkSaveAvailability(it?.toString())
         }
         binding.folderContent.applyInsetter {
-            type(ime = true, statusBars = true, navigationBars = true) {
-                padding(
-                    left = true,
-                    right = true,
-                    bottom = true
-                )
+            type(navigationBars = true) {
+                padding(bottom = true)
             }
-            consume(false)
         }
         binding.collapsingToolbar.applyInsetter {
-            type(ime = true, statusBars = true, navigationBars = true) {
-                padding(
-                    left = true,
-                    top = true,
-                    right = true
-                )
+            type(statusBars = true) {
+                margin(top = true)
             }
-            consume(false)
         }
 
         presenter.updateFolderFeed()

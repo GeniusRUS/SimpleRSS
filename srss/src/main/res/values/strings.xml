@@ -18,6 +18,8 @@
     <string name="option_menu_delete">Delete</string>
     <string name="option_menu_save">Save</string>
     <string name="folder_menu_edit_title">Edit</string>
+    <string name="feed_date_today">Today</string>
+    <string name="feed_date_yesterday">Yesterday</string>
     <string name="error_data_format_exception">No feed was found for this address</string>
     <string name="error_illegal_argument_url">Incorrect address format</string>
     <string name="error_http_insecure_format">Http addresses are not supported</string>

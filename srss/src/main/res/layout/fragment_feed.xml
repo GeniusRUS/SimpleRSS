@@ -38,12 +38,13 @@
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|enterAlwaysCollapsed">
+            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                app:layout_collapseMode="pin"
                 tools:title="@tools:sample/cities"
                 tools:menu="@menu/menu_options_button">
 
