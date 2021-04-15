@@ -10,4 +10,5 @@
     <color name="red">#DC1B1E</color>
     <color name="red_light">#E3484A</color>
     <color name="red_dark">#9A1215</color>
+    <color name="divider_color">#E0E0E0</color>
 </resources>

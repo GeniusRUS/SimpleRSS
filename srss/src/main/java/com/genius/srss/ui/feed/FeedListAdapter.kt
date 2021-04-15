@@ -1,5 +1,8 @@
 package com.genius.srss.ui.feed
 
+import android.graphics.Canvas
+import android.graphics.Rect
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,15 +15,16 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.clear
 import coil.load
 import coil.size.Scale
-import coil.transform.RoundedCornersTransformation
 import com.genius.srss.R
 import com.genius.srss.databinding.RvFeedItemBinding
 import com.genius.srss.di.services.converters.IConverters
+import com.ub.utils.ItemDecoratable
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
 
 class FeedListAdapter(
-    private val converters: IConverters
+    private val converters: IConverters,
+    private val dividerDrawable: Drawable
 ) : BaseListAdapter<FeedItemModel, RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -34,12 +38,14 @@ class FeedListAdapter(
         }
     }
 
-    inner class FeedItemViewHolder(binding: RvFeedItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+    inner class FeedItemViewHolder(binding: RvFeedItemBinding) : RecyclerView.ViewHolder(binding.root),
+        View.OnClickListener, ItemDecoratable {
 
         private val articleTitle: TextView = binding.articleTitle
         private val articleImage: ImageView = binding.image
         private val publicationDate: TextView = binding.publicationDate
-        private val cornerRadius: Float = binding.root.dpToPx(4)
+        private val dividerHeight: Int = binding.root.dpToPx(1).toInt()
+        private val dividerHorizontalSidePadding: Int = binding.root.dpToPx(8).toInt()
 
         init {
             binding.feedContent.setOnClickListener(this)
@@ -58,14 +64,6 @@ class FeedListAdapter(
                     scale(Scale.FIT)
                     placeholder(R.drawable.layer_list_image_placeholder)
                     error(R.drawable.layer_list_image_placeholder)
-                    transformations(
-                        RoundedCornersTransformation(
-                            topLeft = cornerRadius,
-                            topRight = cornerRadius,
-                            bottomLeft = cornerRadius,
-                            bottomRight = cornerRadius
-                        )
-                    )
                 }
             } else {
                 articleImage.isGone = true
@@ -82,6 +80,26 @@ class FeedListAdapter(
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
             listListener?.onClick(v, getItem(position), position)
+        }
+
+        override fun onGetOffsets(adapterPosition: Int): Rect {
+            return if (adapterPosition == itemCount - 1) {
+                Rect(0, 0, 0, 0)
+            } else {
+                Rect(0, 0, 0, dividerHeight)
+            }
+        }
+
+        override fun onItemDecorate(canvas: Canvas, adapterPosition: Int) {
+            if (adapterPosition == itemCount - 1) return
+            dividerDrawable.bounds = canvas.clipBounds
+            canvas.drawBottomDecorator(
+                this,
+                dividerDrawable,
+                height = dividerHeight,
+                rightPadding = dividerHorizontalSidePadding,
+                leftPadding = dividerHorizontalSidePadding
+            )
         }
     }
 }

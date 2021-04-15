@@ -42,4 +42,9 @@
         <item name="android:textSize">18sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
+
+    <style name="ImageViewRoundedAppearance" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">4dp</item>
+    </style>
 </resources>

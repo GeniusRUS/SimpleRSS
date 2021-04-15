@@ -1,5 +1,6 @@
 package com.genius.srss.ui.feed
 
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
@@ -21,6 +22,7 @@ import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
 import com.google.android.material.snackbar.Snackbar
+import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.hideSoftKeyboard
 import com.ub.utils.openSoftKeyboard
@@ -58,7 +60,10 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
 
     private val adapter: FeedListAdapter by lazy {
         DIManager.appComponent.inject(this)
-        FeedListAdapter(convertersProvider.get())
+        val dividerDrawable = GradientDrawable().apply {
+            setColor(ContextCompat.getColor(requireContext(), R.color.divider_color))
+        }
+        FeedListAdapter(convertersProvider.get(), dividerDrawable)
     }
 
     private var menu: Menu? = null
@@ -83,6 +88,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         binding.refresher.setOnRefreshListener {
             presenter.updateFeed()
         }
+        binding.feedContent.addItemDecoration(ViewHolderItemDecoration())
         binding.collapsingToolbar.isTitleEnabled = false
         binding.feedContent.setHasFixedSize(true)
         binding.feedContent.adapter = adapter
