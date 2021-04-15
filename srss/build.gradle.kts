@@ -83,29 +83,29 @@ val daggerVer = "2.33"
 val moxyVer = "2.2.1"
 val roomVer = "2.2.6"
 val coroutineVer = "1.4.2"
-val navigationVer = "2.3.3"
+val navigationVer = "2.3.5"
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.recyclerview:recyclerview:1.1.0")
+    implementation("androidx.recyclerview:recyclerview:1.2.0")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.3.0")
-    implementation("androidx.activity:activity-ktx:1.2.0")
-    implementation("androidx.fragment:fragment-ktx:1.3.0")
+    implementation("androidx.activity:activity-ktx:1.2.2")
+    implementation("androidx.fragment:fragment-ktx:1.3.2")
 
     implementation("com.google.android.material:material:1.3.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:1.8.0")
+    implementation("io.github.unitbean:androidcore:2.0.0")
 
-    implementation("io.coil-kt:coil:1.1.1")
+    implementation("io.coil-kt:coil:1.2.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
@@ -119,7 +119,7 @@ dependencies {
     kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.4")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.5")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")

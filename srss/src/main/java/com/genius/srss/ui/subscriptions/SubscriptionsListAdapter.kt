@@ -48,7 +48,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         }
 
         override fun onClick(v: View) {
-            val position = adapterPosition
+            val position = absoluteAdapterPosition
             listListener?.onClick(v, getItem(position), position)
         }
     }
@@ -71,7 +71,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         }
 
         override fun onClick(v: View) {
-            val position = adapterPosition
+            val position = absoluteAdapterPosition
             listListener?.onClick(v, getItem(position), position)
         }
     }

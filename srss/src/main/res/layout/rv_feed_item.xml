@@ -34,7 +34,7 @@
                 android:id="@+id/article_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:text="Test title"/>
+                tools:text="@tools:sample/cities"/>
 
             <TextView
                 android:id="@+id/publication_date"
