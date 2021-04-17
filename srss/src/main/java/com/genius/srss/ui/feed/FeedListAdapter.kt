@@ -53,6 +53,7 @@ class FeedListAdapter(
             articleImage.clear()
             articleImage.load(model.pictureUrl) {
                 scale(Scale.FIT)
+                crossfade(true)
                 placeholder(R.drawable.layer_list_image_placeholder)
                 fallback(R.drawable.layer_list_image_placeholder)
                 error(R.drawable.layer_list_image_placeholder)
