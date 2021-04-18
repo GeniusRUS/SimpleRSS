@@ -6,11 +6,10 @@
     android:id="@+id/feed_content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
     android:paddingLeft="8dp"
     android:paddingRight="8dp"
-    android:paddingBottom="4dp"
-    android:paddingTop="4dp">
+    android:paddingBottom="6dp"
+    android:paddingTop="6dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/image"
@@ -18,6 +17,7 @@
         android:layout_height="180dp"
         android:scaleType="centerCrop"
         android:contentDescription="@string/content_description_image"
+        android:background="@drawable/stroke_feed_item"
         app:shapeAppearanceOverlay="@style/ImageViewRoundedAppearance"
         tools:src="@tools:sample/backgrounds/scenic"/>
 
