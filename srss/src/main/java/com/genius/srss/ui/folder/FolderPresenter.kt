@@ -81,10 +81,10 @@ class FolderPresenter @AssistedInject constructor(
                 newFolderName?.let { newName ->
                     subscriptionsDao.updateFolderNameById(state.folderId, newName)
                 }
-                updateFolderFeedInternal()
                 state = state.copy(
                     isInEditMode = false
                 )
+                updateFolderFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

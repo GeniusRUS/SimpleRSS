@@ -1,7 +1,5 @@
 package com.genius.srss.ui.feed
 
-import com.einmalfel.earl.RSSFeed
-import com.einmalfel.earl.RSSItem
 import com.genius.srss.R
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
@@ -81,10 +79,10 @@ class FeedPresenter @AssistedInject constructor(
                 newSubscriptionName?.let { newName ->
                     subscriptionsDao.updateSubscriptionTitleByUrl(feedUrl, newName)
                 }
-                updateFeedInternal()
                 state = state.copy(
                     isInEditMode = false
                 )
+                updateFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
                 viewState.onShowError(R.string.subscription_feed_error)

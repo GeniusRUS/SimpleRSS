@@ -54,8 +54,8 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/subscription_subscription_edit_hint"
                     android:autofillHints="none"
-                    android:imeOptions="actionNone"
-                    android:inputType="textCapSentences"
+                    android:imeOptions="actionDone"
+                    android:inputType="textCapSentences|textNoSuggestions"
                     android:visibility="gone"
                     tools:visibility="visible"/>
             </androidx.appcompat.widget.Toolbar>

@@ -1,11 +1,14 @@
 package com.genius.srss.ui.folder
 
+import android.app.Activity
 import android.os.Bundle
 import android.graphics.Color
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.isGone
@@ -18,8 +21,8 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.subscriptions.*
+import com.ub.utils.LogUtils
 import com.ub.utils.base.BaseListAdapter
-import com.ub.utils.hideSoftKeyboard
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
@@ -77,6 +80,13 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         binding.folderContent.adapter = adapter
         binding.folderContent.setHasFixedSize(true)
         adapter.listListener = this
+
+        binding.updateNameField.setOnEditorActionListener { _, keyCode, _ ->
+            return@setOnEditorActionListener if (keyCode == EditorInfo.IME_ACTION_DONE) {
+                presenter.updateFolder(newFolderName = binding.updateNameField.text?.toString())
+                true
+            } else false
+        }
 
         ItemTouchHelper(
             FolderTouchHelperCallback(
@@ -155,9 +165,15 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
 
         if (state.isInEditMode) {
             menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-            openSoftKeyboard(context ?: return, binding.updateNameField)
+            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
         } else {
-            hideSoftKeyboard(context ?: return)
+            try {
+                val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
+                binding.updateNameField.clearFocus()
+            } catch (e: NullPointerException) {
+                LogUtils.e("KeyBoard", "NULL point exception in input method service")
+            }
         }
     }
 
