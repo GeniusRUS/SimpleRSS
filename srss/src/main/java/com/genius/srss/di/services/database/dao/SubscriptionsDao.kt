@@ -24,6 +24,7 @@ interface SubscriptionsDao {
     @Query("UPDATE subscriptions SET title = :newTitle WHERE urlToLoad = :urlToLoad")
     suspend fun updateSubscriptionTitleByUrl(urlToLoad: String, newTitle: String)
 
+    @RewriteQueriesToDropUnusedColumns
     @Query("SELECT * FROM subscriptions LEFT OUTER JOIN subscription_folder ON subscriptions.urlToLoad = subscription_folder.urlOfSource WHERE subscription_folder.urlOfSource IS NULL")
     suspend fun loadSubscriptionsWithoutFolders(): List<SubscriptionDatabaseModel>
 

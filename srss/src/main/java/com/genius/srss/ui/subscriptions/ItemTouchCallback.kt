@@ -61,7 +61,7 @@ class ItemTouchCallback(
         return true
     }
 
-    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = listener.onItemDismiss(viewHolder.adapterPosition)
+    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = listener.onItemDismiss(viewHolder.absoluteAdapterPosition)
 
     override fun isLongPressDragEnabled(): Boolean = true
 
@@ -97,7 +97,7 @@ class ItemTouchCallback(
                             && itemActualPositionX < child.right
                         ) {
                             folder = child
-                            itemPosition = viewHolder.adapterPosition
+                            itemPosition = viewHolder.absoluteAdapterPosition
 
                             folder?.background = ResourcesCompat.getDrawable(
                                 recyclerView.context.resources,

@@ -43,7 +43,7 @@ class FolderTouchHelperCallback(context: Context,
 
     override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
 
-    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = listener.onFolderDismiss(viewHolder.adapterPosition)
+    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = listener.onFolderDismiss(viewHolder.absoluteAdapterPosition)
 
     override fun isLongPressDragEnabled(): Boolean = false
 

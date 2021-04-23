@@ -79,9 +79,9 @@ android {
     }
 }
 
-val daggerVer = "2.34"
+val daggerVer = "2.35"
 val moxyVer = "2.2.1"
-val roomVer = "2.2.6"
+val roomVer = "2.3.0"
 val coroutineVer = "1.4.3"
 val navigationVer = "2.3.5"
 
@@ -96,7 +96,7 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.3.0")
     implementation("androidx.activity:activity-ktx:1.2.2")
-    implementation("androidx.fragment:fragment-ktx:1.3.2")
+    implementation("androidx.fragment:fragment-ktx:1.3.3")
 
     implementation("com.google.android.material:material:1.3.0")
 
