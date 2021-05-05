@@ -79,11 +79,12 @@ android {
     }
 }
 
-val daggerVer = "2.35"
+val daggerVer = "2.35.1"
 val moxyVer = "2.2.1"
 val roomVer = "2.3.0"
 val coroutineVer = "1.4.3"
 val navigationVer = "2.3.5"
+val okHttpVer = "4.9.1"
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
@@ -105,7 +106,7 @@ dependencies {
 
     implementation("io.github.unitbean:androidcore:2.0.0")
 
-    implementation("io.coil-kt:coil:1.2.0")
+    implementation("io.coil-kt:coil:1.2.1")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
@@ -119,10 +120,11 @@ dependencies {
     kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.5")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.6")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
+    implementation("com.squareup.okhttp3:okhttp:$okHttpVer")
+    implementation("com.squareup.okhttp3:logging-interceptor:$okHttpVer")
 
     implementation("androidx.room:room-runtime:$roomVer")
     implementation("androidx.room:room-ktx:$roomVer")
