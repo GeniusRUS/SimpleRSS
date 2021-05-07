@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
@@ -33,11 +34,11 @@ import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
 import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.AddToEndSingle
+import moxy.viewstate.strategy.alias.OneExecution
 import javax.inject.Inject
 import javax.inject.Provider
 
-@AddToEndSingle
+@OneExecution
 interface FeedView : MvpView {
     fun onStateChanged(state: FeedStateModel)
     fun onUpdateNameToEdit(nameToEdit: String?)
@@ -81,6 +82,20 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
             activity.supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
 
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object: OnBackPressedCallback(true){
+                override fun handleOnBackPressed() {
+                    val isInEditMode = presenter.isInEditMode
+                    if (isInEditMode) {
+                        presenter.changeEditMode(isEdit = false)
+                    } else {
+                        findNavController().popBackStack()
+                    }
+                }
+            }
+        )
+
         activity?.window?.let { window ->
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
@@ -121,11 +136,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                if (presenter.isInEditMode) {
-                    presenter.changeEditMode(isEdit = false)
-                } else {
-                    findNavController().popBackStack()
-                }
+                activity?.onBackPressed()
                 true
             }
             R.id.option_edit -> {

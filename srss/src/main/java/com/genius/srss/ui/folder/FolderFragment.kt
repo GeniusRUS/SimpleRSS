@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.isGone
@@ -28,10 +29,10 @@ import dev.chrisbanes.insetter.applyInsetter
 import moxy.MvpAppCompatFragment
 import moxy.MvpView
 import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.AddToEndSingle
+import moxy.viewstate.strategy.alias.OneExecution
 import javax.inject.Inject
 
-@AddToEndSingle
+@OneExecution
 interface FolderView : MvpView {
     fun onStateChanged(state: FolderStateModel)
     fun onUpdateNameToEdit(nameToEdit: String?)
@@ -72,9 +73,19 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
-        activity?.window?.let { window ->
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-        }
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object: OnBackPressedCallback(true){
+                override fun handleOnBackPressed() {
+                    val isInEditMode = presenter.isInEditMode
+                    if (isInEditMode) {
+                        presenter.changeEditMode(isEdit = false)
+                    } else {
+                        findNavController().popBackStack()
+                    }
+                }
+            }
+        )
 
         binding.collapsingToolbar.isTitleEnabled = false
         binding.folderContent.adapter = adapter
@@ -130,11 +141,7 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                if (presenter.isInEditMode) {
-                    presenter.changeEditMode(isEdit = false)
-                } else {
-                    findNavController().popBackStack()
-                }
+                activity?.onBackPressed()
                 true
             }
             R.id.option_edit -> {

@@ -95,6 +95,7 @@ class FeedPresenter @AssistedInject constructor(
     }
 
     fun checkSaveAvailability(newSubscriptionName: String?) {
+        if (!state.isInEditMode) return
         presenterScope.launch {
             try {
                 state = state.copy(

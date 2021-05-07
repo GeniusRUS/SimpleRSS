@@ -64,6 +64,7 @@ class FolderPresenter @AssistedInject constructor(
     }
 
     fun checkSaveAvailability(newFolderName: String?) {
+        if (!state.isInEditMode) return
         presenterScope.launch {
             try {
                 state = state.copy(
