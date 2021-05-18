@@ -6,21 +6,17 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
-import android.view.View
 import androidx.annotation.ColorInt
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_DRAG
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.reflect.KClass
 
 class SubscriptionsItemTouchCallback(
-    private val recyclerView: RecyclerView,
     private val listener: TouchListener,
     private val deleteIconDrawable: Drawable,
     @ColorInt
     private val backgroundColor: Int,
-    private val folderHighlightDrawable: Drawable?,
     private val excludedViewHolderTypes: List<KClass<out RecyclerView.ViewHolder>> = listOf()
 ) : ItemTouchHelper.Callback() {
 
@@ -35,8 +31,6 @@ class SubscriptionsItemTouchCallback(
     private val intrinsicHeight = deleteIconDrawable.intrinsicHeight
     private val background = ColorDrawable()
     private val clearPaint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
-    private var itemPosition: Int = RecyclerView.NO_POSITION
-    private var folder: View? = null
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
         return if (excludedViewHolderTypes.contains(viewHolder::class)) {
@@ -62,7 +56,7 @@ class SubscriptionsItemTouchCallback(
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = listener.onItemDismiss(viewHolder.absoluteAdapterPosition)
 
-    override fun isLongPressDragEnabled(): Boolean = true
+    override fun isLongPressDragEnabled(): Boolean = false
 
     override fun isItemViewSwipeEnabled(): Boolean = true
 
@@ -75,39 +69,6 @@ class SubscriptionsItemTouchCallback(
         actionState: Int,
         isCurrentlyActive: Boolean
     ) {
-        if (actionState == ACTION_STATE_DRAG && isCurrentlyActive) {
-            if (folder != null) {
-                folder?.setBackgroundResource(0)
-                folder = null
-            }
-            if (itemPosition != RecyclerView.NO_POSITION) {
-                itemPosition = RecyclerView.NO_POSITION
-            }
-            val itemActualPositionY = viewHolder.itemView.top + dY + viewHolder.itemView.height / 2f
-            val itemActualPositionX = viewHolder.itemView.left + dX + viewHolder.itemView.width / 2f
-
-            for (i in 0 until recyclerView.childCount) {
-                val child = recyclerView.getChildAt(i)
-                if (child != viewHolder.itemView) {
-                    if (excludedViewHolderTypes.contains(recyclerView.getChildViewHolder(child)::class)) {
-                        if (child.top < itemActualPositionY
-                            && itemActualPositionY < child.bottom
-                            && child.left < itemActualPositionX
-                            && itemActualPositionX < child.right
-                        ) {
-                            folder = child
-                            itemPosition = viewHolder.absoluteAdapterPosition
-
-                            folder?.background = folderHighlightDrawable
-                            break
-                        }
-                    }
-                }
-            }
-
-            super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-            return
-        }
         val itemView = viewHolder.itemView
         val isSwipeCanceled = dX == 0f && !isCurrentlyActive
 
@@ -148,38 +109,6 @@ class SubscriptionsItemTouchCallback(
         }
 
         super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-    }
-
-    override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
-        super.onSelectedChanged(viewHolder, actionState)
-        if (actionState == ACTION_STATE_DRAG) {
-            if (folder != null) {
-                folder?.setBackgroundResource(0)
-                folder = null
-            }
-            if (itemPosition != RecyclerView.NO_POSITION) {
-                itemPosition = RecyclerView.NO_POSITION
-            }
-        } else if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
-            if (folder != null) {
-                folder?.setBackgroundResource(0)
-                recyclerView.getChildAt(itemPosition)?.let { child ->
-                    recyclerView.getChildViewHolder(child).setIsRecyclable(true)
-                }
-                listener.onDragHolderToPosition(
-                    itemPosition,
-                    recyclerView.getChildAdapterPosition(folder ?: return)
-                )
-            }
-        }
-    }
-
-    override fun canDropOver(
-        recyclerView: RecyclerView,
-        current: RecyclerView.ViewHolder,
-        target: RecyclerView.ViewHolder
-    ): Boolean {
-        return current is SubscriptionsListAdapter.SubscriptionItemViewHolder && target is SubscriptionsListAdapter.SubscriptionFolderViewHolder
     }
 
     interface TouchListener {

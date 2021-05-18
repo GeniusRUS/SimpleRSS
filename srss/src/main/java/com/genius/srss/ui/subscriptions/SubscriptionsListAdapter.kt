@@ -10,8 +10,21 @@ import com.genius.srss.R
 import com.genius.srss.databinding.RvSubscriptionFolderItemBinding
 import com.genius.srss.databinding.RvSubscriptionItemBinding
 import com.ub.utils.base.BaseListAdapter
+import android.view.DragEvent
+import android.os.Build.VERSION_CODES
+
+import android.os.Build.VERSION
+
+import android.view.View.DragShadowBuilder
+
+import android.content.ClipData
+
+import android.content.ClipDescription
+import android.widget.FrameLayout
 
 class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
+
+    var touchListener: SubscriptionsItemTouchCallback.TouchListener? = null
 
     override fun getItemViewType(position: Int): Int {
         return getItem(position).getLayoutId()
@@ -34,33 +47,83 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         }
     }
 
-    inner class SubscriptionItemViewHolder(binding: RvSubscriptionItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+    inner class SubscriptionItemViewHolder(binding: RvSubscriptionItemBinding) : RecyclerView.ViewHolder(binding.root),
+        View.OnClickListener, View.OnLongClickListener {
 
         private val feedName: TextView = binding.feedName
         private val subscriptionContent: LinearLayout = binding.subscriptionContent
 
         init {
             subscriptionContent.setOnClickListener(this)
+            subscriptionContent.setOnLongClickListener(this)
         }
 
         fun bind(model: SubscriptionItemModel) {
             feedName.text = model.title
+            subscriptionContent.tag = model.urlToLoad
         }
 
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
             listListener?.onClick(v, getItem(position), position)
         }
+
+        @Suppress("DEPRECATION")
+        override fun onLongClick(view: View): Boolean {
+            val position = ClipData.Item(absoluteAdapterPosition.toString())
+            val mimeTypes = arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN)
+            val dragData = ClipData(
+                view.tag.toString(),
+                mimeTypes, position
+            )
+            val myShadow = DragShadowBuilder(view)
+
+            if (VERSION.SDK_INT >= VERSION_CODES.N) {
+                view.startDragAndDrop(dragData, myShadow, null, 0)
+            } else {
+                view.startDrag(dragData, myShadow, null, 0)
+            }
+            return true
+        }
     }
 
     inner class SubscriptionFolderViewHolder(binding: RvSubscriptionFolderItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
 
+        private val folderRoot: FrameLayout = binding.folderRoot
         private val folderName: TextView = binding.folderName
         private val folderCount: TextView = binding.folderCount
         private val folderContent: LinearLayout = binding.folderContent
 
         init {
             folderContent.setOnClickListener(this)
+            folderContent.setOnDragListener { _, event ->
+                return@setOnDragListener when (event.action) {
+                    DragEvent.ACTION_DRAG_STARTED -> {                     // drag has started, return true to tell that you're listening to the drag
+                        true
+                    }
+                    DragEvent.ACTION_DROP -> {
+                        val position = event.clipData.getItemAt(0).text.toString().toInt()
+                        // the dragged item was dropped into this view
+                        touchListener?.onDragHolderToPosition(
+                            holderPosition = position,
+                            targetPosition = absoluteAdapterPosition
+                        )
+                        folderRoot.setBackgroundResource(0)
+                        true
+                    }
+                    DragEvent.ACTION_DRAG_ENDED ->                     // the drag has ended
+                        false
+                    DragEvent.ACTION_DRAG_ENTERED -> {
+                        folderRoot.setBackgroundResource(R.drawable.shape_default_background_border)
+                        false
+                    }
+                    DragEvent.ACTION_DRAG_EXITED -> {
+                        folderRoot.setBackgroundResource(0)
+                        false
+                    }
+                    else -> false
+                }
+            }
         }
 
         fun bind(model: SubscriptionFolderItemModel) {

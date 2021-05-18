@@ -82,7 +82,7 @@ android {
 val daggerVer = "2.35.1"
 val moxyVer = "2.2.1"
 val roomVer = "2.3.0"
-val coroutineVer = "1.4.3"
+val coroutineVer = "1.5.0"
 val navigationVer = "2.3.5"
 val okHttpVer = "4.9.1"
 

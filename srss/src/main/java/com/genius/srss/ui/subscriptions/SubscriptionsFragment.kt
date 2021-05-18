@@ -109,15 +109,9 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             context?.theme
         )?.let { icon ->
             val callback = SubscriptionsItemTouchCallback(
-                binding.subscriptionsContent,
                 this,
                 icon,
                 Color.TRANSPARENT,
-                ResourcesCompat.getDrawable(
-                    resources,
-                    R.drawable.shape_default_background_border,
-                    context?.theme
-                ),
                 listOf(SubscriptionsListAdapter.SubscriptionFolderViewHolder::class)
             )
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
@@ -138,6 +132,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         binding.subscriptionsContent.adapter = adapter
         binding.subscriptionsContent.setHasFixedSize(true)
         adapter.listListener = this
+        adapter.touchListener = this
         binding.subscriptionsContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
