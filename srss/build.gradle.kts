@@ -79,8 +79,8 @@ android {
     }
 }
 
-val daggerVer = "2.35.1"
-val moxyVer = "2.2.1"
+val daggerVer = "2.36"
+val moxyVer = "2.2.2"
 val roomVer = "2.3.0"
 val coroutineVer = "1.5.0"
 val navigationVer = "2.3.5"
@@ -97,7 +97,7 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.3.0")
     implementation("androidx.activity:activity-ktx:1.2.3")
-    implementation("androidx.fragment:fragment-ktx:1.3.3")
+    implementation("androidx.fragment:fragment-ktx:1.3.4")
 
     implementation("com.google.android.material:material:1.3.0")
 
@@ -111,7 +111,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
 
-    implementation("dev.chrisbanes.insetter:insetter:0.5.0")
+    implementation("dev.chrisbanes.insetter:insetter:0.6.0")
 
     implementation("com.github.moxy-community:moxy:$moxyVer")
     implementation("com.github.moxy-community:moxy-androidx:$moxyVer")

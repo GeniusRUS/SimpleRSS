@@ -132,7 +132,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         binding.subscriptionsContent.adapter = adapter
         binding.subscriptionsContent.setHasFixedSize(true)
         adapter.listListener = this
-        adapter.touchListener = this
+        adapter.longTouchListener = this
         binding.subscriptionsContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
@@ -150,6 +150,26 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                 }
             }
         })
+        binding.subscriptionsContent.setOnDragListener { v, event ->
+            val offsetFromTop = event.y - binding.subscriptionsContent.paddingTop
+            val offsetFromBottom = binding.subscriptionsContent.height - binding.subscriptionsContent.paddingBottom - event.y
+
+            if (offsetFromTop in 0F..SCROLL_SLOW_THRESHOLD && binding.subscriptionsContent.canScrollVertically(-1)) {
+                when (offsetFromTop) {
+                    in 0F..SCROLL_FAST_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, -50)
+                    in SCROLL_FAST_THRESHOLD..SCROLL_MEDIUM_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, -25)
+                    in SCROLL_MEDIUM_THRESHOLD..SCROLL_SLOW_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, -10)
+                }
+            } else if (offsetFromBottom in 0F..SCROLL_SLOW_THRESHOLD && binding.subscriptionsContent.canScrollVertically(1)) {
+                when (offsetFromBottom) {
+                    in 0F..SCROLL_FAST_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, 50)
+                    in SCROLL_FAST_THRESHOLD..SCROLL_MEDIUM_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, 25)
+                    in SCROLL_MEDIUM_THRESHOLD..SCROLL_SLOW_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, 10)
+                }
+            }
+
+            return@setOnDragListener true
+        }
         (binding.subscriptionsContent.layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 return if (adapter.currentList[position] is SubscriptionFolderItemModel) 1 else 2
@@ -358,5 +378,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
 
     private fun FloatingActionButton.stop() {
         (drawable as? Animatable2Compat)?.stop()
+    }
+
+    private companion object {
+        private const val SCROLL_SLOW_THRESHOLD = 250F
+        private const val SCROLL_MEDIUM_THRESHOLD = 150F
+        private const val SCROLL_FAST_THRESHOLD = 50F
     }
 }

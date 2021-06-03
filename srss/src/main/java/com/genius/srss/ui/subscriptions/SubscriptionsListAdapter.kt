@@ -24,7 +24,7 @@ import android.widget.FrameLayout
 
 class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
 
-    var touchListener: SubscriptionsItemTouchCallback.TouchListener? = null
+    var longTouchListener: SubscriptionsItemTouchCallback.TouchListener? = null
 
     override fun getItemViewType(position: Int): Int {
         return getItem(position).getLayoutId()
@@ -55,7 +55,9 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
 
         init {
             subscriptionContent.setOnClickListener(this)
-            subscriptionContent.setOnLongClickListener(this)
+            if (longTouchListener != null) {
+                subscriptionContent.setOnLongClickListener(this)
+            }
         }
 
         fun bind(model: SubscriptionItemModel) {
@@ -104,7 +106,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
                     DragEvent.ACTION_DROP -> {
                         val position = event.clipData.getItemAt(0).text.toString().toInt()
                         // the dragged item was dropped into this view
-                        touchListener?.onDragHolderToPosition(
+                        longTouchListener?.onDragHolderToPosition(
                             holderPosition = position,
                             targetPosition = absoluteAdapterPosition
                         )
