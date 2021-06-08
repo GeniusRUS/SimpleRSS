@@ -3,32 +3,45 @@ package com.genius.srss.ui.feed
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import coil.clear
 import coil.load
 import coil.size.Scale
 import com.genius.srss.R
+import com.genius.srss.databinding.RvFeedEmptyBinding
 import com.genius.srss.databinding.RvFeedItemBinding
 import com.genius.srss.di.services.converters.IConverters
 import com.ub.utils.base.BaseListAdapter
 
 class FeedListAdapter(
     private val converters: IConverters
-) : BaseListAdapter<FeedItemModel, RecyclerView.ViewHolder>() {
+) : BaseListAdapter<FeedModels, RecyclerView.ViewHolder>() {
+
+    override fun getItemViewType(position: Int): Int {
+        return getItem(position).layoutId
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return FeedItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
+        return when (viewType) {
+            R.layout.rv_feed_item -> FeedItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
+            R.layout.rv_feed_empty -> FeedEmptyViewHolder(RvFeedEmptyBinding.inflate(inflater, parent, false))
+            else -> throw IllegalArgumentException("Unknown view type for inflate: $viewType")
+        }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is FeedItemViewHolder) {
-            holder.bind(getItem(position))
+            holder.bind(getItem(position) as FeedItemModel)
+        } else if (holder is FeedEmptyViewHolder) {
+            holder.bind(getItem(position) as FeedEmptyModel)
         }
     }
 
@@ -63,6 +76,34 @@ class FeedListAdapter(
                 publicationDate.text = converters.formatDateToString(model.publicationDate)
             } else {
                 publicationDate.isGone = true
+            }
+        }
+
+        override fun onClick(v: View) {
+            val position = absoluteAdapterPosition
+            listListener?.onClick(v, getItem(position), position)
+        }
+    }
+
+    inner class FeedEmptyViewHolder(binding: RvFeedEmptyBinding) : RecyclerView.ViewHolder(binding.root),
+        View.OnClickListener {
+
+        private val iconImage: ImageView = binding.icon
+        private val reasonText: TextView = binding.message
+        private val action: Button = binding.action
+
+        init {
+            action.setOnClickListener(this)
+        }
+
+        fun bind(model: FeedEmptyModel) {
+            iconImage.setImageDrawable(VectorDrawableCompat.create(itemView.context.resources, model.icon, itemView.context.theme))
+            reasonText.text = model.message
+            if (model.actionText.isNullOrEmpty()) {
+                action.isGone = true
+            } else {
+                action.isVisible = true
+                action.text = model.actionText
             }
         }
 

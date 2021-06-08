@@ -26,8 +26,13 @@
 
     <string name="subscription_folder_edit_hint">New folder name</string>
     <string name="subscription_subscription_edit_hint">New subscription name</string>
-    <string name="subscription_feed_error">Error while receiving feed</string>
+    <string name="subscription_feed_error">Something is wrong with the feed</string>
     <string name="subscription_feed_error_action">Reload</string>
+    <string name="subscription_feed_empty">The feed is empty</string>
+    <string name="subscription_empty">Feed list is empty</string>
+    <string name="subscription_empty_first">Add your first</string>
+    <string name="subscription_folder_empty">The folder is empty</string>
+    <string name="subscription_folder_add_subscription">Add new feed</string>
 
     <string name="content_description_image">Picture</string>
 

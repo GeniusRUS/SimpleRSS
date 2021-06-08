@@ -12,29 +12,16 @@
         tools:layout="@layout/fragment_subscriptions">
         <action
             android:id="@+id/action_subscriptionsFragment_to_feedFragment"
-            app:destination="@id/feedFragment">
-            <argument
-                android:name="feed_url"
-                app:argType="string" />
-        </action>
+            app:destination="@id/feedFragment"/>
         <action
             android:id="@+id/action_subscriptionsFragment_to_addFragment"
-            app:destination="@id/addFragment">
-            <argument
-                android:name="urlToAdd"
-                app:argType="string"
-                app:nullable="true" />
-        </action>
+            app:destination="@id/addFragment"/>
         <action
             android:id="@+id/action_subscriptionsFragment_to_addFolderFragment"
             app:destination="@id/addFolderFragment" />
         <action
             android:id="@+id/action_subscriptionsFragment_to_folderFragment"
-            app:destination="@id/folderFragment">
-            <argument
-                android:name="folderId"
-                app:argType="string" />
-        </action>
+            app:destination="@id/folderFragment"/>
     </fragment>
     <fragment
         android:id="@+id/feedFragment"
@@ -57,6 +44,12 @@
             app:popUpToInclusive="true" />
         <argument
             android:name="urlToAdd"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="folderId"
+            android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
     </fragment>
@@ -76,5 +69,8 @@
         <argument
             android:name="folderId"
             app:argType="string" />
+        <action
+            android:id="@+id/action_folderFragment_to_addFragment"
+            app:destination="@id/addFragment" />
     </fragment>
 </navigation>

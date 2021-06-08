@@ -150,7 +150,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
                 }
             }
         })
-        binding.subscriptionsContent.setOnDragListener { v, event ->
+        binding.subscriptionsContent.setOnDragListener { _, event ->
             val offsetFromTop = event.y - binding.subscriptionsContent.paddingTop
             val offsetFromBottom = binding.subscriptionsContent.height - binding.subscriptionsContent.paddingBottom - event.y
 
@@ -219,16 +219,22 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     }
 
     override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
-        if (item is SubscriptionItemModel) {
-            val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
-                item.urlToLoad ?: return
-            )
-            findNavController().navigate(direction)
-        } else if (item is SubscriptionFolderItemModel) {
-            val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
-                item.id
-            )
-            findNavController().navigate(direction)
+        when (item) {
+            is SubscriptionItemModel -> {
+                val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
+                    item.urlToLoad ?: return
+                )
+                findNavController().navigate(direction)
+            }
+            is SubscriptionFolderItemModel -> {
+                val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
+                    item.id
+                )
+                findNavController().navigate(direction)
+            }
+            is SubscriptionFolderEmptyModel -> {
+                onClick(binding.addSubscription)
+            }
         }
     }
 
@@ -254,9 +260,7 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             }
             R.id.add_subscription -> {
                 val direction =
-                    SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFragment(
-                        null
-                    )
+                    SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFragment()
                 findNavController().navigate(direction)
             }
         }

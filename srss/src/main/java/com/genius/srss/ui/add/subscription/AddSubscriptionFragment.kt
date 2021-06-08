@@ -26,7 +26,6 @@ import moxy.MvpView
 import moxy.ktx.moxyPresenter
 import moxy.viewstate.strategy.alias.OneExecution
 import javax.inject.Inject
-import javax.inject.Provider
 
 @OneExecution
 interface AddSubscriptionView : MvpView {
@@ -38,11 +37,11 @@ interface AddSubscriptionView : MvpView {
 class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subscription), AddSubscriptionView, View.OnClickListener {
 
     @Inject
-    lateinit var provider: Provider<AddSubscriptionPresenter>
+    lateinit var provider: AddSubscriptionPresenterFactory
 
     private val presenter: AddSubscriptionPresenter by moxyPresenter {
         DIManager.appComponent.inject(this)
-        provider.get()
+        provider.create(arguments.folderId)
     }
 
     private val binding: FragmentAddSubscriptionBinding by viewBinding(FragmentAddSubscriptionBinding::bind)
@@ -122,6 +121,7 @@ class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subsc
             }
             isAvailableToSave -> {
                 binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
+                hideSoftKeyboard(requireContext())
             }
             else -> {
                 binding.confirmButton.hideProgress(R.string.add_new_subscription_check)

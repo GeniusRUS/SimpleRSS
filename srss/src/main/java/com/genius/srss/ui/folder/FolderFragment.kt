@@ -194,8 +194,11 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
                 item.urlToLoad ?: return
             )
             findNavController().navigate(direction)
-        } else if (item is SubscriptionFolderItemModel) {
-
+        } else if (item is SubscriptionFolderEmptyModel) {
+            val direction = FolderFragmentDirections.actionFolderFragmentToAddFragment(
+                folderId = arguments.folderId
+            )
+            findNavController().navigate(direction)
         }
     }
 

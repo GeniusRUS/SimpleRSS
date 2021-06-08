@@ -10,7 +10,6 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
@@ -25,7 +24,6 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
-import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.LogUtils
 import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
@@ -43,11 +41,10 @@ interface FeedView : MvpView {
     fun onStateChanged(state: FeedStateModel)
     fun onUpdateNameToEdit(nameToEdit: String?)
     fun onScreenClose()
-    fun onShowError(@StringRes resId: Int)
 }
 
 class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
-    BaseListAdapter.BaseListClickListener<FeedItemModel> {
+    BaseListAdapter.BaseListClickListener<FeedModels> {
 
     @Inject
     lateinit var provider: FeedPresenterProvider
@@ -197,27 +194,23 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         binding.updateNameField.setText(nameToEdit)
     }
 
-    override fun onShowError(resId: Int) {
-        Snackbar.make(binding.rootView, resId, Snackbar.LENGTH_LONG)
-            .setAction(R.string.subscription_feed_error_action) {
-                presenter.updateFeed()
-            }
-            .show()
-    }
-
     override fun onScreenClose() {
         findNavController().popBackStack()
     }
 
-    override fun onClick(view: View, item: FeedItemModel, position: Int) {
-        val colorScheme = CustomTabColorSchemeParams.Builder()
-            .setToolbarColor(ContextCompat.getColor(view.context, R.color.red_dark))
-            .build()
-        val customTabsIntent = CustomTabsIntent.Builder()
-            .setDefaultColorSchemeParams(colorScheme)
-            .setShareState(CustomTabsIntent.SHARE_STATE_ON)
-            .setUrlBarHidingEnabled(true)
-            .build()
-        customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
+    override fun onClick(view: View, item: FeedModels, position: Int) {
+        if (item is FeedItemModel) {
+            val colorScheme = CustomTabColorSchemeParams.Builder()
+                .setToolbarColor(ContextCompat.getColor(view.context, R.color.red_dark))
+                .build()
+            val customTabsIntent = CustomTabsIntent.Builder()
+                .setDefaultColorSchemeParams(colorScheme)
+                .setShareState(CustomTabsIntent.SHARE_STATE_ON)
+                .setUrlBarHidingEnabled(true)
+                .build()
+            customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
+        } else if (item is FeedEmptyModel) {
+            presenter.updateFeed()
+        }
     }
 }

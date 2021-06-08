@@ -3,8 +3,6 @@ package com.genius.srss.ui.subscriptions
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.R
 import com.genius.srss.databinding.RvSubscriptionFolderItemBinding
@@ -20,14 +18,19 @@ import android.view.View.DragShadowBuilder
 import android.content.ClipData
 
 import android.content.ClipDescription
-import android.widget.FrameLayout
+import android.widget.*
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.genius.srss.databinding.RvFeedEmptyBinding
+import com.genius.srss.ui.feed.FeedEmptyModel
 
 class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
 
     var longTouchListener: SubscriptionsItemTouchCallback.TouchListener? = null
 
     override fun getItemViewType(position: Int): Int {
-        return getItem(position).getLayoutId()
+        return getItem(position).layoutId
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -35,6 +38,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         return when (viewType) {
             R.layout.rv_subscription_item -> SubscriptionItemViewHolder(RvSubscriptionItemBinding.inflate(inflater, parent, false))
             R.layout.rv_subscription_folder_item -> SubscriptionFolderViewHolder(RvSubscriptionFolderItemBinding.inflate(inflater, parent, false))
+            R.layout.rv_feed_empty -> SubscriptionFolderEmptyViewHolder(RvFeedEmptyBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Unknown view type for inflate: $viewType")
         }
     }
@@ -44,6 +48,8 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
             holder.bind(getItem(position) as SubscriptionItemModel)
         } else if (holder is SubscriptionFolderViewHolder) {
             holder.bind(getItem(position) as SubscriptionFolderItemModel)
+        } else if (holder is SubscriptionFolderEmptyViewHolder) {
+            holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
         }
     }
 
@@ -133,6 +139,34 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
             folderCount.text = String.format(
                 itemView.context.resources.getQuantityString(R.plurals.subscriptions_folder_count_template, model.countOtOfSources, model.countOtOfSources)
             )
+        }
+
+        override fun onClick(v: View) {
+            val position = absoluteAdapterPosition
+            listListener?.onClick(v, getItem(position), position)
+        }
+    }
+
+    inner class SubscriptionFolderEmptyViewHolder(binding: RvFeedEmptyBinding) : RecyclerView.ViewHolder(binding.root),
+        View.OnClickListener {
+
+        private val iconImage: ImageView = binding.icon
+        private val reasonText: TextView = binding.message
+        private val action: Button = binding.action
+
+        init {
+            action.setOnClickListener(this)
+        }
+
+        fun bind(model: SubscriptionFolderEmptyModel) {
+            iconImage.setImageDrawable(VectorDrawableCompat.create(itemView.context.resources, model.icon, itemView.context.theme))
+            reasonText.text = model.message
+            if (model.action.isNullOrEmpty()) {
+                action.isGone = true
+            } else {
+                action.isVisible = true
+                action.text = model.action
+            }
         }
 
         override fun onClick(v: View) {

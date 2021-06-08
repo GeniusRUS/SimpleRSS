@@ -3,8 +3,12 @@ package com.genius.srss.ui.add.subscription
 import com.genius.srss.R
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.database.models.SubscriptionDatabaseModel
+import com.genius.srss.di.services.database.models.SubscriptionFolderCrossRefDatabaseModel
 import com.genius.srss.di.services.network.INetworkSource
 import com.ub.utils.LogUtils
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import moxy.MvpPresenter
 import moxy.presenterScope
@@ -12,10 +16,15 @@ import org.xmlpull.v1.XmlPullParserException
 import java.lang.IllegalArgumentException
 import java.net.UnknownServiceException
 import java.util.zip.DataFormatException
-import javax.inject.Inject
 import kotlin.properties.Delegates
 
-class AddSubscriptionPresenter @Inject constructor(
+@AssistedFactory
+interface AddSubscriptionPresenterFactory {
+    fun create(folderId: String?): AddSubscriptionPresenter
+}
+
+class AddSubscriptionPresenter @AssistedInject constructor(
+    @Assisted private val folderId: String?,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao
 ) : MvpPresenter<AddSubscriptionView>() {
@@ -68,6 +77,14 @@ class AddSubscriptionPresenter @Inject constructor(
                             state.sourceUrl!!, state.title!!, state.timeOfAdd!!
                         )
                     )
+                    folderId?.let { folderIdToLink ->
+                        subscriptionsDao.saveSubscriptionFolderCrossRef(
+                            SubscriptionFolderCrossRefDatabaseModel(
+                                state.sourceUrl!!,
+                                folderIdToLink
+                            )
+                        )
+                    }
                     viewState.onSourceAdded(state.sourceUrl!!)
                 }
             } catch (e: Exception) {

@@ -1,6 +1,8 @@
 package com.genius.srss.ui.subscriptions
 
 import androidx.recyclerview.widget.RecyclerView
+import com.genius.srss.R
+import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.database.models.SubscriptionFolderCrossRefDatabaseModel
 import com.ub.utils.LogUtils
@@ -29,7 +31,7 @@ class SubscriptionsPresenter @Inject constructor(
                 }
                 state = state.copy(
                     isFullList = isFull,
-                    feedList = folders.map {
+                    feedList = (folders.map {
                         SubscriptionFolderItemModel(
                             it.id,
                             it.name,
@@ -39,6 +41,14 @@ class SubscriptionsPresenter @Inject constructor(
                         SubscriptionItemModel(
                             it.title,
                             it.urlToLoad
+                        )
+                    }).ifEmpty {
+                        listOf(
+                            SubscriptionFolderEmptyModel(
+                                icon = R.drawable.ic_vector_empty_folder,
+                                message = DIManager.appComponent.context.getString(R.string.subscription_empty),
+                                action = DIManager.appComponent.context.getString(R.string.subscription_empty_first)
+                            )
                         )
                     }
                 )

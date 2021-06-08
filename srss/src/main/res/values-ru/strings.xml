@@ -26,8 +26,13 @@
 
     <string name="subscription_folder_edit_hint">Новое имя папки</string>
     <string name="subscription_subscription_edit_hint">Новое имя ленты</string>
-    <string name="subscription_feed_error">Ошибка при получении ленты</string>
+    <string name="subscription_feed_error">С лентой что-то не так</string>
     <string name="subscription_feed_error_action">Обновить</string>
+    <string name="subscription_feed_empty">Лента пуста</string>
+    <string name="subscription_empty">Список лент пуст</string>
+    <string name="subscription_empty_first">Добавьте первую</string>
+    <string name="subscription_folder_empty">Папка пуста</string>
+    <string name="subscription_folder_add_subscription">Добавить ленту</string>
 
     <string name="content_description_image">Изображение</string>
 

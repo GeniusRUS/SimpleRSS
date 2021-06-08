@@ -1,6 +1,9 @@
 package com.genius.srss.ui.folder
 
+import com.genius.srss.R
+import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
+import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionItemModel
 import com.ub.utils.LogUtils
 import dagger.assisted.Assisted
@@ -107,12 +110,20 @@ class FolderPresenter @AssistedInject constructor(
         val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
         state = state.copy(
             title = folderWithSubscriptions?.folder?.name,
-            feedList = folderWithSubscriptions?.subscriptions?.map {
+            feedList = (folderWithSubscriptions?.subscriptions?.map {
                 SubscriptionItemModel(
                     it.title,
                     it.urlToLoad
                 )
-            } ?: emptyList()
+            } ?: emptyList()).ifEmpty {
+                listOf(
+                    SubscriptionFolderEmptyModel(
+                        icon = R.drawable.ic_vector_empty_folder,
+                        message = DIManager.appComponent.context.getString(R.string.subscription_folder_empty),
+                        action = DIManager.appComponent.context.getString(R.string.subscription_folder_add_subscription)
+                    )
+                )
+            }
         )
     }
 
