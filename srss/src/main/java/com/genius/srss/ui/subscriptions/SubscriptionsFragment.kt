@@ -24,6 +24,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
+import com.genius.srss.di.services.converters.IConverters
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
@@ -47,7 +48,8 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, View.OnClickListener,
     SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
 
-    private val adapter: SubscriptionsListAdapter by lazy { SubscriptionsListAdapter() }
+    @Inject
+    lateinit var convertersProvider: Provider<IConverters>
 
     @Inject
     lateinit var presenterProvider: Provider<SubscriptionsPresenter>
@@ -55,6 +57,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     private val presenter: SubscriptionsPresenter by moxyPresenter {
         DIManager.appComponent.inject(this)
         presenterProvider.get()
+    }
+
+    private val adapter: SubscriptionsListAdapter by lazy {
+        DIManager.appComponent.inject(this)
+        SubscriptionsListAdapter(convertersProvider.get())
     }
 
     private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> = viewBinding(

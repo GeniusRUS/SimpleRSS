@@ -7,5 +7,7 @@ data class FolderStateModel(
     val feedList: List<BaseSubscriptionModel> = listOf(),
     val title: String? = null,
     val isInEditMode: Boolean = false,
-    val isAvailableToSave: Boolean = false
+    val isAvailableToSave: Boolean = false,
+    val isCombinedMode: Boolean = false,
+    val isInFeedLoadingProgress: Boolean = false,
 )

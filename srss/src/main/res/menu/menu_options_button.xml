@@ -3,6 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/option_mode"
+        android:title="@string/folder_menu_mode"
+        android:icon="@drawable/ic_vector_list_24dp"
+        app:showAsAction="ifRoom"/>
+    <item
         android:id="@+id/option_edit"
         android:title="@string/folder_menu_edit_title"
         android:icon="@drawable/ic_vector_mode_24dp"

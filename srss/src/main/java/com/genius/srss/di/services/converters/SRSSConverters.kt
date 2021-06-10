@@ -2,17 +2,22 @@ package com.genius.srss.di.services.converters
 
 import android.content.Context
 import android.text.format.DateUtils
+import com.einmalfel.earl.Item
 import com.genius.srss.R
+import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.ub.utils.year
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.suspendCoroutine
 
 class SRSSConverters @Inject constructor(
-    private val context: Context
+    private val context: Context,
+    private val dispatcher: CoroutineContext
 ) : IConverters {
 
     private val imgRegex = "<img[^>]+src\\s*=\\s*['\"]([^'\"]+)['\"][^>]*>"
@@ -44,18 +49,22 @@ class SRSSConverters @Inject constructor(
         }
     }
 
-    override suspend fun extractImageUrlFromText(htmlTextWithImage: String?): String? = suspendCoroutine { continuation ->
-        try {
-            val imageUrl = htmlTextWithImage?.let { inputString ->
+    override suspend fun extractImageUrlFromText(htmlTextWithImage: String?): String? {
+        return htmlTextWithImage?.let { inputString ->
+            withContext(dispatcher) {
                 val matcher = imageInTextPattern.matcher(inputString)
                 val hasResult = matcher.find()
                 if (hasResult) {
                     matcher.group(1)
                 } else null
             }
-            continuation.resumeWith(Result.success(imageUrl))
-        } catch (e: Exception) {
-            continuation.resumeWith(Result.failure(e))
         }
+    }
+
+    override suspend fun convertNetworkFeedToLocal(item: Item): FeedItemModel {
+        val image = item.imageLink
+            ?: item.enclosures.firstOrNull { it.type?.startsWith("image/") == true }?.link
+            ?: extractImageUrlFromText(item.description)
+        return FeedItemModel(item.id, item.link, image, item.title, item.publicationDate)
     }
 }

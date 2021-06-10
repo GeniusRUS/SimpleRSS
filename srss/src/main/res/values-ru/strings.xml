@@ -15,8 +15,11 @@
     <string name="add_new_subscription_folder_save">Создать папку</string>
     <string name="add_new_subscription_folder_must_be_not_empty">Пожалуйста, введите имя</string>
 
+    <string name="folder_go_upward">Наверх</string>
+
     <string name="option_menu_delete">Удалить</string>
     <string name="option_menu_save">Сохранить</string>
+    <string name="folder_menu_mode">Режим</string>
     <string name="folder_menu_edit_title">Редактировать</string>
     <string name="feed_date_today">Сегодня</string>
     <string name="feed_date_yesterday">Вчера</string>
@@ -41,5 +44,12 @@
         <item quantity="few">%1$d источника</item>
         <item quantity="many">%1$d источников</item>
         <item quantity="other">%1$d источников</item>
+    </plurals>
+
+    <plurals name="folder_feed_list_not_fully_loaded">
+        <item quantity="one">%1$d лента не смогла загрузиться</item>
+        <item quantity="few">%1$d ленты не смогло загрузиться</item>
+        <item quantity="many">%1$d лент не смогло загрузиться</item>
+        <item quantity="other">%1$d лент не смогло загрузиться</item>
     </plurals>
 </resources>

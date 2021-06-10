@@ -24,6 +24,10 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
+import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
+import com.genius.srss.ui.subscriptions.FeedItemModel
+import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
+import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
 import com.ub.utils.LogUtils
 import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
@@ -44,7 +48,7 @@ interface FeedView : MvpView {
 }
 
 class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
-    BaseListAdapter.BaseListClickListener<FeedModels> {
+    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
     @Inject
     lateinit var provider: FeedPresenterProvider
@@ -59,9 +63,9 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
 
     private val binding: FragmentFeedBinding by viewBinding(FragmentFeedBinding::bind)
 
-    private val adapter: FeedListAdapter by lazy {
+    private val adapter: SubscriptionsListAdapter by lazy {
         DIManager.appComponent.inject(this)
-        FeedListAdapter(convertersProvider.get())
+        SubscriptionsListAdapter(convertersProvider.get())
     }
 
     private var menu: Menu? = null
@@ -157,6 +161,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         this.menu = menu
         menu.findItem(R.id.option_delete).isVisible = false
         menu.findItem(R.id.option_save).isVisible = false
+        menu.findItem(R.id.option_mode)?.isVisible = false
     }
 
     override fun onDestroyView() {
@@ -198,7 +203,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         findNavController().popBackStack()
     }
 
-    override fun onClick(view: View, item: FeedModels, position: Int) {
+    override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
         if (item is FeedItemModel) {
             val colorScheme = CustomTabColorSchemeParams.Builder()
                 .setToolbarColor(ContextCompat.getColor(view.context, R.color.red_dark))
@@ -209,7 +214,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
                 .setUrlBarHidingEnabled(true)
                 .build()
             customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
-        } else if (item is FeedEmptyModel) {
+        } else if (item is SubscriptionFolderEmptyModel) {
             presenter.updateFeed()
         }
     }

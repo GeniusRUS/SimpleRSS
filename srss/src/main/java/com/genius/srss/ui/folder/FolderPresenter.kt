@@ -2,13 +2,22 @@ package com.genius.srss.ui.folder
 
 import com.genius.srss.R
 import com.genius.srss.di.DIManager
+import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
+import com.genius.srss.di.services.database.models.SubscriptionDatabaseModel
+import com.genius.srss.di.services.network.INetworkSource
+import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
+import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionItemModel
 import com.ub.utils.LogUtils
+import com.ub.utils.renew
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import moxy.MvpPresenter
 import moxy.presenterScope
@@ -21,8 +30,10 @@ interface FolderPresenterFactory {
 
 class FolderPresenter @AssistedInject constructor(
     private val subscriptionsDao: SubscriptionsDao,
+    private val network: INetworkSource,
+    private val converters: SRSSConverters,
     @Assisted folderId: String
-): MvpPresenter<FolderView>() {
+) : MvpPresenter<FolderView>() {
 
     private var state: FolderStateModel by Delegates.observable(FolderStateModel(folderId = folderId)) { _, oldState, newState ->
         if (!oldState.isInEditMode && newState.isInEditMode) {
@@ -31,13 +42,18 @@ class FolderPresenter @AssistedInject constructor(
         viewState.onStateChanged(newState)
     }
 
+    private val listOfLoadingFeeds = mutableListOf<Deferred<Boolean>>()
+
     val isInEditMode: Boolean
         get() = state.isInEditMode
 
-    fun updateFolderFeed() {
+    val isInFeedListMode: Boolean
+        get() = state.isCombinedMode
+
+    fun updateFolderFeed(isManual: Boolean = false) {
         presenterScope.launch {
             try {
-                updateFolderFeedInternal()
+                updateFolderFeedInternal(isManual)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -88,7 +104,27 @@ class FolderPresenter @AssistedInject constructor(
                 state = state.copy(
                     isInEditMode = false
                 )
-                updateFolderFeedInternal()
+                updateFolderFeedInternal(isManual = true)
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
+            }
+        }
+    }
+
+    fun changeMode() {
+        presenterScope.launch {
+            try {
+                if (state.isCombinedMode) {
+                    listOfLoadingFeeds.forEach {
+                        if (it.isActive) {
+                            it.cancel()
+                        }
+                    }
+                }
+                state = state.copy(
+                    isCombinedMode = !state.isCombinedMode
+                )
+                updateFolderFeedInternal(isManual = false)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -106,25 +142,113 @@ class FolderPresenter @AssistedInject constructor(
         }
     }
 
-    private suspend fun updateFolderFeedInternal() {
-        val folderWithSubscriptions = subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
-        state = state.copy(
-            title = folderWithSubscriptions?.folder?.name,
-            feedList = (folderWithSubscriptions?.subscriptions?.map {
-                SubscriptionItemModel(
-                    it.title,
-                    it.urlToLoad
-                )
-            } ?: emptyList()).ifEmpty {
-                listOf(
-                    SubscriptionFolderEmptyModel(
-                        icon = R.drawable.ic_vector_empty_folder,
-                        message = DIManager.appComponent.context.getString(R.string.subscription_folder_empty),
-                        action = DIManager.appComponent.context.getString(R.string.subscription_folder_add_subscription)
-                    )
+    private suspend fun updateFolderFeedInternal(isManual: Boolean) {
+        val folderWithSubscriptions =
+            subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
+        if (state.isCombinedMode) {
+            state = state.copy(
+                isInFeedLoadingProgress = true,
+                title = folderWithSubscriptions?.folder?.name,
+                feedList = if (isManual) {
+                    state.feedList
+                } else {
+                    emptyList()
+                }
+            )
+            val atomicUpdateFeedsList = mutableListOf<BaseSubscriptionModel>()
+            parallelLoadingOfFeeds(
+                subscriptions = folderWithSubscriptions?.subscriptions,
+                displayedFeedSource = {
+                    if (isManual) {
+                        atomicUpdateFeedsList
+                    } else {
+                        state.feedList
+                    }
+                },
+                iterateFeedReceiver = { combinedFeedList ->
+                    if (isManual) {
+                        atomicUpdateFeedsList.renew(combinedFeedList)
+                    } else {
+                        state = state.copy(
+                            feedList = combinedFeedList
+                        )
+                    }
+                },
+                exceptionHandler = { exception ->
+                    LogUtils.e(TAG, exception.message, exception)
+                })
+            if (isManual) {
+                listOfLoadingFeeds.awaitAll()
+                state = state.copy(
+                    feedList = atomicUpdateFeedsList
                 )
             }
-        )
+            val loadedFeeds = listOfLoadingFeeds.awaitAll().count { it }
+            val failedToLoadListCount = listOfLoadingFeeds.size - loadedFeeds
+            if (failedToLoadListCount > 0) {
+                viewState.onShowLoadedFeedsCount(failedToLoadListCount)
+            }
+            listOfLoadingFeeds.clear()
+            state = state.copy(
+                isInFeedLoadingProgress = false
+            )
+        } else {
+            state = state.copy(
+                title = folderWithSubscriptions?.folder?.name,
+                feedList = (folderWithSubscriptions?.subscriptions?.map {
+                    SubscriptionItemModel(
+                        it.title,
+                        it.urlToLoad
+                    )
+                } ?: emptyList()).ifEmpty {
+                    listOf(
+                        SubscriptionFolderEmptyModel(
+                            icon = R.drawable.ic_vector_empty_folder,
+                            message = DIManager.appComponent.context.getString(R.string.subscription_folder_empty),
+                            action = DIManager.appComponent.context.getString(R.string.subscription_folder_add_subscription)
+                        )
+                    )
+                }
+            )
+        }
+    }
+
+    private suspend fun parallelLoadingOfFeeds(
+        subscriptions: List<SubscriptionDatabaseModel>?,
+        displayedFeedSource: () -> (List<BaseSubscriptionModel>),
+        iterateFeedReceiver: (List<BaseSubscriptionModel>) -> Unit,
+        exceptionHandler: (Exception) -> Unit
+    ) {
+        listOfLoadingFeeds.forEach {
+            if (it.isActive) {
+                it.cancel()
+            }
+        }
+        listOfLoadingFeeds.clear()
+        for (subscription in subscriptions ?: emptyList()) {
+            val subFeed = presenterScope.async {
+                try {
+                    network.loadFeed(subscription.urlToLoad)
+                } catch (e: Exception) {
+                    exceptionHandler.invoke(e)
+                    null
+                }?.let { feed ->
+                    val localFeed = feed.items.map { item ->
+                        converters.convertNetworkFeedToLocal(item)
+                    }
+                    val combinedFeed = displayedFeedSource.invoke() + localFeed
+                    iterateFeedReceiver.invoke(
+                        combinedFeed.sortedByDescending { item ->
+                            if (item is FeedItemModel) {
+                                item.publicationDate?.time
+                            } else null
+                        }
+                    )
+                    return@async true
+                } ?: return@async false
+            }
+            listOfLoadingFeeds.add(subFeed)
+        }
     }
 
     companion object {

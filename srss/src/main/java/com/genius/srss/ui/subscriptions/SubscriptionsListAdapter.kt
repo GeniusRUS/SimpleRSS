@@ -19,13 +19,20 @@ import android.content.ClipData
 
 import android.content.ClipDescription
 import android.widget.*
+import androidx.core.text.HtmlCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import coil.clear
+import coil.load
+import coil.size.Scale
 import com.genius.srss.databinding.RvFeedEmptyBinding
-import com.genius.srss.ui.feed.FeedEmptyModel
+import com.genius.srss.databinding.RvFeedItemBinding
+import com.genius.srss.di.services.converters.IConverters
 
-class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
+class SubscriptionsListAdapter(
+    private val converters: IConverters
+) : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
 
     var longTouchListener: SubscriptionsItemTouchCallback.TouchListener? = null
 
@@ -39,17 +46,17 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
             R.layout.rv_subscription_item -> SubscriptionItemViewHolder(RvSubscriptionItemBinding.inflate(inflater, parent, false))
             R.layout.rv_subscription_folder_item -> SubscriptionFolderViewHolder(RvSubscriptionFolderItemBinding.inflate(inflater, parent, false))
             R.layout.rv_feed_empty -> SubscriptionFolderEmptyViewHolder(RvFeedEmptyBinding.inflate(inflater, parent, false))
+            R.layout.rv_feed_item -> FeedItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Unknown view type for inflate: $viewType")
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (holder is SubscriptionItemViewHolder) {
-            holder.bind(getItem(position) as SubscriptionItemModel)
-        } else if (holder is SubscriptionFolderViewHolder) {
-            holder.bind(getItem(position) as SubscriptionFolderItemModel)
-        } else if (holder is SubscriptionFolderEmptyViewHolder) {
-            holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
+        when (holder) {
+            is SubscriptionItemViewHolder -> holder.bind(getItem(position) as SubscriptionItemModel)
+            is SubscriptionFolderViewHolder -> holder.bind(getItem(position) as SubscriptionFolderItemModel)
+            is SubscriptionFolderEmptyViewHolder -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
+            is FeedItemViewHolder -> holder.bind(getItem(position) as FeedItemModel)
         }
     }
 
@@ -95,7 +102,8 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         }
     }
 
-    inner class SubscriptionFolderViewHolder(binding: RvSubscriptionFolderItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener {
+    inner class SubscriptionFolderViewHolder(binding: RvSubscriptionFolderItemBinding) : RecyclerView.ViewHolder(binding.root),
+        View.OnClickListener {
 
         private val folderRoot: FrameLayout = binding.folderRoot
         private val folderName: TextView = binding.folderName
@@ -166,6 +174,46 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
             } else {
                 action.isVisible = true
                 action.text = model.action
+            }
+        }
+
+        override fun onClick(v: View) {
+            val position = absoluteAdapterPosition
+            listListener?.onClick(v, getItem(position), position)
+        }
+    }
+
+    inner class FeedItemViewHolder(binding: RvFeedItemBinding) : RecyclerView.ViewHolder(binding.root),
+        View.OnClickListener {
+
+        private val articleTitle: TextView = binding.articleTitle
+        private val articleImage: ImageView = binding.image
+        private val publicationDate: TextView = binding.publicationDate
+
+        init {
+            binding.feedContent.setOnClickListener(this)
+        }
+
+        fun bind(model: FeedItemModel) {
+            if (model.title != null) {
+                articleTitle.isVisible = true
+                articleTitle.text = HtmlCompat.fromHtml(model.title, HtmlCompat.FROM_HTML_MODE_LEGACY)
+            } else {
+                articleTitle.isGone = true
+            }
+            articleImage.clear()
+            articleImage.load(model.pictureUrl) {
+                scale(Scale.FIT)
+                crossfade(true)
+                placeholder(R.drawable.layer_list_image_placeholder)
+                fallback(R.drawable.layer_list_image_placeholder)
+                error(R.drawable.layer_list_image_placeholder)
+            }
+            if (model.publicationDate != null) {
+                publicationDate.isVisible = true
+                publicationDate.text = converters.formatDateToString(model.publicationDate)
+            } else {
+                publicationDate.isGone = true
             }
         }
 

@@ -5,6 +5,7 @@ import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.network.INetworkSource
+import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.ub.utils.LogUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -47,10 +48,10 @@ class FeedPresenter @AssistedInject constructor(
                 LogUtils.e(TAG, e.message, e)
                 state = state.copy(
                     feedContent = listOf(
-                        FeedEmptyModel(
+                        SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
                             message = DIManager.appComponent.context.getString(R.string.subscription_feed_error),
-                            actionText = DIManager.appComponent.context.getString(R.string.subscription_feed_error_action)
+                            action = DIManager.appComponent.context.getString(R.string.subscription_feed_error_action)
                         )
                     )
                 )
@@ -96,10 +97,10 @@ class FeedPresenter @AssistedInject constructor(
                 LogUtils.e(TAG, e.message, e)
                 state = state.copy(
                     feedContent = listOf(
-                        FeedEmptyModel(
+                        SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
                             message = DIManager.appComponent.context.getString(R.string.subscription_feed_error),
-                            actionText = DIManager.appComponent.context.getString(R.string.subscription_feed_error_action)
+                            action = DIManager.appComponent.context.getString(R.string.subscription_feed_error_action)
                         )
                     )
                 )
@@ -133,13 +134,10 @@ class FeedPresenter @AssistedInject constructor(
         val feed = networkSource.loadFeed(feedUrl) ?: throw NullPointerException("Parsed feed is null")
         state = state.copy(
             feedContent = feed.items.map { item ->
-                val image = item.imageLink
-                    ?: item.enclosures.firstOrNull { it.type?.startsWith("image/") == true }?.link
-                    ?: converters.extractImageUrlFromText(item.description)
-                FeedItemModel(item.id, item.link, image, item.title, item.publicationDate)
+                converters.convertNetworkFeedToLocal(item)
             }.ifEmpty {
                 listOf(
-                    FeedEmptyModel(
+                    SubscriptionFolderEmptyModel(
                         icon = R.drawable.ic_vector_empty_folder,
                         message = DIManager.appComponent.context.getString(R.string.subscription_feed_empty)
                     )

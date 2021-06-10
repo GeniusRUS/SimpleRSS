@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import com.genius.srss.R
 import com.ub.utils.base.DiffComparable
+import java.util.*
 
 data class SubscriptionsStateModel(
     val feedList: List<BaseSubscriptionModel> = listOf(),
@@ -18,7 +19,7 @@ sealed class BaseSubscriptionModel : DiffComparable {
 data class SubscriptionItemModel(
     val title: String?,
     val urlToLoad: String?,
-    override val layoutId: Int = R.layout.rv_subscription_item
+    override val layoutId: Int = R.layout.rv_subscription_item,
 ) : BaseSubscriptionModel() {
     override fun getItemId(): Int = urlToLoad.hashCode()
 }
@@ -33,12 +34,34 @@ data class SubscriptionFolderItemModel(
 }
 
 data class SubscriptionFolderEmptyModel(
-    val id: String = "empty",
     @DrawableRes
     val icon: Int,
     val message: String,
-    val action: String?,
+    val action: String? = null,
+    private val id: String = "empty",
     override val layoutId: Int = R.layout.rv_feed_empty
+) : BaseSubscriptionModel() {
+    override fun getItemId(): Int = id.hashCode()
+}
+
+data class FeedItemModel(
+    private val id: String?,
+    val url: String?,
+    val pictureUrl: String?,
+    val title: String?,
+    val publicationDate: Date?,
+    override val layoutId: Int = R.layout.rv_feed_item,
+) : BaseSubscriptionModel() {
+    override fun getItemId(): Int = id.hashCode()
+}
+
+data class FeedEmptyModel(
+    @DrawableRes
+    val icon: Int,
+    val message: String? = null,
+    val actionText: String? = null,
+    private val id: String = "empty",
+    override val layoutId: Int = R.layout.rv_feed_empty,
 ) : BaseSubscriptionModel() {
     override fun getItemId(): Int = id.hashCode()
 }
