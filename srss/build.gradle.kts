@@ -79,7 +79,7 @@ android {
     }
 }
 
-val daggerVer = "2.36"
+val daggerVer = "2.37"
 val moxyVer = "2.2.2"
 val roomVer = "2.3.0"
 val coroutineVer = "1.5.0"
