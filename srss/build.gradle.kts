@@ -104,7 +104,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:2.0.0")
+    implementation("io.github.unitbean:androidcore:2.1.0")
 
     implementation("io.coil-kt:coil:1.2.2")
 

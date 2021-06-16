@@ -135,6 +135,8 @@ class FeedPresenter @AssistedInject constructor(
         state = state.copy(
             feedContent = feed.items.map { item ->
                 converters.convertNetworkFeedToLocal(item)
+            }.sortedByDescending { feedItem ->
+                feedItem.publicationDate?.time
             }.ifEmpty {
                 listOf(
                     SubscriptionFolderEmptyModel(
