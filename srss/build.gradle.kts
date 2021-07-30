@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdk = 30
     defaultConfig {
         applicationId = "com.genius.srss"
-        minSdkVersion(21)
-        targetSdkVersion(30)
+        minSdk = 21
+        targetSdk = 30
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -88,25 +88,25 @@ val okHttpVer = "4.9.1"
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
-    implementation("androidx.core:core-ktx:1.5.0")
+    implementation("androidx.core:core-ktx:1.6.0")
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation("androidx.appcompat:appcompat:1.3.0")
+    implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.3.0")
-    implementation("androidx.activity:activity-ktx:1.2.3")
-    implementation("androidx.fragment:fragment-ktx:1.3.5")
+    implementation("androidx.activity:activity-ktx:1.3.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
 
-    implementation("com.google.android.material:material:1.3.0")
+    implementation("com.google.android.material:material:1.4.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
     implementation("io.github.unitbean:androidcore:2.1.0")
 
-    implementation("io.coil-kt:coil:1.2.2")
+    implementation("io.coil-kt:coil:1.3.1")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
@@ -120,7 +120,7 @@ dependencies {
     kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.6")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.7")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:okhttp:$okHttpVer")
@@ -129,6 +129,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVer")
     implementation("androidx.room:room-ktx:$roomVer")
     kapt("androidx.room:room-compiler:$roomVer")
+    kapt("org.xerial:sqlite-jdbc:3.34.0")
 
     implementation("com.google.dagger:dagger:$daggerVer")
     implementation("com.google.dagger:dagger-android:$daggerVer")
@@ -136,6 +137,6 @@ dependencies {
     kapt("com.google.dagger:dagger-android-processor:$daggerVer")
 
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.2")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.3")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 }
