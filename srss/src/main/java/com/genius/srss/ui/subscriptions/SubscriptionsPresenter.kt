@@ -1,8 +1,8 @@
 package com.genius.srss.ui.subscriptions
 
+import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.R
-import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.database.models.SubscriptionFolderCrossRefDatabaseModel
 import com.ub.utils.LogUtils
@@ -13,6 +13,7 @@ import javax.inject.Inject
 import kotlin.properties.Delegates
 
 class SubscriptionsPresenter @Inject constructor(
+    private val context: Context,
     private val subscriptionDao: SubscriptionsDao
 ): MvpPresenter<SubscriptionsView>() {
 
@@ -23,7 +24,7 @@ class SubscriptionsPresenter @Inject constructor(
     fun updateFeed(isFull: Boolean = state.isFullList) {
         presenterScope.launch {
             try {
-                val folders = subscriptionDao.loadAllFolders()
+                val folders = subscriptionDao.loadAllFolders().sortedBy { it.dateOfCreation }
                 val subscriptions = if (isFull) {
                     subscriptionDao.loadSubscriptions()
                 } else {
@@ -46,8 +47,8 @@ class SubscriptionsPresenter @Inject constructor(
                         listOf(
                             SubscriptionFolderEmptyModel(
                                 icon = R.drawable.ic_vector_empty_folder,
-                                message = DIManager.appComponent.context.getString(R.string.subscription_empty),
-                                action = DIManager.appComponent.context.getString(R.string.subscription_empty_first)
+                                message = context.getString(R.string.subscription_empty),
+                                action = context.getString(R.string.subscription_empty_first)
                             )
                         )
                     }

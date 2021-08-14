@@ -15,7 +15,8 @@ data class SubscriptionFolderDatabaseModel(
     @PrimaryKey
     val id: String,
     val name: String,
-    val dateOfCreation: Long
+    val dateOfCreation: Long,
+    val isInFeedMode: Boolean = false
 )
 
 @Entity(

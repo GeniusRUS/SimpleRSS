@@ -19,7 +19,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
-        resConfigs("ru", "en")
+        resourceConfigurations.addAll(listOf("ru", "en"))
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -68,21 +68,21 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     buildFeatures {
         viewBinding = true
     }
 }
 
-val daggerVer = "2.37"
+val daggerVer = "2.38.1"
 val moxyVer = "2.2.2"
 val roomVer = "2.3.0"
-val coroutineVer = "1.5.0"
+val coroutineVer = "1.5.1"
 val navigationVer = "2.3.5"
 val okHttpVer = "4.9.1"
 
@@ -93,10 +93,10 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.3.0")
-    implementation("androidx.activity:activity-ktx:1.3.0")
+    implementation("androidx.activity:activity-ktx:1.3.1")
     implementation("androidx.fragment:fragment-ktx:1.3.6")
 
     implementation("com.google.android.material:material:1.4.0")
@@ -106,7 +106,7 @@ dependencies {
 
     implementation("io.github.unitbean:androidcore:2.1.0")
 
-    implementation("io.coil-kt:coil:1.3.1")
+    implementation("io.coil-kt:coil:1.3.2")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
@@ -129,7 +129,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVer")
     implementation("androidx.room:room-ktx:$roomVer")
     kapt("androidx.room:room-compiler:$roomVer")
-    kapt("org.xerial:sqlite-jdbc:3.34.0")
+    kapt("org.xerial:sqlite-jdbc:3.36.0.1")
 
     implementation("com.google.dagger:dagger:$daggerVer")
     implementation("com.google.dagger:dagger-android:$daggerVer")

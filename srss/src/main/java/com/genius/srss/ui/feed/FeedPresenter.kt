@@ -1,7 +1,7 @@
 package com.genius.srss.ui.feed
 
+import android.content.Context
 import com.genius.srss.R
-import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.network.INetworkSource
@@ -21,6 +21,7 @@ interface FeedPresenterProvider {
 }
 
 class FeedPresenter @AssistedInject constructor(
+    private val context: Context,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
@@ -50,8 +51,8 @@ class FeedPresenter @AssistedInject constructor(
                     feedContent = listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
-                            message = DIManager.appComponent.context.getString(R.string.subscription_feed_error),
-                            action = DIManager.appComponent.context.getString(R.string.subscription_feed_error_action)
+                            message = context.getString(R.string.subscription_feed_error),
+                            action = context.getString(R.string.subscription_feed_error_action)
                         )
                     )
                 )
@@ -99,8 +100,8 @@ class FeedPresenter @AssistedInject constructor(
                     feedContent = listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
-                            message = DIManager.appComponent.context.getString(R.string.subscription_feed_error),
-                            action = DIManager.appComponent.context.getString(R.string.subscription_feed_error_action)
+                            message = context.getString(R.string.subscription_feed_error),
+                            action = context.getString(R.string.subscription_feed_error_action)
                         )
                     )
                 )
@@ -141,7 +142,7 @@ class FeedPresenter @AssistedInject constructor(
                 listOf(
                     SubscriptionFolderEmptyModel(
                         icon = R.drawable.ic_vector_empty_folder,
-                        message = DIManager.appComponent.context.getString(R.string.subscription_feed_empty)
+                        message = context.getString(R.string.subscription_feed_empty)
                     )
                 )
             }

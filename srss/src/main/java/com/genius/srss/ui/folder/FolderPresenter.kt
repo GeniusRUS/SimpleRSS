@@ -1,7 +1,7 @@
 package com.genius.srss.ui.folder
 
+import android.content.Context
 import com.genius.srss.R
-import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.database.models.SubscriptionDatabaseModel
@@ -29,6 +29,7 @@ interface FolderPresenterFactory {
 }
 
 class FolderPresenter @AssistedInject constructor(
+    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val network: INetworkSource,
     private val converters: SRSSConverters,
@@ -121,10 +122,15 @@ class FolderPresenter @AssistedInject constructor(
                         }
                     }
                 }
-                state = state.copy(
-                    isCombinedMode = !state.isCombinedMode
+                val folderWithSubscriptions =
+                    subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
+                val modifiedFolder = folderWithSubscriptions?.folder?.copy(
+                    isInFeedMode = folderWithSubscriptions.folder.isInFeedMode.not()
                 )
-                updateFolderFeedInternal(isManual = false)
+                modifiedFolder?.let { folder ->
+                    subscriptionsDao.saveFolder(folder)
+                    updateFolderFeedInternal(isManual = false)
+                }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -145,19 +151,20 @@ class FolderPresenter @AssistedInject constructor(
     private suspend fun updateFolderFeedInternal(isManual: Boolean) {
         val folderWithSubscriptions =
             subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
-        if (state.isCombinedMode) {
+        if (folderWithSubscriptions?.folder?.isInFeedMode == true) {
             state = state.copy(
                 isInFeedLoadingProgress = true,
-                title = folderWithSubscriptions?.folder?.name,
+                title = folderWithSubscriptions.folder.name,
                 feedList = if (isManual) {
                     state.feedList
                 } else {
                     emptyList()
-                }
+                },
+                isCombinedMode = folderWithSubscriptions.folder.isInFeedMode
             )
             val atomicUpdateFeedsList = mutableListOf<BaseSubscriptionModel>()
             parallelLoadingOfFeeds(
-                subscriptions = folderWithSubscriptions?.subscriptions,
+                subscriptions = folderWithSubscriptions.subscriptions,
                 displayedFeedSource = {
                     if (isManual) {
                         atomicUpdateFeedsList
@@ -204,11 +211,12 @@ class FolderPresenter @AssistedInject constructor(
                     listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_empty_folder,
-                            message = DIManager.appComponent.context.getString(R.string.subscription_folder_empty),
-                            action = DIManager.appComponent.context.getString(R.string.subscription_folder_add_subscription)
+                            message = context.getString(R.string.subscription_folder_empty),
+                            action = context.getString(R.string.subscription_folder_add_subscription)
                         )
                     )
-                }
+                },
+                isCombinedMode = folderWithSubscriptions?.folder?.isInFeedMode ?: false
             )
         }
     }

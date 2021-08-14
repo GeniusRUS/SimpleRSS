@@ -74,6 +74,7 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     private val arguments: FolderFragmentArgs by navArgs()
 
     private var menu: Menu? = null
+    private var isInInteractionMode: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -115,6 +116,9 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
 
         binding.folderContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (presenter.isInFeedListMode && !isInInteractionMode) {
+                    isInInteractionMode = true
+                }
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     if (binding.folderContent.canScrollVertically(-1) && presenter.isInFeedListMode) {
                         binding.navigationFab.show()
@@ -219,7 +223,11 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         binding.updateNameField.isGone = !state.isInEditMode
         binding.folderContent.isGone = state.isInEditMode
         if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
-            binding.navigationFab.show()
+            if (!isInInteractionMode) {
+                binding.folderContent.scrollToPosition(0)
+            } else {
+                binding.navigationFab.show()
+            }
         } else {
             binding.navigationFab.hide()
         }
