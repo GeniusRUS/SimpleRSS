@@ -82,7 +82,7 @@ android {
 val daggerVer = "2.38.1"
 val moxyVer = "2.2.2"
 val roomVer = "2.3.0"
-val coroutineVer = "1.5.1"
+val coroutineVer = "1.5.2"
 val navigationVer = "2.3.5"
 val okHttpVer = "4.9.1"
 
@@ -104,7 +104,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:2.1.0")
+    implementation("io.github.unitbean:androidcore:2.2.0")
 
     implementation("io.coil-kt:coil:1.3.2")
 
