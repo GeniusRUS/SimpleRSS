@@ -5,9 +5,13 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -21,25 +25,16 @@ import com.github.razir.progressbutton.showProgress
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.hideSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
-import moxy.MvpAppCompatFragment
-import moxy.MvpView
-import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.OneExecution
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OneExecution
-interface AddSubscriptionView : MvpView {
-    fun onLoadingSourceInfo(isLoading : Boolean = false, isAvailableToSave: Boolean = false)
-    fun showErrorMessage(@StringRes messageId: Int)
-    fun onSourceAdded(feedUrl: String)
-}
-
-class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subscription), AddSubscriptionView, View.OnClickListener {
+class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), View.OnClickListener {
 
     @Inject
-    lateinit var provider: AddSubscriptionPresenterFactory
+    lateinit var provider: AddSubscriptionViewModelProvider
 
-    private val presenter: AddSubscriptionPresenter by moxyPresenter {
+    private val viewModel: AddSubscriptionViewModel by viewModels {
         DIManager.appComponent.inject(this)
         provider.create(arguments.folderId)
     }
@@ -86,6 +81,41 @@ class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subsc
         if (!arguments.urlToAdd.isNullOrEmpty()) {
             binding.textField.setText(arguments.urlToAdd)
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.sourceAddedFlow.collect { feedUrl ->
+                    feedUrl?.let {
+                        val direction = AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(it)
+                        findNavController().navigate(direction)
+                    }
+                }
+                viewModel.errorFlow.collect { messageId ->
+                    messageId?.let {
+                        Snackbar.make(binding.rootView, it, Snackbar.LENGTH_LONG).show()
+                    }
+                }
+                viewModel.loadingSourceInfoFlow.collect { loadingState ->
+                    binding.confirmButton.isEnabled = !loadingState.isLoading
+
+                    when {
+                        loadingState.isLoading -> {
+                            binding.confirmButton.showProgress {
+                                buttonTextRes = R.string.add_new_subscription_address_checking_process
+                                progressColor = Color.WHITE
+                            }
+                        }
+                        loadingState.isAvailableToSave -> {
+                            binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
+                            hideSoftKeyboard(requireContext())
+                        }
+                        else -> {
+                            binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -105,36 +135,7 @@ class AddSubscriptionFragment : MvpAppCompatFragment(R.layout.fragment_add_subsc
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            R.id.confirm_button -> presenter.checkOrSave(binding.textField.text.toString())
+            R.id.confirm_button -> viewModel.checkOrSave(binding.textField.text.toString())
         }
-    }
-
-    override fun onLoadingSourceInfo(isLoading: Boolean, isAvailableToSave: Boolean) {
-        binding.confirmButton.isEnabled = !isLoading
-
-        when {
-            isLoading -> {
-                binding.confirmButton.showProgress {
-                    buttonTextRes = R.string.add_new_subscription_address_checking_process
-                    progressColor = Color.WHITE
-                }
-            }
-            isAvailableToSave -> {
-                binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
-                hideSoftKeyboard(requireContext())
-            }
-            else -> {
-                binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
-            }
-        }
-    }
-
-    override fun showErrorMessage(messageId: Int) {
-        Snackbar.make(binding.rootView, messageId, Snackbar.LENGTH_LONG).show()
-    }
-
-    override fun onSourceAdded(feedUrl: String) {
-        val direction = AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(feedUrl)
-        findNavController().navigate(direction)
     }
 }

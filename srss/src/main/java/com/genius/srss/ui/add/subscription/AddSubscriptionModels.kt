@@ -5,3 +5,8 @@ data class AddSubscriptionStateModel(
     val title: String? = null,
     val timeOfAdd: Long? = null
 )
+
+data class LoadingSourceInfoState(
+    val isLoading : Boolean = false,
+    val isAvailableToSave: Boolean = false
+)

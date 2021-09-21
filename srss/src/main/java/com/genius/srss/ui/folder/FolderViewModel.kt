@@ -1,6 +1,9 @@
 package com.genius.srss.ui.folder
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.genius.srss.R
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
@@ -18,41 +21,72 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import moxy.MvpPresenter
-import moxy.presenterScope
 import kotlin.properties.Delegates
 
 @AssistedFactory
-interface FolderPresenterFactory {
-    fun create(folderId: String?): FolderPresenter
+interface FolderViewModelFactory {
+    fun create(folderId: String?): FolderModelFactory
 }
 
-class FolderPresenter @AssistedInject constructor(
+class FolderModelFactory @AssistedInject constructor(
     private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val network: INetworkSource,
     private val converters: SRSSConverters,
-    @Assisted folderId: String
-) : MvpPresenter<FolderView>() {
-
-    private var state: FolderStateModel by Delegates.observable(FolderStateModel(folderId = folderId)) { _, oldState, newState ->
-        if (!oldState.isInEditMode && newState.isInEditMode) {
-            viewState.onUpdateNameToEdit(oldState.title)
+    @Assisted private val folderId: String
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(FolderViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return FolderViewModel(
+                context,
+                subscriptionsDao,
+                network,
+                converters,
+                folderId
+            ) as T
         }
-        viewState.onStateChanged(newState)
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+class FolderViewModel(
+    private val context: Context,
+    private val subscriptionsDao: SubscriptionsDao,
+    private val network: INetworkSource,
+    private val converters: SRSSConverters,
+    folderId: String
+) : ViewModel() {
+
+    private val innerMainState: MutableStateFlow<FolderStateModel> = MutableStateFlow(FolderStateModel(folderId = folderId))
+    private val innerScreenCloseFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val innerNameToEditState: MutableStateFlow<String?> = MutableStateFlow(null)
+    private var innerLoadedFeedCountFlow: MutableStateFlow<Int?> = MutableStateFlow(null)
+
+    private var innerState: FolderStateModel by Delegates.observable(innerMainState.value) { _, oldState, newState ->
+        if (!oldState.isInEditMode && newState.isInEditMode) {
+            innerNameToEditState.value = oldState.title
+        }
+        innerMainState.value = newState
     }
 
     private val listOfLoadingFeeds = mutableListOf<Deferred<Boolean>>()
 
+    val state: StateFlow<FolderStateModel> = innerMainState
+    val screenCloseFlow: StateFlow<Boolean> = innerScreenCloseFlow
+    val nameToEditFlow: StateFlow<String?> = innerNameToEditState
+    val loadedFeedCountFlow: StateFlow<Int?> = innerLoadedFeedCountFlow
+
     val isInEditMode: Boolean
-        get() = state.isInEditMode
+        get() = innerState.isInEditMode
 
     val isInFeedListMode: Boolean
-        get() = state.isCombinedMode
+        get() = innerState.isCombinedMode
 
     fun updateFolderFeed(isManual: Boolean = false) {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
                 updateFolderFeedInternal(isManual)
             } catch (e: Exception) {
@@ -62,12 +96,12 @@ class FolderPresenter @AssistedInject constructor(
     }
 
     fun unlinkFolderByPosition(position: Int) {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                (state.feedList[position] as? SubscriptionItemModel)?.urlToLoad?.let { urlToLoad ->
+                (innerState.feedList[position] as? SubscriptionItemModel)?.urlToLoad?.let { urlToLoad ->
                     subscriptionsDao.removeSingleCrossRefsByParameters(
                         urlToLoad = urlToLoad,
-                        folderId = state.folderId
+                        folderId = innerState.folderId
                     )
                 }
                 updateFolderFeed()
@@ -78,17 +112,17 @@ class FolderPresenter @AssistedInject constructor(
     }
 
     fun changeEditMode(isEdit: Boolean) {
-        state = state.copy(
+        innerState = innerState.copy(
             isInEditMode = isEdit
         )
     }
 
     fun checkSaveAvailability(newFolderName: String?) {
-        if (!state.isInEditMode) return
-        presenterScope.launch {
+        if (!innerState.isInEditMode) return
+        viewModelScope.launch {
             try {
-                state = state.copy(
-                    isAvailableToSave = newFolderName?.isNotEmpty() == true && state.title != newFolderName
+                innerState = innerState.copy(
+                    isAvailableToSave = newFolderName?.isNotEmpty() == true && innerState.title != newFolderName
                 )
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
@@ -97,12 +131,12 @@ class FolderPresenter @AssistedInject constructor(
     }
 
     fun updateFolder(newFolderName: String?) {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
                 newFolderName?.let { newName ->
-                    subscriptionsDao.updateFolderNameById(state.folderId, newName)
+                    subscriptionsDao.updateFolderNameById(innerState.folderId, newName)
                 }
-                state = state.copy(
+                innerState = innerState.copy(
                     isInEditMode = false
                 )
                 updateFolderFeedInternal(isManual = true)
@@ -113,9 +147,9 @@ class FolderPresenter @AssistedInject constructor(
     }
 
     fun changeMode() {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                if (state.isCombinedMode) {
+                if (innerState.isCombinedMode) {
                     listOfLoadingFeeds.forEach {
                         if (it.isActive) {
                             it.cancel()
@@ -123,7 +157,7 @@ class FolderPresenter @AssistedInject constructor(
                     }
                 }
                 val folderWithSubscriptions =
-                    subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
+                    subscriptionsDao.loadFolderWithSubscriptionsById(innerState.folderId)
                 val modifiedFolder = folderWithSubscriptions?.folder?.copy(
                     isInFeedMode = folderWithSubscriptions.folder.isInFeedMode.not()
                 )
@@ -138,10 +172,10 @@ class FolderPresenter @AssistedInject constructor(
     }
 
     fun deleteFolder() {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                subscriptionsDao.complexRemoveFolderById(folderId = state.folderId)
-                viewState.onScreenClose()
+                subscriptionsDao.complexRemoveFolderById(folderId = innerState.folderId)
+                innerScreenCloseFlow.value = true
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -150,13 +184,13 @@ class FolderPresenter @AssistedInject constructor(
 
     private suspend fun updateFolderFeedInternal(isManual: Boolean) {
         val folderWithSubscriptions =
-            subscriptionsDao.loadFolderWithSubscriptionsById(state.folderId)
+            subscriptionsDao.loadFolderWithSubscriptionsById(innerState.folderId)
         if (folderWithSubscriptions?.folder?.isInFeedMode == true) {
-            state = state.copy(
+            innerState = innerState.copy(
                 isInFeedLoadingProgress = true,
                 title = folderWithSubscriptions.folder.name,
                 feedList = if (isManual) {
-                    state.feedList
+                    innerState.feedList
                 } else {
                     emptyList()
                 },
@@ -169,14 +203,14 @@ class FolderPresenter @AssistedInject constructor(
                     if (isManual) {
                         atomicUpdateFeedsList
                     } else {
-                        state.feedList
+                        innerState.feedList
                     }
                 },
                 iterateFeedReceiver = { combinedFeedList ->
                     if (isManual) {
                         atomicUpdateFeedsList.renew(combinedFeedList)
                     } else {
-                        state = state.copy(
+                        innerState = innerState.copy(
                             feedList = combinedFeedList
                         )
                     }
@@ -186,21 +220,21 @@ class FolderPresenter @AssistedInject constructor(
                 })
             if (isManual) {
                 listOfLoadingFeeds.awaitAll()
-                state = state.copy(
+                innerState = innerState.copy(
                     feedList = atomicUpdateFeedsList
                 )
             }
             val loadedFeeds = listOfLoadingFeeds.awaitAll().count { it }
             val failedToLoadListCount = listOfLoadingFeeds.size - loadedFeeds
             if (failedToLoadListCount > 0) {
-                viewState.onShowLoadedFeedsCount(failedToLoadListCount)
+                innerLoadedFeedCountFlow.value = failedToLoadListCount
             }
             listOfLoadingFeeds.clear()
-            state = state.copy(
+            innerState = innerState.copy(
                 isInFeedLoadingProgress = false
             )
         } else {
-            state = state.copy(
+            innerState = innerState.copy(
                 title = folderWithSubscriptions?.folder?.name,
                 feedList = (folderWithSubscriptions?.subscriptions?.map {
                     SubscriptionItemModel(
@@ -234,7 +268,7 @@ class FolderPresenter @AssistedInject constructor(
         }
         listOfLoadingFeeds.clear()
         for (subscription in subscriptions ?: emptyList()) {
-            val subFeed = presenterScope.async {
+            val subFeed = viewModelScope.async {
                 try {
                     network.loadFeed(subscription.urlToLoad)
                 } catch (e: Exception) {

@@ -18,6 +18,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isGone
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -34,32 +39,22 @@ import com.ub.utils.LogUtils
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
-import moxy.MvpAppCompatFragment
-import moxy.MvpView
-import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.OneExecution
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
-@OneExecution
-interface FolderView : MvpView {
-    fun onStateChanged(state: FolderStateModel)
-    fun onUpdateNameToEdit(nameToEdit: String?)
-    fun onScreenClose()
-    fun onShowLoadedFeedsCount(count: Int)
-}
-
-class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderView,
+class FolderFragment : Fragment(R.layout.fragment_folder),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>,
     FolderTouchHelperCallback.TouchFolderListener, View.OnClickListener {
 
     @Inject
-    lateinit var provider: FolderPresenterFactory
+    lateinit var provider: FolderViewModelFactory
 
     @Inject
     lateinit var convertersProvider: Provider<IConverters>
 
-    private val presenter: FolderPresenter by moxyPresenter {
+    private val viewModel: FolderViewModel by viewModels {
         DIManager.appComponent.inject(this)
         provider.create(arguments.folderId)
     }
@@ -92,15 +87,15 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         }
 
         binding.refresher.setOnRefreshListener {
-            presenter.updateFolderFeed(isManual = true)
+            viewModel.updateFolderFeed(isManual = true)
         }
         activity?.onBackPressedDispatcher?.addCallback(
             viewLifecycleOwner,
             object: OnBackPressedCallback(true){
                 override fun handleOnBackPressed() {
-                    val isInEditMode = presenter.isInEditMode
+                    val isInEditMode = viewModel.isInEditMode
                     if (isInEditMode) {
-                        presenter.changeEditMode(isEdit = false)
+                        viewModel.changeEditMode(isEdit = false)
                     } else {
                         findNavController().popBackStack()
                     }
@@ -116,11 +111,11 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
 
         binding.folderContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                if (presenter.isInFeedListMode && !isInInteractionMode) {
+                if (viewModel.isInFeedListMode && !isInInteractionMode) {
                     isInInteractionMode = true
                 }
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    if (binding.folderContent.canScrollVertically(-1) && presenter.isInFeedListMode) {
+                    if (binding.folderContent.canScrollVertically(-1) && viewModel.isInFeedListMode) {
                         binding.navigationFab.show()
                     } else {
                         binding.navigationFab.hide()
@@ -130,7 +125,7 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         })
         binding.updateNameField.setOnEditorActionListener { _, keyCode, _ ->
             return@setOnEditorActionListener if (keyCode == EditorInfo.IME_ACTION_DONE) {
-                presenter.updateFolder(newFolderName = binding.updateNameField.text?.toString())
+                viewModel.updateFolder(newFolderName = binding.updateNameField.text?.toString())
                 true
             } else false
         }
@@ -145,7 +140,7 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
         ).attachToRecyclerView(binding.folderContent)
 
         binding.updateNameField.addTextChangedListener {
-            presenter.checkSaveAvailability(it?.toString())
+            viewModel.checkSaveAvailability(it?.toString())
         }
         binding.folderContent.applyInsetter {
             type(navigationBars = true) {
@@ -163,7 +158,69 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
             }
         }
 
-        presenter.updateFolderFeed()
+        viewModel.updateFolderFeed()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loadedFeedCountFlow.collect { count ->
+                    count?.let {
+                        Snackbar.make(
+                            binding.rootView,
+                            resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, it, count),
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                    }
+                }
+                viewModel.screenCloseFlow.collect {
+                    if (it) {
+                        findNavController().popBackStack()
+                    }
+                }
+                viewModel.nameToEditFlow.collect { nameToEdit ->
+                    binding.updateNameField.setText(nameToEdit)
+                }
+                viewModel.state.collect { state ->
+                    adapter.update(state.feedList)
+                    (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
+
+                    menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
+                    menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
+                    menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
+                    menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
+                    menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
+                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
+                    } else {
+                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
+                    }
+                    binding.refresher.isEnabled = state.isCombinedMode
+                    binding.refresher.isRefreshing = state.isInFeedLoadingProgress
+                    binding.updateNameField.isGone = !state.isInEditMode
+                    binding.folderContent.isGone = state.isInEditMode
+                    if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
+                        if (!isInInteractionMode) {
+                            binding.folderContent.scrollToPosition(0)
+                        } else {
+                            binding.navigationFab.show()
+                        }
+                    } else {
+                        binding.navigationFab.hide()
+                    }
+
+                    if (state.isInEditMode) {
+                        menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+                        openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
+                    } else {
+                        try {
+                            val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                            inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
+                            binding.updateNameField.clearFocus()
+                        } catch (e: NullPointerException) {
+                            LogUtils.e("KeyBoard", "NULL point exception in input method service")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -186,68 +243,23 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
                 true
             }
             R.id.option_edit -> {
-                presenter.changeEditMode(isEdit = true)
+                viewModel.changeEditMode(isEdit = true)
                 true
             }
             R.id.option_save -> {
-                presenter.updateFolder(newFolderName = binding.updateNameField.text?.toString())
+                viewModel.updateFolder(newFolderName = binding.updateNameField.text?.toString())
                 true
             }
             R.id.option_delete -> {
-                presenter.deleteFolder()
+                viewModel.deleteFolder()
                 true
             }
             R.id.option_mode -> {
-                presenter.changeMode()
+                viewModel.changeMode()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onStateChanged(state: FolderStateModel) {
-        adapter.update(state.feedList)
-        (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
-
-        menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
-        menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
-        menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-        menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
-        menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
-            VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
-        } else {
-            VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
-        }
-        binding.refresher.isEnabled = state.isCombinedMode
-        binding.refresher.isRefreshing = state.isInFeedLoadingProgress
-        binding.updateNameField.isGone = !state.isInEditMode
-        binding.folderContent.isGone = state.isInEditMode
-        if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
-            if (!isInInteractionMode) {
-                binding.folderContent.scrollToPosition(0)
-            } else {
-                binding.navigationFab.show()
-            }
-        } else {
-            binding.navigationFab.hide()
-        }
-
-        if (state.isInEditMode) {
-            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
-        } else {
-            try {
-                val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
-                binding.updateNameField.clearFocus()
-            } catch (e: NullPointerException) {
-                LogUtils.e("KeyBoard", "NULL point exception in input method service")
-            }
-        }
-    }
-
-    override fun onUpdateNameToEdit(nameToEdit: String?) {
-        binding.updateNameField.setText(nameToEdit)
     }
 
     override fun onClick(v: View?) {
@@ -289,18 +301,6 @@ class FolderFragment : MvpAppCompatFragment(R.layout.fragment_folder), FolderVie
     }
 
     override fun onFolderDismiss(position: Int) {
-        presenter.unlinkFolderByPosition(position)
-    }
-
-    override fun onShowLoadedFeedsCount(count: Int) {
-        Snackbar.make(
-            binding.rootView,
-            resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, count, count),
-            Snackbar.LENGTH_LONG
-        ).show()
-    }
-
-    override fun onScreenClose() {
-        findNavController().popBackStack()
+        viewModel.unlinkFolderByPosition(position)
     }
 }

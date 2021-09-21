@@ -1,28 +1,50 @@
 package com.genius.srss.ui.subscriptions
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.R
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.database.models.SubscriptionFolderCrossRefDatabaseModel
 import com.ub.utils.LogUtils
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import moxy.MvpPresenter
-import moxy.presenterScope
 import javax.inject.Inject
 import kotlin.properties.Delegates
 
-class SubscriptionsPresenter @Inject constructor(
+class SubscriptionsViewModelFactory @Inject constructor(
     private val context: Context,
     private val subscriptionDao: SubscriptionsDao
-): MvpPresenter<SubscriptionsView>() {
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SubscriptionsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SubscriptionsViewModel(
+                context,
+                subscriptionDao
+            ) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
-    private var state: SubscriptionsStateModel by Delegates.observable(SubscriptionsStateModel()) { _, _, newState ->
-        viewState.onStateChanged(newState)
+class SubscriptionsViewModel(
+    private val context: Context,
+    private val subscriptionDao: SubscriptionsDao
+): ViewModel() {
+
+    private val innerMainState: MutableStateFlow<SubscriptionsStateModel> = MutableStateFlow(SubscriptionsStateModel())
+
+    private var innerState: SubscriptionsStateModel by Delegates.observable(SubscriptionsStateModel()) { _, _, newState ->
+        innerMainState.value = newState
     }
 
-    fun updateFeed(isFull: Boolean = state.isFullList) {
-        presenterScope.launch {
+    val state: StateFlow<SubscriptionsStateModel> = innerMainState
+
+    fun updateFeed(isFull: Boolean = innerState.isFullList) {
+        viewModelScope.launch {
             try {
                 val folders = subscriptionDao.loadAllFolders().sortedBy { it.dateOfCreation }
                 val subscriptions = if (isFull) {
@@ -30,7 +52,7 @@ class SubscriptionsPresenter @Inject constructor(
                 } else {
                     subscriptionDao.loadSubscriptionsWithoutFolders()
                 }
-                state = state.copy(
+                innerState = innerState.copy(
                     isFullList = isFull,
                     feedList = (folders.map {
                         SubscriptionFolderItemModel(
@@ -60,9 +82,9 @@ class SubscriptionsPresenter @Inject constructor(
     }
 
     fun removeSubscriptionByPosition(position: Int) {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                (state.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
+                (innerState.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
                     subscription.urlToLoad?.let { urlToRemove ->
                         subscriptionDao.complexRemoveSubscriptionByUrl(urlToRemove)
                     }
@@ -76,11 +98,11 @@ class SubscriptionsPresenter @Inject constructor(
     }
 
     fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
                 if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch
-                val holderToMove = state.feedList[holderPosition]
-                val targetOfMove = state.feedList[targetPosition]
+                val holderToMove = innerState.feedList[holderPosition]
+                val targetOfMove = innerState.feedList[targetPosition]
                 when {
                     holderToMove is SubscriptionItemModel && targetOfMove is SubscriptionFolderItemModel -> {
                         subscriptionDao.saveSubscriptionFolderCrossRef(

@@ -4,9 +4,13 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
@@ -14,25 +18,17 @@ import com.genius.srss.databinding.FragmentAddFolderBinding
 import com.genius.srss.di.DIManager
 import com.google.android.material.snackbar.Snackbar
 import dev.chrisbanes.insetter.applyInsetter
-import moxy.MvpAppCompatFragment
-import moxy.MvpView
-import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.OneExecution
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
-@OneExecution
-interface AddFolderView : MvpView {
-    fun onFolderCreated()
-    fun showErrorMessage(@StringRes messageId: Int)
-}
-
-class AddFolderFragment : MvpAppCompatFragment(R.layout.fragment_add_folder), AddFolderView, View.OnClickListener {
+class AddFolderFragment : Fragment(R.layout.fragment_add_folder), View.OnClickListener {
 
     @Inject
-    lateinit var provider: Provider<AddFolderPresenter>
+    lateinit var provider: Provider<AddFolderModelFactory>
 
-    private val presenter: AddFolderPresenter by moxyPresenter {
+    private val viewModel: AddFolderViewModel by viewModels {
         DIManager.appComponent.inject(this)
         provider.get()
     }
@@ -70,11 +66,26 @@ class AddFolderFragment : MvpAppCompatFragment(R.layout.fragment_add_folder), Ad
             }
             consume(true)
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.folderCreatedFlow.collect { isCreated ->
+                    if (isCreated) {
+                        findNavController().popBackStack()
+                    }
+                }
+                viewModel.errorFlow.collect { messageId ->
+                    messageId?.let {
+                        Snackbar.make(binding.rootView, it, Snackbar.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
-            R.id.confirm_button -> presenter.saveFolder(binding.textField.text.toString())
+            R.id.confirm_button -> viewModel.saveFolder(binding.textField.text.toString())
         }
     }
 
@@ -86,13 +97,5 @@ class AddFolderFragment : MvpAppCompatFragment(R.layout.fragment_add_folder), Ad
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun showErrorMessage(messageId: Int) {
-        Snackbar.make(binding.rootView, messageId, Snackbar.LENGTH_LONG).show()
-    }
-
-    override fun onFolderCreated() {
-        findNavController().popBackStack()
     }
 }

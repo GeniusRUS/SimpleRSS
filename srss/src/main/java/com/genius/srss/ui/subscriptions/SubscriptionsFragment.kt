@@ -14,6 +14,11 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -31,20 +36,12 @@ import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
 import dev.chrisbanes.insetter.applyInsetter
-import moxy.MvpAppCompatFragment
-import moxy.MvpView
-import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.AddToEndSingle
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
-@AddToEndSingle
-interface SubscriptionsView : MvpView {
-    fun onStateChanged(state: SubscriptionsStateModel)
-}
-
-class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptions),
-    SubscriptionsView,
+class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, View.OnClickListener,
     SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
 
@@ -52,11 +49,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     lateinit var convertersProvider: Provider<IConverters>
 
     @Inject
-    lateinit var presenterProvider: Provider<SubscriptionsPresenter>
+    lateinit var viewModelProvider: Provider<SubscriptionsViewModelFactory>
 
-    private val presenter: SubscriptionsPresenter by moxyPresenter {
+    private val viewModel: SubscriptionsViewModel by viewModels {
         DIManager.appComponent.inject(this)
-        presenterProvider.get()
+        viewModelProvider.get()
     }
 
     private val adapter: SubscriptionsListAdapter by lazy {
@@ -99,9 +96,9 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
 
                 override fun onScaleEnd(detector: ScaleGestureDetector) {
                     if (scaleFactor > 1) {
-                        presenter.updateFeed(isFull = true)
+                        viewModel.updateFeed(isFull = true)
                     } else if (scaleFactor < 1) {
-                        presenter.updateFeed(isFull = false)
+                        viewModel.updateFeed(isFull = false)
                     }
                     super.onScaleEnd(detector)
                 }
@@ -205,7 +202,15 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
             consume(false)
         }
 
-        presenter.updateFeed()
+        viewModel.updateFeed()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    adapter.update(state.feedList)
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -219,10 +224,6 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
         return if (event?.pointerCount?.compareTo(1) == 1) {
             scaleDetector?.onTouchEvent(event) ?: false
         } else v?.onTouchEvent(event) ?: false
-    }
-
-    override fun onStateChanged(state: SubscriptionsStateModel) {
-        adapter.update(state.feedList)
     }
 
     override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
@@ -274,11 +275,11 @@ class SubscriptionsFragment : MvpAppCompatFragment(R.layout.fragment_subscriptio
     }
 
     override fun onItemDismiss(position: Int) {
-        presenter.removeSubscriptionByPosition(position)
+        viewModel.removeSubscriptionByPosition(position)
     }
 
     override fun onDragHolderToPosition(holderPosition: Int, targetPosition: Int) {
-        presenter.handleHolderMove(holderPosition, targetPosition)
+        viewModel.handleHolderMove(holderPosition, targetPosition)
     }
 
     private fun transformFab(toExtend: Boolean) {

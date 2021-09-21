@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
     defaultConfig {
         applicationId = "com.genius.srss"
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -80,7 +80,6 @@ android {
 }
 
 val daggerVer = "2.38.1"
-val moxyVer = "2.2.2"
 val roomVer = "2.3.0"
 val coroutineVer = "1.5.2"
 val navigationVer = "2.3.5"
@@ -113,11 +112,8 @@ dependencies {
 
     implementation("dev.chrisbanes.insetter:insetter:0.6.0")
 
-    implementation("com.github.moxy-community:moxy:$moxyVer")
-    implementation("com.github.moxy-community:moxy-androidx:$moxyVer")
-    implementation("com.github.moxy-community:moxy-material:$moxyVer")
-    implementation("com.github.moxy-community:moxy-ktx:$moxyVer")
-    kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-beta01")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.7")

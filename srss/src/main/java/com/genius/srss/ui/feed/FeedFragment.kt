@@ -17,6 +17,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.isGone
 import androidx.core.widget.addTextChangedListener
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -33,30 +38,22 @@ import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
-import moxy.MvpAppCompatFragment
-import moxy.MvpView
-import moxy.ktx.moxyPresenter
-import moxy.viewstate.strategy.alias.OneExecution
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
-@OneExecution
-interface FeedView : MvpView {
-    fun onStateChanged(state: FeedStateModel)
-    fun onUpdateNameToEdit(nameToEdit: String?)
-    fun onScreenClose()
-}
 
-class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
+class FeedFragment : Fragment(R.layout.fragment_feed),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
     @Inject
-    lateinit var provider: FeedPresenterProvider
+    lateinit var provider: FeedViewModelProvider
 
     @Inject
     lateinit var convertersProvider: Provider<IConverters>
 
-    private val presenter: FeedPresenter by moxyPresenter {
+    private val viewModel: FeedViewModel by viewModels {
         DIManager.appComponent.inject(this)
         provider.create(arguments.feedUrl)
     }
@@ -87,9 +84,9 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
             viewLifecycleOwner,
             object: OnBackPressedCallback(true){
                 override fun handleOnBackPressed() {
-                    val isInEditMode = presenter.isInEditMode
+                    val isInEditMode = viewModel.isInEditMode
                     if (isInEditMode) {
-                        presenter.changeEditMode(isEdit = false)
+                        viewModel.changeEditMode(isEdit = false)
                     } else {
                         findNavController().popBackStack()
                     }
@@ -102,7 +99,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         }
 
         binding.refresher.setOnRefreshListener {
-            presenter.updateFeed()
+            viewModel.updateFeed()
         }
         binding.feedContent.addItemDecoration(ViewHolderItemDecoration())
         binding.collapsingToolbar.isTitleEnabled = false
@@ -112,13 +109,13 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
 
         binding.updateNameField.setOnEditorActionListener { _, keyCode, _ ->
             return@setOnEditorActionListener if (keyCode == EditorInfo.IME_ACTION_DONE) {
-                presenter.updateSubscription(newSubscriptionName = binding.updateNameField.text?.toString())
+                viewModel.updateSubscription(newSubscriptionName = binding.updateNameField.text?.toString())
                 true
             } else false
         }
 
         binding.updateNameField.addTextChangedListener {
-            presenter.checkSaveAvailability(it?.toString())
+            viewModel.checkSaveAvailability(it?.toString())
         }
         binding.feedContent.applyInsetter {
             type(navigationBars = true) {
@@ -131,7 +128,48 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
             }
         }
 
-        presenter.updateFeed()
+        viewModel.updateFeed()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    adapter.update(state.feedContent)
+                    binding.refresher.isRefreshing = state.isRefreshing
+                    (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
+
+                    menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
+                    menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
+                    menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
+                    binding.updateNameField.isGone = !state.isInEditMode
+                    binding.refresher.isGone = state.isInEditMode
+
+                    if (state.isInEditMode) {
+                        menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+                        openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
+                    } else {
+                        try {
+                            val inputMethodManager =
+                                context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                            inputMethodManager.hideSoftInputFromWindow(
+                                binding.updateNameField.windowToken,
+                                0
+                            )
+                            binding.updateNameField.clearFocus()
+                        } catch (e: NullPointerException) {
+                            LogUtils.e("KeyBoard", "NULL point exception in input method service")
+                        }
+                    }
+                }
+                viewModel.closeFlow.collect {
+                    if (it) {
+                        findNavController().popBackStack()
+                    }
+                }
+                viewModel.nameToEditFlow.collect { nameToEdit ->
+                    binding.updateNameField.setText(nameToEdit)
+                }
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -141,15 +179,15 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
                 true
             }
             R.id.option_edit -> {
-                presenter.changeEditMode(isEdit = true)
+                viewModel.changeEditMode(isEdit = true)
                 true
             }
             R.id.option_save -> {
-                presenter.updateSubscription(newSubscriptionName = binding.updateNameField.text?.toString())
+                viewModel.updateSubscription(newSubscriptionName = binding.updateNameField.text?.toString())
                 true
             }
             R.id.option_delete -> {
-                presenter.deleteFeed()
+                viewModel.deleteFeed()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -170,39 +208,6 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
         super.onDestroyView()
     }
 
-    override fun onStateChanged(state: FeedStateModel) {
-        adapter.update(state.feedContent)
-        binding.refresher.isRefreshing = state.isRefreshing
-        (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
-
-        menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
-        menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
-        menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-        binding.updateNameField.isGone = !state.isInEditMode
-        binding.refresher.isGone = state.isInEditMode
-
-        if (state.isInEditMode) {
-            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
-        } else {
-            try {
-                val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
-                binding.updateNameField.clearFocus()
-            } catch (e: NullPointerException) {
-                LogUtils.e("KeyBoard", "NULL point exception in input method service")
-            }
-        }
-    }
-
-    override fun onUpdateNameToEdit(nameToEdit: String?) {
-        binding.updateNameField.setText(nameToEdit)
-    }
-
-    override fun onScreenClose() {
-        findNavController().popBackStack()
-    }
-
     override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
         if (item is FeedItemModel) {
             val colorScheme = CustomTabColorSchemeParams.Builder()
@@ -215,7 +220,7 @@ class FeedFragment : MvpAppCompatFragment(R.layout.fragment_feed), FeedView,
                 .build()
             customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
         } else if (item is SubscriptionFolderEmptyModel) {
-            presenter.updateFeed()
+            viewModel.updateFeed()
         }
     }
 }

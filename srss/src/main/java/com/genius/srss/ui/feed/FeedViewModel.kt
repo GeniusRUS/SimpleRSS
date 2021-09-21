@@ -1,6 +1,9 @@
 package com.genius.srss.ui.feed
 
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.genius.srss.R
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
@@ -10,44 +13,75 @@ import com.ub.utils.LogUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import moxy.MvpPresenter
-import moxy.presenterScope
 import kotlin.properties.Delegates
 
 @AssistedFactory
-interface FeedPresenterProvider {
-    fun create(feedUrl: String): FeedPresenter
+interface FeedViewModelProvider {
+    fun create(feedUrl: String): FeedViewModelFactory
 }
 
-class FeedPresenter @AssistedInject constructor(
+class FeedViewModelFactory @AssistedInject constructor(
     private val context: Context,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
     @Assisted private val feedUrl: String
-): MvpPresenter<FeedView>() {
-
-    private var state: FeedStateModel by Delegates.observable(FeedStateModel()) { _, oldState, newState ->
-        if (!oldState.isInEditMode && newState.isInEditMode) {
-            viewState.onUpdateNameToEdit(oldState.title)
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(FeedViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return FeedViewModel(
+                context,
+                networkSource,
+                subscriptionsDao,
+                converters,
+                feedUrl
+            ) as T
         }
-        viewState.onStateChanged(newState)
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+class FeedViewModel(
+    private val context: Context,
+    private val networkSource: INetworkSource,
+    private val subscriptionsDao: SubscriptionsDao,
+    private val converters: SRSSConverters,
+    private val feedUrl: String
+): ViewModel() {
+
+    private val innerMainState: MutableStateFlow<FeedStateModel> = MutableStateFlow(FeedStateModel())
+    private val innerCloseState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val innerNameToEditState: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    private var innerState: FeedStateModel by Delegates.observable(innerMainState.value) { _, oldState, newState ->
+        if (!oldState.isInEditMode && newState.isInEditMode) {
+            innerNameToEditState.value = oldState.title
+        }
+        innerMainState.value = newState
     }
 
+    val state: StateFlow<FeedStateModel> = innerMainState
+
+    val closeFlow: StateFlow<Boolean> = innerCloseState
+
+    val nameToEditFlow: StateFlow<String?> = innerNameToEditState
+
     val isInEditMode: Boolean
-        get() = state.isInEditMode
+        get() = innerState.isInEditMode
 
     fun updateFeed() {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                state = state.copy(
+                innerState = innerState.copy(
                     isRefreshing = true
                 )
                 updateFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
-                state = state.copy(
+                innerState = innerState.copy(
                     feedContent = listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
@@ -57,7 +91,7 @@ class FeedPresenter @AssistedInject constructor(
                     )
                 )
             } finally {
-                state = state.copy(
+                innerState = innerState.copy(
                     isRefreshing = false
                 )
             }
@@ -65,10 +99,10 @@ class FeedPresenter @AssistedInject constructor(
     }
 
     fun deleteFeed() {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
                 subscriptionsDao.complexRemoveSubscriptionByUrl(feedUrl)
-                viewState.onScreenClose()
+                innerCloseState.value = true
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -76,27 +110,27 @@ class FeedPresenter @AssistedInject constructor(
     }
 
     fun changeEditMode(isEdit: Boolean) {
-        state = state.copy(
+        innerState = innerState.copy(
             isInEditMode = isEdit
         )
     }
 
     fun updateSubscription(newSubscriptionName: String?) {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                state = state.copy(
+                innerState = innerState.copy(
                     isRefreshing = true
                 )
                 newSubscriptionName?.let { newName ->
                     subscriptionsDao.updateSubscriptionTitleByUrl(feedUrl, newName)
                 }
-                state = state.copy(
+                innerState = innerState.copy(
                     isInEditMode = false
                 )
                 updateFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
-                state = state.copy(
+                innerState = innerState.copy(
                     feedContent = listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
@@ -106,7 +140,7 @@ class FeedPresenter @AssistedInject constructor(
                     )
                 )
             } finally {
-                state = state.copy(
+                innerState = innerState.copy(
                     isRefreshing = false
                 )
             }
@@ -114,11 +148,11 @@ class FeedPresenter @AssistedInject constructor(
     }
 
     fun checkSaveAvailability(newSubscriptionName: String?) {
-        if (!state.isInEditMode) return
-        presenterScope.launch {
+        if (!innerState.isInEditMode) return
+        viewModelScope.launch {
             try {
-                state = state.copy(
-                    isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && state.title != newSubscriptionName
+                innerState = innerState.copy(
+                    isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerState.title != newSubscriptionName
                 )
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
@@ -128,12 +162,12 @@ class FeedPresenter @AssistedInject constructor(
 
     private suspend fun updateFeedInternal() {
         subscriptionsDao.loadSubscriptionById(feedUrl)?.let { feed ->
-            state = state.copy(
+            innerState = innerState.copy(
                 title = feed.title,
             )
         }
         val feed = networkSource.loadFeed(feedUrl) ?: throw NullPointerException("Parsed feed is null")
-        state = state.copy(
+        innerState = innerState.copy(
             feedContent = feed.items.map { item ->
                 converters.convertNetworkFeedToLocal(item)
             }.sortedByDescending { feedItem ->
