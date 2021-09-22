@@ -12,14 +12,14 @@ import com.ub.utils.LogUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParserException
-import java.lang.IllegalArgumentException
 import java.net.UnknownServiceException
 import java.util.zip.DataFormatException
-import kotlin.properties.Delegates
 
 @AssistedFactory
 interface AddSubscriptionViewModelProvider {
@@ -50,17 +50,15 @@ class AddSubscriptionViewModel @AssistedInject constructor(
     private val subscriptionsDao: SubscriptionsDao
 ) : ViewModel() {
 
-    private val innerErrorFlow: MutableStateFlow<Int?> = MutableStateFlow(null)
-    private val innerLoadingSourceInfoFlow: MutableStateFlow<LoadingSourceInfoState> = MutableStateFlow(LoadingSourceInfoState())
-    private val innerSourceAddedFlow: MutableStateFlow<String?> = MutableStateFlow(null)
+    private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
+    private val _loadingSourceInfoFlow: MutableStateFlow<LoadingSourceInfoState> = MutableStateFlow(LoadingSourceInfoState())
+    private val _sourceAddedFlow: MutableSharedFlow<String> = MutableSharedFlow()
 
-    val errorFlow: StateFlow<Int?> = innerErrorFlow
-    val loadingSourceInfoFlow: StateFlow<LoadingSourceInfoState> = innerLoadingSourceInfoFlow
-    val sourceAddedFlow: StateFlow<String?> = innerSourceAddedFlow
+    val errorFlow: SharedFlow<Int> = _errorFlow
+    val loadingSourceInfoFlow: StateFlow<LoadingSourceInfoState> = _loadingSourceInfoFlow
+    val sourceAddedFlow: SharedFlow<String> = _sourceAddedFlow
 
-    private var state: AddSubscriptionStateModel by Delegates.observable(AddSubscriptionStateModel()) { _, _, _ ->
-
-    }
+    private var state: AddSubscriptionStateModel = AddSubscriptionStateModel()
 
     fun checkOrSave(sourceUrl: String) {
         if (!state.sourceUrl.isNullOrEmpty()) {
@@ -73,7 +71,7 @@ class AddSubscriptionViewModel @AssistedInject constructor(
     private fun checkSource(sourceUrl: String) {
         viewModelScope.launch {
             try {
-                innerLoadingSourceInfoFlow.value = innerLoadingSourceInfoFlow.value.copy(
+                _loadingSourceInfoFlow.value = _loadingSourceInfoFlow.value.copy(
                     isLoading = true
                 )
                 val feed = networkSource.loadFeed(sourceUrl)
@@ -83,20 +81,20 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     title = feed?.title,
                     timeOfAdd = System.currentTimeMillis()
                 )
-                innerLoadingSourceInfoFlow.value = innerLoadingSourceInfoFlow.value.copy(
+                _loadingSourceInfoFlow.value = _loadingSourceInfoFlow.value.copy(
                     isLoading = false,
                     isAvailableToSave = subscriptions.firstOrNull { it.urlToLoad == feed?.link } == null
                 )
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
-                innerLoadingSourceInfoFlow.value = innerLoadingSourceInfoFlow.value.copy(
+                _loadingSourceInfoFlow.value = _loadingSourceInfoFlow.value.copy(
                     isLoading = false
                 )
                 when (e) {
-                    is XmlPullParserException -> innerErrorFlow.value = R.string.error_data_format_exception
-                    is DataFormatException -> innerErrorFlow.value = R.string.error_data_format_exception
-                    is IllegalArgumentException -> innerErrorFlow.value = R.string.error_illegal_argument_url
-                    is UnknownServiceException -> innerErrorFlow.value = R.string.error_http_insecure_format
+                    is XmlPullParserException -> _errorFlow.emit(R.string.error_data_format_exception)
+                    is DataFormatException -> _errorFlow.emit(R.string.error_data_format_exception)
+                    is IllegalArgumentException -> _errorFlow.emit(R.string.error_illegal_argument_url)
+                    is UnknownServiceException -> _errorFlow.emit(R.string.error_http_insecure_format)
                 }
             }
         }
@@ -119,7 +117,7 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                             )
                         )
                     }
-                    innerSourceAddedFlow.value = state.sourceUrl
+                    _sourceAddedFlow.emit(state.sourceUrl!!)
                 }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)

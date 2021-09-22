@@ -8,8 +8,9 @@ import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.database.models.SubscriptionFolderDatabaseModel
 import com.genius.srss.di.services.generator.IGenerator
 import com.ub.utils.LogUtils
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,17 +35,23 @@ class AddFolderViewModel(
     private val generator: IGenerator
 ) : ViewModel() {
 
-    private val innerErrorFlow: MutableStateFlow<Int?> = MutableStateFlow(null)
-    private val innerFolderCreatedFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
+    private val _folderCreatedFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
 
-    val errorFlow: StateFlow<Int?> = innerErrorFlow
-    val folderCreatedFlow: StateFlow<Boolean> = innerFolderCreatedFlow
+    val errorFlow: SharedFlow<Int> = _errorFlow.apply {
+        viewModelScope.launch {
+            this@apply.collect {
+                println("Error is $it")
+            }
+        }
+    }
+    val folderCreatedFlow: SharedFlow<Unit> = _folderCreatedFlow
 
     fun saveFolder(folderName: String) {
         viewModelScope.launch {
             try {
                 if (folderName.isEmpty()) {
-                    innerErrorFlow.value = R.string.add_new_subscription_folder_must_be_not_empty
+                    _errorFlow.emit(R.string.add_new_subscription_folder_must_be_not_empty)
                     return@launch
                 }
                 subscriptionsDao.saveFolder(
@@ -54,7 +61,7 @@ class AddFolderViewModel(
                         System.currentTimeMillis()
                     )
                 )
-                innerFolderCreatedFlow.value = true
+                _folderCreatedFlow.emit(Unit)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

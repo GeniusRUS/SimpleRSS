@@ -4,10 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.graphics.Color
 import android.net.Uri
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
@@ -16,7 +13,6 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.isGone
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -28,7 +24,6 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
@@ -44,7 +39,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
-class FolderFragment : Fragment(R.layout.fragment_folder),
+class FolderFragment : Fragment(),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>,
     FolderTouchHelperCallback.TouchFolderListener, View.OnClickListener {
 
@@ -64,12 +59,24 @@ class FolderFragment : Fragment(R.layout.fragment_folder),
         SubscriptionsListAdapter(convertersProvider.get())
     }
 
-    private val binding: FragmentFolderBinding by viewBinding(FragmentFolderBinding::bind)
+    private lateinit var binding: FragmentFolderBinding
 
     private val arguments: FolderFragmentArgs by navArgs()
 
     private var menu: Menu? = null
     private var isInInteractionMode: Boolean = false
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentFolderBinding.inflate(inflater, container, false).apply {
+            lifecycleOwner = viewLifecycleOwner
+            viewModel = this@FolderFragment.viewModel
+        }
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -86,9 +93,6 @@ class FolderFragment : Fragment(R.layout.fragment_folder),
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
-        binding.refresher.setOnRefreshListener {
-            viewModel.updateFolderFeed(isManual = true)
-        }
         activity?.onBackPressedDispatcher?.addCallback(
             viewLifecycleOwner,
             object: OnBackPressedCallback(true){
@@ -162,60 +166,55 @@ class FolderFragment : Fragment(R.layout.fragment_folder),
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.loadedFeedCountFlow.collect { count ->
-                    count?.let {
+                launch {
+                    viewModel.loadedFeedCountFlow.collect { count ->
                         Snackbar.make(
                             binding.rootView,
-                            resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, it, count),
+                            resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, count, count),
                             Snackbar.LENGTH_LONG
                         ).show()
                     }
                 }
-                viewModel.screenCloseFlow.collect {
-                    if (it) {
+                launch {
+                    viewModel.screenCloseFlow.collect {
                         findNavController().popBackStack()
                     }
                 }
-                viewModel.nameToEditFlow.collect { nameToEdit ->
-                    binding.updateNameField.setText(nameToEdit)
-                }
-                viewModel.state.collect { state ->
-                    adapter.update(state.feedList)
-                    (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
+                launch {
+                    viewModel.state.collect { state ->
+                        adapter.update(state.feedList)
 
-                    menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
-                    menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
-                    menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-                    menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
-                    menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
-                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
-                    } else {
-                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
-                    }
-                    binding.refresher.isEnabled = state.isCombinedMode
-                    binding.refresher.isRefreshing = state.isInFeedLoadingProgress
-                    binding.updateNameField.isGone = !state.isInEditMode
-                    binding.folderContent.isGone = state.isInEditMode
-                    if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
-                        if (!isInInteractionMode) {
-                            binding.folderContent.scrollToPosition(0)
+                        menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
+                        menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
+                        menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
+                        menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
+                        menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
+                            VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
                         } else {
-                            binding.navigationFab.show()
+                            VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
                         }
-                    } else {
-                        binding.navigationFab.hide()
-                    }
+                        binding.refresher.isEnabled = state.isCombinedMode
+                        if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
+                            if (!isInInteractionMode) {
+                                binding.folderContent.scrollToPosition(0)
+                            } else {
+                                binding.navigationFab.show()
+                            }
+                        } else {
+                            binding.navigationFab.hide()
+                        }
 
-                    if (state.isInEditMode) {
-                        menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-                        openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
-                    } else {
-                        try {
-                            val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                            inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
-                            binding.updateNameField.clearFocus()
-                        } catch (e: NullPointerException) {
-                            LogUtils.e("KeyBoard", "NULL point exception in input method service")
+                        if (state.isInEditMode) {
+                            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+                            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
+                        } else {
+                            try {
+                                val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                                inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
+                                binding.updateNameField.clearFocus()
+                            } catch (e: NullPointerException) {
+                                LogUtils.e("KeyBoard", "NULL point exception in input method service")
+                            }
                         }
                     }
                 }

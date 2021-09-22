@@ -69,14 +69,14 @@ class AddFolderFragment : Fragment(R.layout.fragment_add_folder), View.OnClickLi
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.folderCreatedFlow.collect { isCreated ->
-                    if (isCreated) {
+                launch {
+                    viewModel.folderCreatedFlow.collect {
                         findNavController().popBackStack()
                     }
                 }
-                viewModel.errorFlow.collect { messageId ->
-                    messageId?.let {
-                        Snackbar.make(binding.rootView, it, Snackbar.LENGTH_LONG).show()
+                launch {
+                    viewModel.errorFlow.collect { messageId ->
+                        Snackbar.make(binding.rootView, messageId, Snackbar.LENGTH_LONG).show()
                     }
                 }
             }

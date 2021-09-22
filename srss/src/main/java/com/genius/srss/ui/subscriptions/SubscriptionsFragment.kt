@@ -206,8 +206,10 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    adapter.update(state.feedList)
+                launch {
+                    viewModel.state.collect { state ->
+                        adapter.update(state.feedList)
+                    }
                 }
             }
         }

@@ -12,7 +12,6 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.isGone
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -21,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
@@ -40,7 +38,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
-class FeedFragment : Fragment(R.layout.fragment_feed),
+class FeedFragment : Fragment(),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
     @Inject
@@ -54,7 +52,7 @@ class FeedFragment : Fragment(R.layout.fragment_feed),
         provider.create(arguments.feedUrl)
     }
 
-    private val binding: FragmentFeedBinding by viewBinding(FragmentFeedBinding::bind)
+    private lateinit var binding: FragmentFeedBinding
 
     private val adapter: SubscriptionsListAdapter by lazy {
         DIManager.appComponent.inject(this)
@@ -64,6 +62,18 @@ class FeedFragment : Fragment(R.layout.fragment_feed),
     private var menu: Menu? = null
 
     private val arguments: FeedFragmentArgs by navArgs()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentFeedBinding.inflate(inflater, container, false).apply {
+            lifecycleOwner = viewLifecycleOwner
+            viewModel = this@FeedFragment.viewModel
+        }
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -80,7 +90,7 @@ class FeedFragment : Fragment(R.layout.fragment_feed),
             viewLifecycleOwner,
             object: OnBackPressedCallback(true){
                 override fun handleOnBackPressed() {
-                    val isInEditMode = viewModel.isInEditMode
+                    val isInEditMode = viewModel.isInEditMode.value
                     if (isInEditMode) {
                         viewModel.changeEditMode(isEdit = false)
                     } else {
@@ -94,9 +104,6 @@ class FeedFragment : Fragment(R.layout.fragment_feed),
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }
 
-        binding.refresher.setOnRefreshListener {
-            viewModel.updateFeed()
-        }
         binding.feedContent.addItemDecoration(ViewHolderItemDecoration())
         binding.collapsingToolbar.isTitleEnabled = false
         binding.feedContent.setHasFixedSize(true)
@@ -128,39 +135,39 @@ class FeedFragment : Fragment(R.layout.fragment_feed),
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    adapter.update(state.feedContent)
-                    binding.refresher.isRefreshing = state.isRefreshing
-                    (activity as? AppCompatActivity)?.supportActionBar?.title = state.title ?: ""
+                launch {
+                    viewModel.state.collect { state ->
+                        adapter.update(state.feedContent)
 
-                    menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
-                    menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
-                    menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-                    binding.updateNameField.isGone = !state.isInEditMode
-                    binding.refresher.isGone = state.isInEditMode
-
-                    if (state.isInEditMode) {
-                        menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-                        openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
-                    } else {
-                        try {
-                            val inputMethodManager =
-                                context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                            inputMethodManager.hideSoftInputFromWindow(
-                                binding.updateNameField.windowToken,
-                                0
-                            )
-                            binding.updateNameField.clearFocus()
-                        } catch (e: NullPointerException) {
-                            LogUtils.e("KeyBoard", "NULL point exception in input method service")
+                        if (viewModel.isInEditMode.value) {
+                            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+                            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
+                        } else {
+                            try {
+                                val inputMethodManager =
+                                    context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                                inputMethodManager.hideSoftInputFromWindow(
+                                    binding.updateNameField.windowToken,
+                                    0
+                                )
+                                binding.updateNameField.clearFocus()
+                            } catch (e: NullPointerException) {
+                                LogUtils.e("KeyBoard", "NULL point exception in input method service")
+                            }
                         }
                     }
                 }
-                viewModel.closeFlow.collect {
-                    findNavController().popBackStack()
+                launch {
+                    viewModel.isInEditMode.collect { isInEditMode ->
+                        menu?.findItem(R.id.option_delete)?.isVisible = isInEditMode
+                        menu?.findItem(R.id.option_save)?.isVisible = isInEditMode
+                        menu?.findItem(R.id.option_edit)?.isVisible = !isInEditMode
+                    }
                 }
-                viewModel.nameToEditFlow.collect { nameToEdit ->
-                    binding.updateNameField.setText(nameToEdit)
+                launch {
+                    viewModel.closeFlow.collect {
+                        findNavController().popBackStack()
+                    }
                 }
             }
         }

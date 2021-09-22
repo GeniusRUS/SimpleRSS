@@ -1,76 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.folder.FolderFragment">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refresher"
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="viewModel"
+            type="com.genius.srss.ui.folder.FolderViewModel" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/root_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        tools:context=".ui.folder.FolderFragment">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/folder_content"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refresher"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:padding="8dp"
-            android:overScrollMode="never"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/rv_subscription_item"/>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            app:refreshing="@{viewModel.state.inFeedLoadingProgress}"
+            app:onRefreshListener="@{() -> viewModel.updateFolderFeed(true)}"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/folder_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp"
+                android:overScrollMode="never"
+                android:visibility="@{viewModel.state.isInEditMode ? View.GONE : View.VISIBLE}"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/rv_subscription_item"/>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/collapsing_toolbar"
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_collapseMode="pin"
-                tools:title="@tools:sample/cities"
-                tools:menu="@menu/menu_options_button">
+                app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
 
-                <EditText
-                    android:id="@+id/update_name_field"
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/subscription_folder_edit_hint"
-                    android:autofillHints="none"
-                    android:imeOptions="actionDone"
-                    android:inputType="textCapSentences|textNoSuggestions"
-                    android:visibility="gone"
-                    tools:visibility="visible"/>
-            </androidx.appcompat.widget.Toolbar>
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-    </com.google.android.material.appbar.AppBarLayout>
+                    app:title="@{viewModel.state.title}"
+                    app:layout_collapseMode="pin"
+                    tools:title="@tools:sample/cities"
+                    tools:menu="@menu/menu_options_button">
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/navigation_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|end"
-        android:text="@string/folder_go_upward"
-        android:textColor="@android:color/white"
-        android:visibility="gone"
-        app:backgroundTint="@color/red"
-        app:iconTint="@android:color/white"
-        app:icon="@drawable/ic_vector_arrow_upward_24dp"
-        tools:visibility="visible"/>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                    <EditText
+                        android:id="@+id/update_name_field"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/subscription_folder_edit_hint"
+                        android:autofillHints="none"
+                        android:imeOptions="actionDone"
+                        android:inputType="textCapSentences|textNoSuggestions"
+                        android:visibility="@{viewModel.state.isInEditMode ? View.VISIBLE : View.GONE}"
+                        android:text="@{viewModel.nameToEditFlow}"/>
+                </androidx.appcompat.widget.Toolbar>
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/navigation_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:layout_gravity="bottom|end"
+            android:text="@string/folder_go_upward"
+            android:textColor="@android:color/white"
+            android:visibility="gone"
+            app:backgroundTint="@color/red"
+            app:iconTint="@android:color/white"
+            app:icon="@drawable/ic_vector_arrow_upward_24dp"
+            tools:visibility="visible"/>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

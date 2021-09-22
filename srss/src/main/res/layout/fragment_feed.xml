@@ -1,64 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.feed.FeedFragment">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/refresher"
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="viewModel"
+            type="com.genius.srss.ui.feed.FeedViewModel" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/root_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/red"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        tools:context=".ui.feed.FeedFragment">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/feed_content"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/refresher"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="6dp"
-            android:paddingTop="6dp"
-            android:overScrollMode="never"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/rv_feed_item"/>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            android:visibility="@{viewModel.isInEditMode ? View.GONE : View.VISIBLE}"
+            app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/red"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            app:onRefreshListener="@{() -> viewModel.updateFeed()}"
+            app:refreshing="@{viewModel.swipeRefreshing}">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/feed_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="6dp"
+                android:paddingTop="6dp"
+                android:overScrollMode="never"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/rv_feed_item"/>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/collapsing_toolbar"
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:id="@+id/collapsing_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_collapseMode="pin"
-                tools:title="@tools:sample/cities"
-                tools:menu="@menu/menu_options_button">
+                app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
 
-                <EditText
-                    android:id="@+id/update_name_field"
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/subscription_subscription_edit_hint"
-                    android:autofillHints="none"
-                    android:imeOptions="actionDone"
-                    android:inputType="textCapSentences|textNoSuggestions"
-                    android:visibility="gone"
-                    tools:visibility="visible"/>
-            </androidx.appcompat.widget.Toolbar>
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-    </com.google.android.material.appbar.AppBarLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                    app:title="@{viewModel.state.title}"
+                    app:layout_collapseMode="pin"
+                    tools:title="@tools:sample/cities"
+                    tools:menu="@menu/menu_options_button">
+
+                    <EditText
+                        android:id="@+id/update_name_field"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/subscription_subscription_edit_hint"
+                        android:autofillHints="none"
+                        android:imeOptions="actionDone"
+                        android:inputType="textCapSentences|textNoSuggestions"
+                        android:visibility="@{viewModel.isInEditMode ? View.VISIBLE : View.GONE}"
+                        android:text="@{viewModel.nameToEditFlow}"
+                        tools:visibility="visible"/>
+                </androidx.appcompat.widget.Toolbar>
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

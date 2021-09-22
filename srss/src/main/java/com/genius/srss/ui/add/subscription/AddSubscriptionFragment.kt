@@ -39,7 +39,9 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
         provider.create(arguments.folderId)
     }
 
-    private val binding: FragmentAddSubscriptionBinding by viewBinding(FragmentAddSubscriptionBinding::bind)
+    private val binding: FragmentAddSubscriptionBinding by viewBinding(
+        FragmentAddSubscriptionBinding::bind
+    )
 
     private val arguments: AddSubscriptionFragmentArgs by navArgs()
 
@@ -84,33 +86,39 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.sourceAddedFlow.collect { feedUrl ->
-                    feedUrl?.let {
-                        val direction = AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(it)
+                launch {
+                    viewModel.sourceAddedFlow.collect { feedUrl ->
+                        val direction =
+                            AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(
+                                feedUrl
+                            )
                         findNavController().navigate(direction)
                     }
                 }
-                viewModel.errorFlow.collect { messageId ->
-                    messageId?.let {
-                        Snackbar.make(binding.rootView, it, Snackbar.LENGTH_LONG).show()
+                launch {
+                    viewModel.errorFlow.collect { messageId ->
+                        Snackbar.make(binding.rootView, messageId, Snackbar.LENGTH_LONG).show()
                     }
                 }
-                viewModel.loadingSourceInfoFlow.collect { loadingState ->
-                    binding.confirmButton.isEnabled = !loadingState.isLoading
+                launch {
+                    viewModel.loadingSourceInfoFlow.collect { loadingState ->
+                        binding.confirmButton.isEnabled = !loadingState.isLoading
 
-                    when {
-                        loadingState.isLoading -> {
-                            binding.confirmButton.showProgress {
-                                buttonTextRes = R.string.add_new_subscription_address_checking_process
-                                progressColor = Color.WHITE
+                        when {
+                            loadingState.isLoading -> {
+                                binding.confirmButton.showProgress {
+                                    buttonTextRes =
+                                        R.string.add_new_subscription_address_checking_process
+                                    progressColor = Color.WHITE
+                                }
                             }
-                        }
-                        loadingState.isAvailableToSave -> {
-                            binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
-                            hideSoftKeyboard(requireContext())
-                        }
-                        else -> {
-                            binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
+                            loadingState.isAvailableToSave -> {
+                                binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
+                                hideSoftKeyboard(requireContext())
+                            }
+                            else -> {
+                                binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
+                            }
                         }
                     }
                 }

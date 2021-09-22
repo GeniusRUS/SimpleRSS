@@ -22,7 +22,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 @AssistedFactory
 interface FolderViewModelFactory {
@@ -56,30 +55,32 @@ class FolderViewModel(
     folderId: String
 ) : ViewModel() {
 
-    private val innerMainState: MutableStateFlow<FolderStateModel> = MutableStateFlow(FolderStateModel(folderId = folderId))
-    private val innerScreenCloseFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val innerNameToEditState: MutableStateFlow<String?> = MutableStateFlow(null)
-    private var innerLoadedFeedCountFlow: MutableStateFlow<Int?> = MutableStateFlow(null)
-
-    private var innerState: FolderStateModel by Delegates.observable(innerMainState.value) { _, oldState, newState ->
-        if (!oldState.isInEditMode && newState.isInEditMode) {
-            innerNameToEditState.value = oldState.title
-        }
-        innerMainState.value = newState
-    }
+    private val _state: MutableStateFlow<FolderStateModel> = MutableStateFlow(FolderStateModel(folderId = folderId))
+    private val _screenCloseFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+    private val _nameToEditFlow: MutableStateFlow<String?> = MutableStateFlow(null)
+    private var _loadedFeedCountFlow: MutableSharedFlow<Int> = MutableSharedFlow()
 
     private val listOfLoadingFeeds = mutableListOf<Deferred<Boolean>>()
 
-    val state: StateFlow<FolderStateModel> = innerMainState
-    val screenCloseFlow: StateFlow<Boolean> = innerScreenCloseFlow
-    val nameToEditFlow: StateFlow<String?> = innerNameToEditState
-    val loadedFeedCountFlow: StateFlow<Int?> = innerLoadedFeedCountFlow
+    val state: StateFlow<FolderStateModel> = _state.distinctUntilChanged { oldState, newState ->
+        if (!oldState.isInEditMode && newState.isInEditMode) {
+            _nameToEditFlow.tryEmit(oldState.title)
+        }
+        false
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = _state.value
+    )
+    val screenCloseFlow: SharedFlow<Unit> = _screenCloseFlow
+    val nameToEditFlow: StateFlow<String?> = _nameToEditFlow
+    val loadedFeedCountFlow: SharedFlow<Int> = _loadedFeedCountFlow
 
     val isInEditMode: Boolean
-        get() = innerState.isInEditMode
+        get() = _state.value.isInEditMode
 
     val isInFeedListMode: Boolean
-        get() = innerState.isCombinedMode
+        get() = _state.value.isCombinedMode
 
     fun updateFolderFeed(isManual: Boolean = false) {
         viewModelScope.launch {
@@ -94,10 +95,10 @@ class FolderViewModel(
     fun unlinkFolderByPosition(position: Int) {
         viewModelScope.launch {
             try {
-                (innerState.feedList[position] as? SubscriptionItemModel)?.urlToLoad?.let { urlToLoad ->
+                (_state.value.feedList[position] as? SubscriptionItemModel)?.urlToLoad?.let { urlToLoad ->
                     subscriptionsDao.removeSingleCrossRefsByParameters(
                         urlToLoad = urlToLoad,
-                        folderId = innerState.folderId
+                        folderId = _state.value.folderId
                     )
                 }
                 updateFolderFeed()
@@ -108,18 +109,22 @@ class FolderViewModel(
     }
 
     fun changeEditMode(isEdit: Boolean) {
-        innerState = innerState.copy(
-            isInEditMode = isEdit
-        )
+        _state.update { state ->
+            state.copy(
+                isInEditMode = isEdit
+            )
+        }
     }
 
     fun checkSaveAvailability(newFolderName: String?) {
-        if (!innerState.isInEditMode) return
+        if (!_state.value.isInEditMode) return
         viewModelScope.launch {
             try {
-                innerState = innerState.copy(
-                    isAvailableToSave = newFolderName?.isNotEmpty() == true && innerState.title != newFolderName
-                )
+                _state.update { state ->
+                    state.copy(
+                        isAvailableToSave = newFolderName?.isNotEmpty() == true && state.title != newFolderName
+                    )
+                }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -130,11 +135,13 @@ class FolderViewModel(
         viewModelScope.launch {
             try {
                 newFolderName?.let { newName ->
-                    subscriptionsDao.updateFolderNameById(innerState.folderId, newName)
+                    subscriptionsDao.updateFolderNameById(_state.value.folderId, newName)
                 }
-                innerState = innerState.copy(
-                    isInEditMode = false
-                )
+                _state.update { state ->
+                    state.copy(
+                        isInEditMode = false
+                    )
+                }
                 updateFolderFeedInternal(isManual = true)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
@@ -145,7 +152,7 @@ class FolderViewModel(
     fun changeMode() {
         viewModelScope.launch {
             try {
-                if (innerState.isCombinedMode) {
+                if (_state.value.isCombinedMode) {
                     listOfLoadingFeeds.forEach {
                         if (it.isActive) {
                             it.cancel()
@@ -153,7 +160,7 @@ class FolderViewModel(
                     }
                 }
                 val folderWithSubscriptions =
-                    subscriptionsDao.loadFolderWithSubscriptionsById(innerState.folderId)
+                    subscriptionsDao.loadFolderWithSubscriptionsById(_state.value.folderId)
                 val modifiedFolder = folderWithSubscriptions?.folder?.copy(
                     isInFeedMode = folderWithSubscriptions.folder.isInFeedMode.not()
                 )
@@ -170,8 +177,8 @@ class FolderViewModel(
     fun deleteFolder() {
         viewModelScope.launch {
             try {
-                subscriptionsDao.complexRemoveFolderById(folderId = innerState.folderId)
-                innerScreenCloseFlow.value = true
+                subscriptionsDao.complexRemoveFolderById(folderId = _state.value.folderId)
+                _screenCloseFlow.emit(Unit)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -180,18 +187,20 @@ class FolderViewModel(
 
     private suspend fun updateFolderFeedInternal(isManual: Boolean) {
         val folderWithSubscriptions =
-            subscriptionsDao.loadFolderWithSubscriptionsById(innerState.folderId)
+            subscriptionsDao.loadFolderWithSubscriptionsById(_state.value.folderId)
         if (folderWithSubscriptions?.folder?.isInFeedMode == true) {
-            innerState = innerState.copy(
-                isInFeedLoadingProgress = true,
-                title = folderWithSubscriptions.folder.name,
-                feedList = if (isManual) {
-                    innerState.feedList
-                } else {
-                    emptyList()
-                },
-                isCombinedMode = folderWithSubscriptions.folder.isInFeedMode
-            )
+            _state.update { state ->
+                state.copy(
+                    isInFeedLoadingProgress = true,
+                    title = folderWithSubscriptions.folder.name,
+                    feedList = if (isManual) {
+                        state.feedList
+                    } else {
+                        emptyList()
+                    },
+                    isCombinedMode = folderWithSubscriptions.folder.isInFeedMode
+                )
+            }
             val atomicUpdateFeedsList = mutableListOf<BaseSubscriptionModel>()
             parallelLoadingOfFeeds(
                 subscriptions = folderWithSubscriptions.subscriptions,
@@ -199,16 +208,18 @@ class FolderViewModel(
                     if (isManual) {
                         atomicUpdateFeedsList
                     } else {
-                        innerState.feedList
+                        _state.value.feedList
                     }
                 },
                 iterateFeedReceiver = { combinedFeedList ->
                     if (isManual) {
                         atomicUpdateFeedsList.renew(combinedFeedList)
                     } else {
-                        innerState = innerState.copy(
-                            feedList = combinedFeedList
-                        )
+                        _state.update { state ->
+                            state.copy(
+                                feedList = combinedFeedList
+                            )
+                        }
                     }
                 },
                 exceptionHandler = { exception ->
@@ -216,38 +227,44 @@ class FolderViewModel(
                 })
             if (isManual) {
                 listOfLoadingFeeds.awaitAll()
-                innerState = innerState.copy(
-                    feedList = atomicUpdateFeedsList
-                )
+                _state.update { state ->
+                    state.copy(
+                        feedList = atomicUpdateFeedsList
+                    )
+                }
             }
             val loadedFeeds = listOfLoadingFeeds.awaitAll().count { it }
             val failedToLoadListCount = listOfLoadingFeeds.size - loadedFeeds
             if (failedToLoadListCount > 0) {
-                innerLoadedFeedCountFlow.value = failedToLoadListCount
+                _loadedFeedCountFlow.emit(failedToLoadListCount)
             }
             listOfLoadingFeeds.clear()
-            innerState = innerState.copy(
-                isInFeedLoadingProgress = false
-            )
+            _state.update { state ->
+                state.copy(
+                    isInFeedLoadingProgress = false
+                )
+            }
         } else {
-            innerState = innerState.copy(
-                title = folderWithSubscriptions?.folder?.name,
-                feedList = (folderWithSubscriptions?.subscriptions?.map {
-                    SubscriptionItemModel(
-                        it.title,
-                        it.urlToLoad
-                    )
-                } ?: emptyList()).ifEmpty {
-                    listOf(
-                        SubscriptionFolderEmptyModel(
-                            icon = R.drawable.ic_vector_empty_folder,
-                            message = R.string.subscription_folder_empty,
-                            action = R.string.subscription_folder_add_subscription
+            _state.update { state ->
+                state.copy(
+                    title = folderWithSubscriptions?.folder?.name,
+                    feedList = (folderWithSubscriptions?.subscriptions?.map {
+                        SubscriptionItemModel(
+                            it.title,
+                            it.urlToLoad
                         )
-                    )
-                },
-                isCombinedMode = folderWithSubscriptions?.folder?.isInFeedMode ?: false
-            )
+                    } ?: emptyList()).ifEmpty {
+                        listOf(
+                            SubscriptionFolderEmptyModel(
+                                icon = R.drawable.ic_vector_empty_folder,
+                                message = R.string.subscription_folder_empty,
+                                action = R.string.subscription_folder_add_subscription
+                            )
+                        )
+                    },
+                    isCombinedMode = folderWithSubscriptions?.folder?.isInFeedMode ?: false
+                )
+            }
         }
     }
 

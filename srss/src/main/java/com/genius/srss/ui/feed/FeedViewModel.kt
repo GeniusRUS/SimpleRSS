@@ -13,8 +13,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 @AssistedFactory
 interface FeedViewModelProvider {
@@ -46,18 +46,27 @@ class FeedViewModel(
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
     private val feedUrl: String
-): ViewModel() {
+) : ViewModel() {
 
-    private val innerMainState: MutableStateFlow<FeedStateModel> = MutableStateFlow(FeedStateModel())
+    private val innerMainState: MutableStateFlow<FeedStateModel> =
+        MutableStateFlow(FeedStateModel())
     private val innerCloseState: MutableSharedFlow<Unit> = MutableSharedFlow()
     private val innerNameToEditState: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    private var innerState: FeedStateModel by Delegates.observable(innerMainState.value) { _, oldState, newState ->
-        if (!oldState.isInEditMode && newState.isInEditMode) {
-            innerNameToEditState.value = oldState.title
+    private val _swipeRefreshing = MutableStateFlow(false)
+    val swipeRefreshing: StateFlow<Boolean> = _swipeRefreshing
+
+    private val _isInEditMode = MutableStateFlow(false)
+    val isInEditMode: StateFlow<Boolean> = _isInEditMode.distinctUntilChanged { old, new ->
+        if (!old && new) {
+            innerNameToEditState.tryEmit(innerMainState.value.title)
         }
-        innerMainState.value = newState
-    }
+        false
+    }.stateIn(
+        scope = viewModelScope,
+        started = WhileSubscribed(5000),
+        initialValue = _isInEditMode.value
+    )
 
     val state: StateFlow<FeedStateModel> = innerMainState
 
@@ -65,31 +74,26 @@ class FeedViewModel(
 
     val nameToEditFlow: StateFlow<String?> = innerNameToEditState
 
-    val isInEditMode: Boolean
-        get() = innerState.isInEditMode
-
     fun updateFeed() {
         viewModelScope.launch {
             try {
-                innerState = innerState.copy(
-                    isRefreshing = true
-                )
+                _swipeRefreshing.emit(true)
                 updateFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
-                innerState = innerState.copy(
-                    feedContent = listOf(
-                        SubscriptionFolderEmptyModel(
-                            icon = R.drawable.ic_vector_warning,
-                            message = R.string.subscription_feed_error,
-                            action = R.string.subscription_feed_error_action
+                innerMainState.update { state ->
+                    state.copy(
+                        feedContent = listOf(
+                            SubscriptionFolderEmptyModel(
+                                icon = R.drawable.ic_vector_warning,
+                                message = R.string.subscription_feed_error,
+                                action = R.string.subscription_feed_error_action
+                            )
                         )
                     )
-                )
+                }
             } finally {
-                innerState = innerState.copy(
-                    isRefreshing = false
-                )
+                _swipeRefreshing.emit(false)
             }
         }
     }
@@ -106,50 +110,48 @@ class FeedViewModel(
     }
 
     fun changeEditMode(isEdit: Boolean) {
-        innerState = innerState.copy(
-            isInEditMode = isEdit
-        )
+        viewModelScope.launch {
+            _isInEditMode.emit(isEdit)
+        }
     }
 
     fun updateSubscription(newSubscriptionName: String?) {
         viewModelScope.launch {
             try {
-                innerState = innerState.copy(
-                    isRefreshing = true
-                )
+                _swipeRefreshing.emit(true)
                 newSubscriptionName?.let { newName ->
                     subscriptionsDao.updateSubscriptionTitleByUrl(feedUrl, newName)
                 }
-                innerState = innerState.copy(
-                    isInEditMode = false
-                )
+                _isInEditMode.emit(false)
                 updateFeedInternal()
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
-                innerState = innerState.copy(
-                    feedContent = listOf(
-                        SubscriptionFolderEmptyModel(
-                            icon = R.drawable.ic_vector_warning,
-                            message = R.string.subscription_feed_error,
-                            action = R.string.subscription_feed_error_action
+                innerMainState.update { state ->
+                    state.copy(
+                        feedContent = listOf(
+                            SubscriptionFolderEmptyModel(
+                                icon = R.drawable.ic_vector_warning,
+                                message = R.string.subscription_feed_error,
+                                action = R.string.subscription_feed_error_action
+                            )
                         )
                     )
-                )
+                }
             } finally {
-                innerState = innerState.copy(
-                    isRefreshing = false
-                )
+                _swipeRefreshing.emit(false)
             }
         }
     }
 
     fun checkSaveAvailability(newSubscriptionName: String?) {
-        if (!innerState.isInEditMode) return
+        if (!_isInEditMode.value) return
         viewModelScope.launch {
             try {
-                innerState = innerState.copy(
-                    isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerState.title != newSubscriptionName
-                )
+                innerMainState.update { state ->
+                    state.copy(
+                        isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerMainState.value.title != newSubscriptionName
+                    )
+                }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -158,25 +160,30 @@ class FeedViewModel(
 
     private suspend fun updateFeedInternal() {
         subscriptionsDao.loadSubscriptionById(feedUrl)?.let { feed ->
-            innerState = innerState.copy(
-                title = feed.title,
-            )
-        }
-        val feed = networkSource.loadFeed(feedUrl) ?: throw NullPointerException("Parsed feed is null")
-        innerState = innerState.copy(
-            feedContent = feed.items.map { item ->
-                converters.convertNetworkFeedToLocal(item)
-            }.sortedByDescending { feedItem ->
-                feedItem.publicationDate?.time
-            }.ifEmpty {
-                listOf(
-                    SubscriptionFolderEmptyModel(
-                        icon = R.drawable.ic_vector_empty_folder,
-                        message = R.string.subscription_feed_empty
-                    )
+            innerMainState.update { state ->
+                state.copy(
+                    title = feed.title
                 )
             }
-        )
+        }
+        val feed =
+            networkSource.loadFeed(feedUrl) ?: throw NullPointerException("Parsed feed is null")
+        innerMainState.update { state ->
+            state.copy(
+                feedContent = feed.items.map { item ->
+                    converters.convertNetworkFeedToLocal(item)
+                }.sortedByDescending { feedItem ->
+                    feedItem.publicationDate?.time
+                }.ifEmpty {
+                    listOf(
+                        SubscriptionFolderEmptyModel(
+                            icon = R.drawable.ic_vector_empty_folder,
+                            message = R.string.subscription_feed_empty
+                        )
+                    )
+                }
+            )
+        }
     }
 
     companion object {
