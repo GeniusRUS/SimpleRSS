@@ -168,12 +168,12 @@ class SubscriptionsListAdapter(
 
         fun bind(model: SubscriptionFolderEmptyModel) {
             iconImage.setImageDrawable(VectorDrawableCompat.create(itemView.context.resources, model.icon, itemView.context.theme))
-            reasonText.text = model.message
-            if (model.action.isNullOrEmpty()) {
+            reasonText.text = itemView.context.getString(model.message)
+            if (model.action == null) {
                 action.isGone = true
             } else {
                 action.isVisible = true
-                action.text = model.action
+                action.text = itemView.context.getString(model.action)
             }
         }
 

@@ -1,6 +1,5 @@
 package com.genius.srss.ui.feed
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -23,7 +22,6 @@ interface FeedViewModelProvider {
 }
 
 class FeedViewModelFactory @AssistedInject constructor(
-    private val context: Context,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
@@ -33,7 +31,6 @@ class FeedViewModelFactory @AssistedInject constructor(
         if (modelClass.isAssignableFrom(FeedViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FeedViewModel(
-                context,
                 networkSource,
                 subscriptionsDao,
                 converters,
@@ -45,7 +42,6 @@ class FeedViewModelFactory @AssistedInject constructor(
 }
 
 class FeedViewModel(
-    private val context: Context,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
@@ -53,7 +49,7 @@ class FeedViewModel(
 ): ViewModel() {
 
     private val innerMainState: MutableStateFlow<FeedStateModel> = MutableStateFlow(FeedStateModel())
-    private val innerCloseState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val innerCloseState: MutableSharedFlow<Unit> = MutableSharedFlow()
     private val innerNameToEditState: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private var innerState: FeedStateModel by Delegates.observable(innerMainState.value) { _, oldState, newState ->
@@ -65,7 +61,7 @@ class FeedViewModel(
 
     val state: StateFlow<FeedStateModel> = innerMainState
 
-    val closeFlow: StateFlow<Boolean> = innerCloseState
+    val closeFlow: SharedFlow<Unit> = innerCloseState
 
     val nameToEditFlow: StateFlow<String?> = innerNameToEditState
 
@@ -85,8 +81,8 @@ class FeedViewModel(
                     feedContent = listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
-                            message = context.getString(R.string.subscription_feed_error),
-                            action = context.getString(R.string.subscription_feed_error_action)
+                            message = R.string.subscription_feed_error,
+                            action = R.string.subscription_feed_error_action
                         )
                     )
                 )
@@ -102,7 +98,7 @@ class FeedViewModel(
         viewModelScope.launch {
             try {
                 subscriptionsDao.complexRemoveSubscriptionByUrl(feedUrl)
-                innerCloseState.value = true
+                innerCloseState.emit(Unit)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -134,8 +130,8 @@ class FeedViewModel(
                     feedContent = listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_warning,
-                            message = context.getString(R.string.subscription_feed_error),
-                            action = context.getString(R.string.subscription_feed_error_action)
+                            message = R.string.subscription_feed_error,
+                            action = R.string.subscription_feed_error_action
                         )
                     )
                 )
@@ -176,7 +172,7 @@ class FeedViewModel(
                 listOf(
                     SubscriptionFolderEmptyModel(
                         icon = R.drawable.ic_vector_empty_folder,
-                        message = context.getString(R.string.subscription_feed_empty)
+                        message = R.string.subscription_feed_empty
                     )
                 )
             }

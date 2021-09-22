@@ -1,6 +1,5 @@
 package com.genius.srss.ui.folder
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -31,7 +30,6 @@ interface FolderViewModelFactory {
 }
 
 class FolderModelFactory @AssistedInject constructor(
-    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val network: INetworkSource,
     private val converters: SRSSConverters,
@@ -41,7 +39,6 @@ class FolderModelFactory @AssistedInject constructor(
         if (modelClass.isAssignableFrom(FolderViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FolderViewModel(
-                context,
                 subscriptionsDao,
                 network,
                 converters,
@@ -53,7 +50,6 @@ class FolderModelFactory @AssistedInject constructor(
 }
 
 class FolderViewModel(
-    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val network: INetworkSource,
     private val converters: SRSSConverters,
@@ -245,8 +241,8 @@ class FolderViewModel(
                     listOf(
                         SubscriptionFolderEmptyModel(
                             icon = R.drawable.ic_vector_empty_folder,
-                            message = context.getString(R.string.subscription_folder_empty),
-                            action = context.getString(R.string.subscription_folder_add_subscription)
+                            message = R.string.subscription_folder_empty,
+                            action = R.string.subscription_folder_add_subscription
                         )
                     )
                 },

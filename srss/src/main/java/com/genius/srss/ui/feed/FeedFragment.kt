@@ -3,10 +3,7 @@ package com.genius.srss.ui.feed
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
@@ -42,7 +39,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
-
 
 class FeedFragment : Fragment(R.layout.fragment_feed),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
@@ -161,9 +157,7 @@ class FeedFragment : Fragment(R.layout.fragment_feed),
                     }
                 }
                 viewModel.closeFlow.collect {
-                    if (it) {
-                        findNavController().popBackStack()
-                    }
+                    findNavController().popBackStack()
                 }
                 viewModel.nameToEditFlow.collect { nameToEdit ->
                     binding.updateNameField.setText(nameToEdit)

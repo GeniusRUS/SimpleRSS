@@ -2,6 +2,7 @@ package com.genius.srss.ui.subscriptions
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
+import androidx.annotation.StringRes
 import com.genius.srss.R
 import com.ub.utils.base.DiffComparable
 import java.util.*
@@ -36,8 +37,10 @@ data class SubscriptionFolderItemModel(
 data class SubscriptionFolderEmptyModel(
     @DrawableRes
     val icon: Int,
-    val message: String,
-    val action: String? = null,
+    @StringRes
+    val message: Int,
+    @StringRes
+    val action: Int? = null,
     private val id: String = "empty",
     override val layoutId: Int = R.layout.rv_feed_empty
 ) : BaseSubscriptionModel() {

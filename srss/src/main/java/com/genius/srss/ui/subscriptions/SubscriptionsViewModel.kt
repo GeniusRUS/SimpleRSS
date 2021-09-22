@@ -1,6 +1,5 @@
 package com.genius.srss.ui.subscriptions
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,14 +14,12 @@ import javax.inject.Inject
 import kotlin.properties.Delegates
 
 class SubscriptionsViewModelFactory @Inject constructor(
-    private val context: Context,
     private val subscriptionDao: SubscriptionsDao
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SubscriptionsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return SubscriptionsViewModel(
-                context,
                 subscriptionDao
             ) as T
         }
@@ -31,7 +28,6 @@ class SubscriptionsViewModelFactory @Inject constructor(
 }
 
 class SubscriptionsViewModel(
-    private val context: Context,
     private val subscriptionDao: SubscriptionsDao
 ): ViewModel() {
 
@@ -69,8 +65,8 @@ class SubscriptionsViewModel(
                         listOf(
                             SubscriptionFolderEmptyModel(
                                 icon = R.drawable.ic_vector_empty_folder,
-                                message = context.getString(R.string.subscription_empty),
-                                action = context.getString(R.string.subscription_empty_first)
+                                message = R.string.subscription_empty,
+                                action = R.string.subscription_empty_first
                             )
                         )
                     }
