@@ -11,7 +11,6 @@ import com.ub.utils.LogUtils
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.properties.Delegates
 
 class SubscriptionsViewModelFactory @Inject constructor(
     private val subscriptionDao: SubscriptionsDao
@@ -31,15 +30,11 @@ class SubscriptionsViewModel(
     private val subscriptionDao: SubscriptionsDao
 ): ViewModel() {
 
-    private val innerMainState: MutableStateFlow<SubscriptionsStateModel> = MutableStateFlow(SubscriptionsStateModel())
+    private val _state: MutableStateFlow<SubscriptionsStateModel> = MutableStateFlow(SubscriptionsStateModel())
 
-    private var innerState: SubscriptionsStateModel by Delegates.observable(SubscriptionsStateModel()) { _, _, newState ->
-        innerMainState.value = newState
-    }
+    val state: StateFlow<SubscriptionsStateModel> = _state
 
-    val state: StateFlow<SubscriptionsStateModel> = innerMainState
-
-    fun updateFeed(isFull: Boolean = innerState.isFullList) {
+    fun updateFeed(isFull: Boolean = _state.value.isFullList) {
         viewModelScope.launch {
             try {
                 val folders = subscriptionDao.loadAllFolders().sortedBy { it.dateOfCreation }
@@ -48,29 +43,31 @@ class SubscriptionsViewModel(
                 } else {
                     subscriptionDao.loadSubscriptionsWithoutFolders()
                 }
-                innerState = innerState.copy(
-                    isFullList = isFull,
-                    feedList = (folders.map {
-                        SubscriptionFolderItemModel(
-                            it.id,
-                            it.name,
-                            subscriptionDao.getCrossRefCountByFolderId(it.id)
-                        )
-                    } + subscriptions.map {
-                        SubscriptionItemModel(
-                            it.title,
-                            it.urlToLoad
-                        )
-                    }).ifEmpty {
-                        listOf(
-                            SubscriptionFolderEmptyModel(
-                                icon = R.drawable.ic_vector_empty_folder,
-                                message = R.string.subscription_empty,
-                                action = R.string.subscription_empty_first
+                _state.update { state ->
+                    state.copy(
+                        isFullList = isFull,
+                        feedList = (folders.map {
+                            SubscriptionFolderItemModel(
+                                it.id,
+                                it.name,
+                                subscriptionDao.getCrossRefCountByFolderId(it.id)
                             )
-                        )
-                    }
-                )
+                        } + subscriptions.map {
+                            SubscriptionItemModel(
+                                it.title,
+                                it.urlToLoad
+                            )
+                        }).ifEmpty {
+                            listOf(
+                                SubscriptionFolderEmptyModel(
+                                    icon = R.drawable.ic_vector_empty_folder,
+                                    message = R.string.subscription_empty,
+                                    action = R.string.subscription_empty_first
+                                )
+                            )
+                        }
+                    )
+                }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }
@@ -80,7 +77,7 @@ class SubscriptionsViewModel(
     fun removeSubscriptionByPosition(position: Int) {
         viewModelScope.launch {
             try {
-                (innerState.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
+                (_state.value.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
                     subscription.urlToLoad?.let { urlToRemove ->
                         subscriptionDao.complexRemoveSubscriptionByUrl(urlToRemove)
                     }
@@ -97,8 +94,8 @@ class SubscriptionsViewModel(
         viewModelScope.launch {
             try {
                 if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch
-                val holderToMove = innerState.feedList[holderPosition]
-                val targetOfMove = innerState.feedList[targetPosition]
+                val holderToMove = _state.value.feedList[holderPosition]
+                val targetOfMove = _state.value.feedList[targetPosition]
                 when {
                     holderToMove is SubscriptionItemModel && targetOfMove is SubscriptionFolderItemModel -> {
                         subscriptionDao.saveSubscriptionFolderCrossRef(
