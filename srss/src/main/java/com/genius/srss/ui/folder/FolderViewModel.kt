@@ -35,7 +35,7 @@ class FolderModelFactory @AssistedInject constructor(
     private val converters: SRSSConverters,
     @Assisted private val folderId: String
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FolderViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FolderViewModel(

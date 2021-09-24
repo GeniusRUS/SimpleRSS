@@ -1,9 +1,9 @@
 package com.genius.srss.ui.folder
 
 import android.app.Activity
-import android.os.Bundle
 import android.graphics.Color
 import android.net.Uri
+import android.os.Bundle
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
@@ -15,9 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -28,6 +25,7 @@ import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.ui.subscriptions.*
+import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.LogUtils
 import com.ub.utils.base.BaseListAdapter
@@ -160,57 +158,55 @@ class FolderFragment : Fragment(),
 
         viewModel.updateFolderFeed()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.loadedFeedCountFlow.collect { count ->
-                        Snackbar.make(
-                            binding.rootView,
-                            resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, count, count),
-                            Snackbar.LENGTH_LONG
-                        ).show()
-                    }
+        launchAndRepeatWithViewLifecycle {
+            launch {
+                viewModel.loadedFeedCountFlow.collect { count ->
+                    Snackbar.make(
+                        binding.rootView,
+                        resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, count, count),
+                        Snackbar.LENGTH_LONG
+                    ).show()
                 }
-                launch {
-                    viewModel.screenCloseFlow.collect {
-                        findNavController().popBackStack()
-                    }
+            }
+            launch {
+                viewModel.screenCloseFlow.collect {
+                    findNavController().popBackStack()
                 }
-                launch {
-                    viewModel.state.collect { state ->
-                        adapter.update(state.feedList)
+            }
+            launch {
+                viewModel.state.collect { state ->
+                    adapter.update(state.feedList)
 
-                        menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
-                        menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
-                        menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-                        menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
-                        menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
-                            VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
+                    menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
+                    menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
+                    menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
+                    menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
+                    menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
+                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
+                    } else {
+                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
+                    }
+                    binding.refresher.isEnabled = state.isCombinedMode
+                    if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
+                        if (!isInInteractionMode) {
+                            binding.folderContent.scrollToPosition(0)
                         } else {
-                            VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
+                            binding.navigationFab.show()
                         }
-                        binding.refresher.isEnabled = state.isCombinedMode
-                        if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
-                            if (!isInInteractionMode) {
-                                binding.folderContent.scrollToPosition(0)
-                            } else {
-                                binding.navigationFab.show()
-                            }
-                        } else {
-                            binding.navigationFab.hide()
-                        }
+                    } else {
+                        binding.navigationFab.hide()
+                    }
 
-                        if (state.isInEditMode) {
-                            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-                            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
-                        } else {
-                            try {
-                                val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                                inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
-                                binding.updateNameField.clearFocus()
-                            } catch (e: NullPointerException) {
-                                LogUtils.e("KeyBoard", "NULL point exception in input method service")
-                            }
+                    if (state.isInEditMode) {
+                        menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+                        openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
+                    } else {
+                        try {
+                            val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                            inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
+                            binding.updateNameField.clearFocus()
+                        } catch (e: NullPointerException) {
+                            LogUtils.e("KeyBoard", "NULL point exception in input method service")
                         }
                     }
                 }

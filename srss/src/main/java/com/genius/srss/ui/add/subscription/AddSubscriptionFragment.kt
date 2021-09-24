@@ -9,15 +9,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentAddSubscriptionBinding
 import com.genius.srss.di.DIManager
+import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.github.razir.progressbutton.attachTextChangeAnimator
 import com.github.razir.progressbutton.bindProgressButton
 import com.github.razir.progressbutton.hideProgress
@@ -84,41 +82,39 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
             binding.textField.setText(arguments.urlToAdd)
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.sourceAddedFlow.collect { feedUrl ->
-                        val direction =
-                            AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(
-                                feedUrl
-                            )
-                        findNavController().navigate(direction)
-                    }
+        launchAndRepeatWithViewLifecycle {
+            launch {
+                viewModel.sourceAddedFlow.collect { feedUrl ->
+                    val direction =
+                        AddSubscriptionFragmentDirections.actionAddFragmentToFeedFragment(
+                            feedUrl
+                        )
+                    findNavController().navigate(direction)
                 }
-                launch {
-                    viewModel.errorFlow.collect { messageId ->
-                        Snackbar.make(binding.rootView, messageId, Snackbar.LENGTH_LONG).show()
-                    }
+            }
+            launch {
+                viewModel.errorFlow.collect { messageId ->
+                    Snackbar.make(binding.rootView, messageId, Snackbar.LENGTH_LONG).show()
                 }
-                launch {
-                    viewModel.loadingSourceInfoFlow.collect { loadingState ->
-                        binding.confirmButton.isEnabled = !loadingState.isLoading
+            }
+            launch {
+                viewModel.loadingSourceInfoFlow.collect { loadingState ->
+                    binding.confirmButton.isEnabled = !loadingState.isLoading
 
-                        when {
-                            loadingState.isLoading -> {
-                                binding.confirmButton.showProgress {
-                                    buttonTextRes =
-                                        R.string.add_new_subscription_address_checking_process
-                                    progressColor = Color.WHITE
-                                }
+                    when {
+                        loadingState.isLoading -> {
+                            binding.confirmButton.showProgress {
+                                buttonTextRes =
+                                    R.string.add_new_subscription_address_checking_process
+                                progressColor = Color.WHITE
                             }
-                            loadingState.isAvailableToSave -> {
-                                binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
-                                hideSoftKeyboard(requireContext())
-                            }
-                            else -> {
-                                binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
-                            }
+                        }
+                        loadingState.isAvailableToSave -> {
+                            binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
+                            hideSoftKeyboard(requireContext())
+                        }
+                        else -> {
+                            binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
                         }
                     }
                 }

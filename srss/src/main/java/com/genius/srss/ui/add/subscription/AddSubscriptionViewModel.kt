@@ -31,7 +31,7 @@ class AddSubscriptionViewModelFactory @AssistedInject constructor(
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddSubscriptionViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return AddSubscriptionViewModel(

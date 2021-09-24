@@ -16,9 +16,6 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -30,6 +27,7 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
+import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
@@ -204,12 +202,10 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
         viewModel.updateFeed()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.state.collect { state ->
-                        adapter.update(state.feedList)
-                    }
+        launchAndRepeatWithViewLifecycle {
+            launch {
+                viewModel.state.collect { state ->
+                    adapter.update(state.feedList)
                 }
             }
         }

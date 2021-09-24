@@ -28,7 +28,7 @@ class FeedViewModelFactory @AssistedInject constructor(
     private val converters: SRSSConverters,
     @Assisted private val feedUrl: String
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FeedViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FeedViewModel(

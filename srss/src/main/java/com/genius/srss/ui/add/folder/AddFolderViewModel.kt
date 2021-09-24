@@ -18,7 +18,7 @@ class AddFolderModelFactory @Inject constructor(
     private val subscriptionsDao: SubscriptionsDao,
     private val generator: IGenerator
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AddFolderViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return AddFolderViewModel(

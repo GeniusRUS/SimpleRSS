@@ -14,9 +14,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.genius.srss.R
@@ -27,6 +24,7 @@ import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
 import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
+import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.ub.utils.LogUtils
 import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
@@ -129,41 +127,39 @@ class FeedFragment : Fragment(),
 
         viewModel.updateFeed()
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.state.collect { state ->
-                        adapter.update(state.feedContent)
+        launchAndRepeatWithViewLifecycle {
+            launch {
+                viewModel.state.collect { state ->
+                    adapter.update(state.feedContent)
 
-                        if (viewModel.isInEditMode.value) {
-                            menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
-                            openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
-                        } else {
-                            try {
-                                val inputMethodManager =
-                                    context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                                inputMethodManager.hideSoftInputFromWindow(
-                                    binding.updateNameField.windowToken,
-                                    0
-                                )
-                                binding.updateNameField.clearFocus()
-                            } catch (e: NullPointerException) {
-                                LogUtils.e("KeyBoard", "NULL point exception in input method service")
-                            }
+                    if (viewModel.isInEditMode.value) {
+                        menu?.findItem(R.id.option_save)?.isEnabled = state.isAvailableToSave
+                        openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
+                    } else {
+                        try {
+                            val inputMethodManager =
+                                context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                            inputMethodManager.hideSoftInputFromWindow(
+                                binding.updateNameField.windowToken,
+                                0
+                            )
+                            binding.updateNameField.clearFocus()
+                        } catch (e: NullPointerException) {
+                            LogUtils.e("KeyBoard", "NULL point exception in input method service")
                         }
                     }
                 }
-                launch {
-                    viewModel.isInEditMode.collect { isInEditMode ->
-                        menu?.findItem(R.id.option_delete)?.isVisible = isInEditMode
-                        menu?.findItem(R.id.option_save)?.isVisible = isInEditMode
-                        menu?.findItem(R.id.option_edit)?.isVisible = !isInEditMode
-                    }
+            }
+            launch {
+                viewModel.isInEditMode.collect { isInEditMode ->
+                    menu?.findItem(R.id.option_delete)?.isVisible = isInEditMode
+                    menu?.findItem(R.id.option_save)?.isVisible = isInEditMode
+                    menu?.findItem(R.id.option_edit)?.isVisible = !isInEditMode
                 }
-                launch {
-                    viewModel.closeFlow.collect {
-                        findNavController().popBackStack()
-                    }
+            }
+            launch {
+                viewModel.closeFlow.collect {
+                    findNavController().popBackStack()
                 }
             }
         }

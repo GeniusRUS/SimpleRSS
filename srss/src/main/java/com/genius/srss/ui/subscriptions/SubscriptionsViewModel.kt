@@ -15,7 +15,7 @@ import javax.inject.Inject
 class SubscriptionsViewModelFactory @Inject constructor(
     private val subscriptionDao: SubscriptionsDao
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SubscriptionsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return SubscriptionsViewModel(

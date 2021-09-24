@@ -85,6 +85,7 @@ val roomVer = "2.3.0"
 val coroutineVer = "1.5.2"
 val navigationVer = "2.3.5"
 val okHttpVer = "4.9.1"
+val lifecycleVer = "2.4.0-beta01"
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
@@ -113,8 +114,8 @@ dependencies {
 
     implementation("dev.chrisbanes.insetter:insetter:0.6.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-beta01")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVer")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVer")
 
     implementation("com.github.GeniusRUS:Earl:128065f54c")
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.7")
