@@ -2,6 +2,7 @@ package com.genius.srss.di.services.database.dao
 
 import androidx.room.*
 import com.genius.srss.di.services.database.models.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubscriptionsDao {
@@ -34,6 +35,10 @@ interface SubscriptionsDao {
     @Transaction
     @Query("SELECT * FROM folders WHERE id == :folderId LIMIT 1")
     suspend fun loadFolderWithSubscriptionsById(folderId: String): FolderWithSubscriptions?
+
+    @Transaction
+    @Query("SELECT * FROM folders WHERE id == :folderId LIMIT 1")
+    fun loadFolderWithSubscriptionsByIdFlow(folderId: String): Flow<FolderWithSubscriptions?>
 
     @Query("UPDATE folders SET name = :newName WHERE id = :folderId")
     suspend fun updateFolderNameById(folderId: String, newName: String)

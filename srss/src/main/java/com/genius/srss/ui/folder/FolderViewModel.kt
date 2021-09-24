@@ -1,5 +1,6 @@
 package com.genius.srss.ui.folder
 
+import android.text.Editable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -116,13 +117,13 @@ class FolderViewModel(
         }
     }
 
-    fun checkSaveAvailability(newFolderName: String?) {
+    fun checkSaveAvailability(newFolderName: Editable?) {
         if (!_state.value.isInEditMode) return
         viewModelScope.launch {
             try {
                 _state.update { state ->
                     state.copy(
-                        isAvailableToSave = newFolderName?.isNotEmpty() == true && state.title != newFolderName
+                        isAvailableToSave = newFolderName?.isNotEmpty() == true && state.title != newFolderName.toString()
                     )
                 }
             } catch (e: Exception) {

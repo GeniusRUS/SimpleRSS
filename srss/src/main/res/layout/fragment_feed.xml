@@ -71,6 +71,7 @@
                         android:inputType="textCapSentences|textNoSuggestions"
                         android:visibility="@{viewModel.isInEditMode ? View.VISIBLE : View.GONE}"
                         android:text="@{viewModel.nameToEditFlow}"
+                        android:afterTextChanged="@{viewModel.checkSaveAvailability}"
                         tools:visibility="visible"/>
                 </androidx.appcompat.widget.Toolbar>
             </com.google.android.material.appbar.CollapsingToolbarLayout>

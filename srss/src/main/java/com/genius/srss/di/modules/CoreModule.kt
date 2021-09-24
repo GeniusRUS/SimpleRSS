@@ -27,7 +27,7 @@ object CoreModule {
     @Named(value = "logging_interceptor")
     fun provideLoggingInterceptor(): Interceptor = HttpLoggingInterceptor().setLevel(
         when {
-            BuildConfig.DEBUG -> HttpLoggingInterceptor.Level.BODY
+            BuildConfig.DEBUG -> HttpLoggingInterceptor.Level.BASIC
             else -> HttpLoggingInterceptor.Level.NONE
         }
     )

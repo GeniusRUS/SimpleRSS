@@ -12,7 +12,6 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -117,9 +116,6 @@ class FeedFragment : Fragment(),
             } else false
         }
 
-        binding.updateNameField.addTextChangedListener {
-            viewModel.checkSaveAvailability(it?.toString())
-        }
         binding.feedContent.applyInsetter {
             type(navigationBars = true) {
                 padding(bottom = true)

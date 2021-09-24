@@ -1,5 +1,6 @@
 package com.genius.srss.ui.feed
 
+import android.text.Editable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -143,13 +144,13 @@ class FeedViewModel(
         }
     }
 
-    fun checkSaveAvailability(newSubscriptionName: String?) {
+    fun checkSaveAvailability(newSubscriptionName: Editable?) {
         if (!_isInEditMode.value) return
         viewModelScope.launch {
             try {
                 innerMainState.update { state ->
                     state.copy(
-                        isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerMainState.value.title != newSubscriptionName
+                        isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerMainState.value.title != newSubscriptionName.toString()
                     )
                 }
             } catch (e: Exception) {

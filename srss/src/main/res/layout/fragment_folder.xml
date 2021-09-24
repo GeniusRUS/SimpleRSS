@@ -68,7 +68,8 @@
                         android:imeOptions="actionDone"
                         android:inputType="textCapSentences|textNoSuggestions"
                         android:visibility="@{viewModel.state.isInEditMode ? View.VISIBLE : View.GONE}"
-                        android:text="@{viewModel.nameToEditFlow}"/>
+                        android:text="@{viewModel.nameToEditFlow}"
+                        android:afterTextChanged="@{viewModel.checkSaveAvailability}"/>
                 </androidx.appcompat.widget.Toolbar>
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
