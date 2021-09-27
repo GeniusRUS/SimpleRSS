@@ -15,10 +15,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.ChangeTransform
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
@@ -28,7 +30,6 @@ import com.genius.srss.ui.subscriptions.*
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.LogUtils
-import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.collect
@@ -37,7 +38,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class FolderFragment : Fragment(),
-    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>,
+    SubscriptionsListAdapter.TransitionListClickListener<BaseSubscriptionModel>,
     FolderTouchHelperCallback.TouchFolderListener, View.OnClickListener {
 
     @Inject
@@ -63,6 +64,11 @@ class FolderFragment : Fragment(),
     private var menu: Menu? = null
     private var isInInteractionMode: Boolean = false
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition = ChangeTransform()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,6 +78,10 @@ class FolderFragment : Fragment(),
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@FolderFragment.viewModel
         }
+        binding.rootView.transitionName = String.format(
+            inflater.context.getString(R.string.transition_root_tag),
+            arguments.folderId
+        )
         return binding.root
     }
 
@@ -108,7 +118,7 @@ class FolderFragment : Fragment(),
         binding.collapsingToolbar.isTitleEnabled = false
         binding.folderContent.adapter = adapter
         binding.folderContent.setHasFixedSize(true)
-        adapter.listListener = this
+        adapter.transitionClickListener = this
 
         binding.folderContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -175,7 +185,9 @@ class FolderFragment : Fragment(),
             }
             launch {
                 viewModel.state.collect { state ->
-                    adapter.update(state.feedList)
+                    adapter.submitList(ArrayList(state.feedList)) {
+                        startPostponedEnterTransition()
+                    }
 
                     menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
                     menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
@@ -212,6 +224,8 @@ class FolderFragment : Fragment(),
                 }
             }
         }
+
+        postponeEnterTransition()
     }
 
     override fun onDestroyView() {
@@ -263,13 +277,24 @@ class FolderFragment : Fragment(),
         }
     }
 
-    override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
+    override fun onClick(
+        view: View,
+        item: BaseSubscriptionModel,
+        position: Int,
+        vararg transitionView: View
+    ) {
         when (item) {
             is SubscriptionItemModel -> {
-                val direction = FolderFragmentDirections.actionFolderFragmentToFeedFragment(
-                    item.urlToLoad ?: return
+                val extras = FragmentNavigatorExtras(
+                    *transitionView.mapNotNull { viewToTransition ->
+                        viewToTransition to (viewToTransition.transitionName ?: return@mapNotNull null)
+                    }.toTypedArray()
                 )
-                findNavController().navigate(direction)
+                val direction = FolderFragmentDirections.actionFolderFragmentToFeedFragment(
+                    item.urlToLoad ?: return,
+                    position
+                )
+                findNavController().navigate(direction, extras)
             }
             is SubscriptionFolderEmptyModel -> {
                 val direction = FolderFragmentDirections.actionFolderFragmentToAddFragment(

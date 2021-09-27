@@ -16,6 +16,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -40,8 +41,8 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
-    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>, View.OnClickListener,
-    SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
+    SubscriptionsListAdapter.TransitionListClickListener<BaseSubscriptionModel>,
+    View.OnClickListener, SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
 
     @Inject
     lateinit var convertersProvider: Provider<IConverters>
@@ -133,7 +134,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         binding.fab.setOnClickListener(this)
         binding.subscriptionsContent.adapter = adapter
         binding.subscriptionsContent.setHasFixedSize(true)
-        adapter.listListener = this
+        adapter.transitionClickListener = this
         adapter.longTouchListener = this
         binding.subscriptionsContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -205,10 +206,14 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         launchAndRepeatWithViewLifecycle {
             launch {
                 viewModel.state.collect { state ->
-                    adapter.update(state.feedList)
+                    adapter.submitList(ArrayList(state.feedList)) {
+                        startPostponedEnterTransition()
+                    }
                 }
             }
         }
+
+        postponeEnterTransition()
     }
 
     override fun onDestroyView() {
@@ -224,19 +229,35 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         } else v?.onTouchEvent(event) ?: false
     }
 
-    override fun onClick(view: View, item: BaseSubscriptionModel, position: Int) {
+    override fun onClick(
+        view: View,
+        item: BaseSubscriptionModel,
+        position: Int,
+        vararg transitionView: View
+    ) {
         when (item) {
             is SubscriptionItemModel -> {
-                val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
-                    item.urlToLoad ?: return
+                val extras = FragmentNavigatorExtras(
+                    *transitionView.mapNotNull { viewToTransition ->
+                        viewToTransition to (viewToTransition.transitionName ?: return@mapNotNull null)
+                    }.toTypedArray()
                 )
-                findNavController().navigate(direction)
+                val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
+                    item.urlToLoad ?: return,
+                    position
+                )
+                findNavController().navigate(direction, extras)
             }
             is SubscriptionFolderItemModel -> {
+                val extras = FragmentNavigatorExtras(
+                    *transitionView.mapNotNull { viewToTransition ->
+                        viewToTransition to (viewToTransition.transitionName ?: return@mapNotNull null)
+                    }.toTypedArray()
+                )
                 val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
                     item.id
                 )
-                findNavController().navigate(direction)
+                findNavController().navigate(direction, extras)
             }
             is SubscriptionFolderEmptyModel -> {
                 onClick(binding.addSubscription)

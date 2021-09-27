@@ -19,6 +19,7 @@ import android.content.ClipData
 
 import android.content.ClipDescription
 import android.widget.*
+import androidx.cardview.widget.CardView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -35,6 +36,7 @@ class SubscriptionsListAdapter(
 ) : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
 
     var longTouchListener: SubscriptionsItemTouchCallback.TouchListener? = null
+    var transitionClickListener: TransitionListClickListener<BaseSubscriptionModel>? = null
 
     override fun getItemViewType(position: Int): Int {
         return getItem(position).layoutId
@@ -53,7 +55,7 @@ class SubscriptionsListAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is SubscriptionItemViewHolder -> holder.bind(getItem(position) as SubscriptionItemModel)
+            is SubscriptionItemViewHolder -> holder.bind(getItem(position) as SubscriptionItemModel, position)
             is SubscriptionFolderViewHolder -> holder.bind(getItem(position) as SubscriptionFolderItemModel)
             is SubscriptionFolderEmptyViewHolder -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
             is FeedItemViewHolder -> holder.bind(getItem(position) as FeedItemModel)
@@ -63,6 +65,7 @@ class SubscriptionsListAdapter(
     inner class SubscriptionItemViewHolder(binding: RvSubscriptionItemBinding) : RecyclerView.ViewHolder(binding.root),
         View.OnClickListener, View.OnLongClickListener {
 
+        private val rootCard: CardView = binding.rootCard
         private val feedName: TextView = binding.feedName
         private val subscriptionContent: LinearLayout = binding.subscriptionContent
 
@@ -73,14 +76,18 @@ class SubscriptionsListAdapter(
             }
         }
 
-        fun bind(model: SubscriptionItemModel) {
+        fun bind(model: SubscriptionItemModel, position: Int) {
             feedName.text = model.title
             subscriptionContent.tag = model.urlToLoad
+            rootCard.transitionName = String.format(
+                itemView.context.getString(R.string.transition_root_tag),
+                position
+            )
         }
 
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
-            listListener?.onClick(v, getItem(position), position)
+            transitionClickListener?.onClick(v, getItem(position), position, rootCard)
         }
 
         @Suppress("DEPRECATION")
@@ -106,6 +113,7 @@ class SubscriptionsListAdapter(
         View.OnClickListener {
 
         private val folderRoot: FrameLayout = binding.folderRoot
+        private val rootCard: CardView = binding.rootCard
         private val folderName: TextView = binding.folderName
         private val folderCount: TextView = binding.folderCount
         private val folderContent: LinearLayout = binding.folderContent
@@ -147,11 +155,16 @@ class SubscriptionsListAdapter(
             folderCount.text = String.format(
                 itemView.context.resources.getQuantityString(R.plurals.subscriptions_folder_count_template, model.countOtOfSources, model.countOtOfSources)
             )
+            rootCard.transitionName = String.format(
+                itemView.context.getString(R.string.transition_root_tag),
+                model.id
+            )
         }
 
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
-            listListener?.onClick(v, getItem(position), position)
+            val model = getItem(position) as SubscriptionFolderItemModel
+            transitionClickListener?.onClick(v, model, position, rootCard)
         }
     }
 
@@ -179,7 +192,7 @@ class SubscriptionsListAdapter(
 
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
-            listListener?.onClick(v, getItem(position), position)
+            transitionClickListener?.onClick(v, getItem(position), position)
         }
     }
 
@@ -219,7 +232,11 @@ class SubscriptionsListAdapter(
 
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
-            listListener?.onClick(v, getItem(position), position)
+            transitionClickListener?.onClick(v, getItem(position), position)
         }
+    }
+
+    fun interface TransitionListClickListener<D> {
+        fun onClick(view: View, item: D, position: Int, vararg transitionView: View)
     }
 }
