@@ -16,7 +16,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.transition.ChangeTransform
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
@@ -28,6 +27,7 @@ import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.ub.utils.LogUtils
 import com.ub.utils.ViewHolderItemDecoration
+import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.collect
@@ -36,7 +36,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class FeedFragment : Fragment(),
-    SubscriptionsListAdapter.TransitionListClickListener<BaseSubscriptionModel> {
+    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
     @Inject
     lateinit var provider: FeedViewModelProvider
@@ -60,11 +60,6 @@ class FeedFragment : Fragment(),
 
     private val arguments: FeedFragmentArgs by navArgs()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        sharedElementEnterTransition = ChangeTransform()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -74,10 +69,6 @@ class FeedFragment : Fragment(),
             lifecycleOwner = viewLifecycleOwner
             viewModel = this@FeedFragment.viewModel
         }
-        binding.rootView.transitionName = String.format(
-            inflater.context.getString(R.string.transition_root_tag),
-            arguments.transitionPosition
-        )
         return binding.root
     }
 
@@ -114,7 +105,7 @@ class FeedFragment : Fragment(),
         binding.collapsingToolbar.isTitleEnabled = false
         binding.feedContent.setHasFixedSize(true)
         binding.feedContent.adapter = adapter
-        adapter.transitionClickListener = this
+        adapter.listListener = this
 
         binding.updateNameField.setOnEditorActionListener { _, keyCode, _ ->
             return@setOnEditorActionListener if (keyCode == EditorInfo.IME_ACTION_DONE) {
@@ -213,8 +204,7 @@ class FeedFragment : Fragment(),
     override fun onClick(
         view: View,
         item: BaseSubscriptionModel,
-        position: Int,
-        vararg transitionView: View
+        position: Int
     ) {
         if (item is FeedItemModel) {
             val colorScheme = CustomTabColorSchemeParams.Builder()

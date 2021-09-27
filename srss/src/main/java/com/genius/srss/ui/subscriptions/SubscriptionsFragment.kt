@@ -16,7 +16,6 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -41,7 +40,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
-    SubscriptionsListAdapter.TransitionListClickListener<BaseSubscriptionModel>,
+    BaseListAdapter.BaseListClickListener<BaseSubscriptionModel>,
     View.OnClickListener, SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
 
     @Inject
@@ -134,7 +133,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         binding.fab.setOnClickListener(this)
         binding.subscriptionsContent.adapter = adapter
         binding.subscriptionsContent.setHasFixedSize(true)
-        adapter.transitionClickListener = this
+        adapter.listListener = this
         adapter.longTouchListener = this
         binding.subscriptionsContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -206,14 +205,10 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         launchAndRepeatWithViewLifecycle {
             launch {
                 viewModel.state.collect { state ->
-                    adapter.submitList(ArrayList(state.feedList)) {
-                        startPostponedEnterTransition()
-                    }
+                    adapter.update(state.feedList)
                 }
             }
         }
-
-        postponeEnterTransition()
     }
 
     override fun onDestroyView() {
@@ -233,31 +228,19 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         view: View,
         item: BaseSubscriptionModel,
         position: Int,
-        vararg transitionView: View
     ) {
         when (item) {
             is SubscriptionItemModel -> {
-                val extras = FragmentNavigatorExtras(
-                    *transitionView.mapNotNull { viewToTransition ->
-                        viewToTransition to (viewToTransition.transitionName ?: return@mapNotNull null)
-                    }.toTypedArray()
-                )
                 val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
-                    item.urlToLoad ?: return,
-                    position
+                    item.urlToLoad ?: return
                 )
-                findNavController().navigate(direction, extras)
+                findNavController().navigate(direction)
             }
             is SubscriptionFolderItemModel -> {
-                val extras = FragmentNavigatorExtras(
-                    *transitionView.mapNotNull { viewToTransition ->
-                        viewToTransition to (viewToTransition.transitionName ?: return@mapNotNull null)
-                    }.toTypedArray()
-                )
                 val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
                     item.id
                 )
-                findNavController().navigate(direction, extras)
+                findNavController().navigate(direction)
             }
             is SubscriptionFolderEmptyModel -> {
                 onClick(binding.addSubscription)

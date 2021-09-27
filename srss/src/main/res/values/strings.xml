@@ -37,8 +37,6 @@
     <string name="subscription_folder_empty">The folder is empty</string>
     <string name="subscription_folder_add_subscription">Add new feed</string>
 
-    <string name="transition_root_tag" translatable="false">transition_%1$s</string>
-
     <string name="content_description_image">Picture</string>
 
     <plurals name="subscriptions_folder_count_template">
