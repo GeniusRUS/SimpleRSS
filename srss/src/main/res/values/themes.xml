@@ -4,7 +4,7 @@
         <item name="colorPrimaryVariant">@color/red_dark</item>
     </style>
 
-    <style name="BaseSRSSStyle" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="BaseSRSSStyle" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/default_background</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorControlNormal">@color/default_background_inverted</item>
@@ -12,6 +12,7 @@
         <item name="android:navigationBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="android:textViewStyle">@style/DefaultTextViewStyle</item>
         <item name="toolbarStyle">@style/DefaultToolbarStyle</item>
+        <item name="collapsingToolbarLayoutStyle">@style/DefaultCollapsingToolbarLayoutStyle</item>
     </style>
 
     <style name="DefaultTextViewStyle" parent="Widget.AppCompat.TextView">
@@ -36,6 +37,10 @@
         <item name="android:background">@android:color/transparent</item>
         <item name="titleTextColor">@color/default_background_inverted</item>
         <item name="titleTextAppearance">@style/ToolbarTextTitleAppearance</item>
+    </style>
+
+    <style name="DefaultCollapsingToolbarLayoutStyle" parent="Widget.Design.CollapsingToolbar">
+        <item name="contentScrim">@android:color/transparent</item>
     </style>
 
     <style name="ToolbarTextTitleAppearance">

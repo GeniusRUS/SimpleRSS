@@ -34,7 +34,6 @@
                 android:clipToPadding="false"
                 android:paddingBottom="6dp"
                 android:paddingTop="6dp"
-                android:overScrollMode="never"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/rv_feed_item"/>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
@@ -52,7 +51,7 @@
                 android:layout_height="wrap_content"
                 app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
 
-                <androidx.appcompat.widget.Toolbar
+                <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -73,7 +72,7 @@
                         android:text="@{viewModel.nameToEditFlow}"
                         android:afterTextChanged="@{viewModel.checkSaveAvailability}"
                         tools:visibility="visible"/>
-                </androidx.appcompat.widget.Toolbar>
+                </com.google.android.material.appbar.MaterialToolbar>
             </com.google.android.material.appbar.CollapsingToolbarLayout>
         </com.google.android.material.appbar.AppBarLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
