@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="@{viewModel.isInEditMode ? View.GONE : View.VISIBLE}"
-            app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/red"
+            app:swipeRefreshLayoutProgressSpinnerBackgroundColor="@color/active_element"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:onRefreshListener="@{() -> viewModel.updateFeed()}"
             app:refreshing="@{viewModel.swipeRefreshing}">

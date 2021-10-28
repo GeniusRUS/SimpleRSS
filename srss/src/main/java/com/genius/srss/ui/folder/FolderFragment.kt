@@ -283,7 +283,7 @@ class FolderFragment : Fragment(),
             }
             is FeedItemModel -> {
                 val colorScheme = CustomTabColorSchemeParams.Builder()
-                    .setToolbarColor(ContextCompat.getColor(view.context, R.color.red_dark))
+                    .setToolbarColor(ContextCompat.getColor(view.context, R.color.primary_dark))
                     .build()
                 val customTabsIntent = CustomTabsIntent.Builder()
                     .setDefaultColorSchemeParams(colorScheme)

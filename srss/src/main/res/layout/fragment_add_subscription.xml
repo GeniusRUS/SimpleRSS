@@ -47,7 +47,7 @@
                 tools:text="https://google.ru/rss" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <androidx.appcompat.widget.AppCompatButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/confirm_button"
             style="@style/SRSSRegularButtonStyle"
             android:layout_width="match_parent"

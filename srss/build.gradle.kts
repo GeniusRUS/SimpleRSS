@@ -107,7 +107,7 @@ dependencies {
 
     implementation("io.github.unitbean:androidcore:2.2.0")
 
-    implementation("io.coil-kt:coil:1.3.2")
+    implementation("io.coil-kt:coil:1.4.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")

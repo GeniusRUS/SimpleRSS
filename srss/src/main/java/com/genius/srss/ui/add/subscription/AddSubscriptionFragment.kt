@@ -1,11 +1,11 @@
 package com.genius.srss.ui.add.subscription
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -103,17 +103,20 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
 
                     when {
                         loadingState.isLoading -> {
+                            binding.textField.isEnabled = false
                             binding.confirmButton.showProgress {
                                 buttonTextRes =
                                     R.string.add_new_subscription_address_checking_process
-                                progressColor = Color.WHITE
+                                progressColor = ContextCompat.getColor(view.context, R.color.button_text_color)
                             }
                         }
                         loadingState.isAvailableToSave -> {
+                            binding.textField.isEnabled = false
                             binding.confirmButton.hideProgress(R.string.add_new_subscription_save)
                             hideSoftKeyboard(requireContext())
                         }
                         else -> {
+                            binding.textField.isEnabled = true
                             binding.confirmButton.hideProgress(R.string.add_new_subscription_check)
                         }
                     }

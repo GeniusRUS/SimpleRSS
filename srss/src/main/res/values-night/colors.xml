@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="gray_background">#33a6a6a6</color>
+    <color name="placeholder_background">#33a6a6a6</color>
+    <color name="feed_background">#CC1E1E1E</color>
     <color name="default_background">#333333</color>
     <color name="default_background_inverted">#FBFBFB</color>
     <color name="default_background_inverted_inactive">#33FBFBFB</color>
+    <color name="on_primary">#FFFFFF</color>
     <color name="button_text_color">#FBFBFB</color>
-    <color name="feed_background">#CC1E1E1E</color>
 </resources>

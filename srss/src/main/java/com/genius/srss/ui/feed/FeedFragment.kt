@@ -155,6 +155,7 @@ class FeedFragment : Fragment(),
                     menu?.findItem(R.id.option_delete)?.isVisible = isInEditMode
                     menu?.findItem(R.id.option_save)?.isVisible = isInEditMode
                     menu?.findItem(R.id.option_edit)?.isVisible = !isInEditMode
+                    menu?.findItem(R.id.option_save)?.isEnabled = viewModel.state.value.isAvailableToSave
                 }
             }
             launch {
@@ -208,7 +209,7 @@ class FeedFragment : Fragment(),
     ) {
         if (item is FeedItemModel) {
             val colorScheme = CustomTabColorSchemeParams.Builder()
-                .setToolbarColor(ContextCompat.getColor(view.context, R.color.red_dark))
+                .setToolbarColor(ContextCompat.getColor(view.context, R.color.primary_dark))
                 .build()
             val customTabsIntent = CustomTabsIntent.Builder()
                 .setDefaultColorSchemeParams(colorScheme)

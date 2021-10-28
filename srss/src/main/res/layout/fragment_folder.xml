@@ -80,10 +80,10 @@
             android:layout_margin="16dp"
             android:layout_gravity="bottom|end"
             android:text="@string/folder_go_upward"
-            android:textColor="@android:color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:visibility="gone"
-            app:backgroundTint="@color/red"
-            app:iconTint="@android:color/white"
+            app:backgroundTint="@color/active_element"
+            app:iconTint="?attr/colorOnPrimary"
             app:icon="@drawable/ic_vector_arrow_upward_24dp"
             tools:visibility="visible"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
