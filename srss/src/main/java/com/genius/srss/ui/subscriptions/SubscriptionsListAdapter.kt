@@ -87,7 +87,7 @@ class SubscriptionsListAdapter(
                 view.tag.toString(),
                 mimeTypes, position
             )
-            val myShadow = DragShadowBuilder(view)
+            val myShadow = DragShadowBuilder(cardContainer)
 
             if (VERSION.SDK_INT >= VERSION_CODES.N) {
                 view.startDragAndDrop(dragData, myShadow, null, 0)
