@@ -10,6 +10,7 @@ import android.view.View
 import android.view.View.DragShadowBuilder
 import android.view.ViewGroup
 import android.widget.*
+import androidx.cardview.widget.CardView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -60,6 +61,7 @@ class SubscriptionsListAdapter(
         View.OnClickListener, View.OnLongClickListener {
 
         private val feedName: TextView = binding.feedName
+        private val cardContainer: CardView = binding.cardContainer
         private val subscriptionContent: LinearLayout = binding.subscriptionContent
 
         init {
