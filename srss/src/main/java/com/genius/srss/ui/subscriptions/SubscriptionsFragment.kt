@@ -1,7 +1,6 @@
 package com.genius.srss.ui.subscriptions
 
 import android.animation.AnimatorSet
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
@@ -9,7 +8,6 @@ import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.webkit.URLUtil
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
@@ -29,7 +27,6 @@ import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
@@ -70,14 +67,6 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val externalUrl = activity?.intent?.extras?.getString(Intent.EXTRA_TEXT)
-            ?: activity?.intent?.clipData?.getItemAt(0)?.text?.toString()
-        externalUrl?.let { url ->
-            handleUrlFromExternalSource(url)
-            activity?.intent?.removeExtra(Intent.EXTRA_TEXT)
-            activity?.intent?.clipData = null
-        }
 
         activity?.window?.let { window ->
             WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -367,20 +356,6 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
                 }
             }
         }.start()
-    }
-
-    private fun handleUrlFromExternalSource(url: String) {
-        if (URLUtil.isValidUrl(url)) {
-            val direction =
-                SubscriptionsFragmentDirections.actionSubscriptionsFragmentToAddFragment(url)
-            findNavController().navigate(direction)
-        } else {
-            Snackbar.make(
-                binding.rootView,
-                R.string.error_illegal_argument_url,
-                Snackbar.LENGTH_LONG
-            ).show()
-        }
     }
 
     private fun FloatingActionButton.start() {

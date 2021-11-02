@@ -12,16 +12,16 @@
         tools:layout="@layout/fragment_subscriptions">
         <action
             android:id="@+id/action_subscriptionsFragment_to_feedFragment"
-            app:destination="@id/feedFragment"/>
+            app:destination="@id/feedFragment" />
         <action
             android:id="@+id/action_subscriptionsFragment_to_addFragment"
-            app:destination="@id/addFragment"/>
+            app:destination="@id/addFragment" />
         <action
             android:id="@+id/action_subscriptionsFragment_to_addFolderFragment"
             app:destination="@id/addFolderFragment" />
         <action
             android:id="@+id/action_subscriptionsFragment_to_folderFragment"
-            app:destination="@id/folderFragment"/>
+            app:destination="@id/folderFragment" />
     </fragment>
     <fragment
         android:id="@+id/feedFragment"
@@ -73,4 +73,7 @@
             android:id="@+id/action_folderFragment_to_addFragment"
             app:destination="@id/addFragment" />
     </fragment>
+    <action
+        android:id="@+id/action_global_addFragment"
+        app:destination="@id/addFragment" />
 </navigation>
