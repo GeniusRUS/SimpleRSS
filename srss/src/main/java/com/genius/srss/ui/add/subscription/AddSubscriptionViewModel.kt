@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParserException
-import java.net.UnknownServiceException
 import java.util.zip.DataFormatException
 
 @AssistedFactory
@@ -94,7 +93,6 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     is XmlPullParserException -> _errorFlow.emit(R.string.error_data_format_exception)
                     is DataFormatException -> _errorFlow.emit(R.string.error_data_format_exception)
                     is IllegalArgumentException -> _errorFlow.emit(R.string.error_illegal_argument_url)
-                    is UnknownServiceException -> _errorFlow.emit(R.string.error_http_insecure_format)
                 }
             }
         }

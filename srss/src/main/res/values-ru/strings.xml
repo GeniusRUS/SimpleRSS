@@ -25,7 +25,6 @@
     <string name="feed_date_yesterday">Вчера</string>
     <string name="error_data_format_exception">Лента для данного адреса не найдена</string>
     <string name="error_illegal_argument_url">Некорретный формат адреса</string>
-    <string name="error_http_insecure_format">Адреса http не поддерживаются</string>
 
     <string name="subscription_folder_edit_hint">Новое имя папки</string>
     <string name="subscription_subscription_edit_hint">Новое имя ленты</string>
