@@ -68,6 +68,8 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.tutorial.rootView = binding.rootView
+
         activity?.window?.let { window ->
             WindowCompat.setDecorFitsSystemWindows(window, false)
         }

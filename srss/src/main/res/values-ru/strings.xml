@@ -36,6 +36,14 @@
     <string name="subscription_folder_empty">Папка пуста</string>
     <string name="subscription_folder_add_subscription">Добавить ленту</string>
 
+    <string name="tutorial_pinch_zoom_in">Чтобы увидеть все ленты, сделайте жест увеличения</string>
+    <string name="tutorial_pinch_zoom_out">Чтобы увидеть ленты без папок, сделайте жест уменьшения</string>
+    <string name="tutorial_assign_subscription_to_folder">Чтобы добавить ленту в папку, просто перетащите ее туда</string>
+    <string name="tutorial_create_folder_or_subscription">Чтобы добавить ленту или создать папку, используйте кнопку внизу</string>
+    <string name="tutorial_remove_subscription">Чтобы удалить ленту, смахните ее влево из списка на главном экране</string>
+    <string name="tutorial_unlink_subscription">Чтобы отвязать ленту от папки, смахните ее вправо в списке папки</string>
+    <string name="tutorial_manual_folder_sorting">Папки можно сортировать вручную, с помощью долгого тапа</string>
+
     <string name="content_description_image">Изображение</string>
 
     <plurals name="subscriptions_folder_count_template">
