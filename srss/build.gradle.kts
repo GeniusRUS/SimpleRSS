@@ -118,7 +118,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVer")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVer")
 
-    implementation("com.github.GeniusRUS:Earl:128065f54c")
+    implementation("com.github.GeniusRUS:Earl:5589667ed6")
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.7")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
