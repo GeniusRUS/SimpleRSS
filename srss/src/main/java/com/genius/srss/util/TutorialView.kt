@@ -1,7 +1,11 @@
 package com.genius.srss.util
 
+import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Parcel
@@ -14,6 +18,7 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.view.isVisible
 import com.genius.srss.R
 import com.ub.utils.renew
@@ -34,6 +39,14 @@ class TutorialView @JvmOverloads constructor(
     private var skipCallback: ((view: TutorialView) -> Unit)? = null
     private val displayedTips: MutableList<Tip> = mutableListOf()
     private var currentDisplayedTip = 0
+    private var revealAnimator: Animator? = null
+
+    private val darkenShape: Drawable by lazy {
+        GradientDrawable().apply {
+            this.setColor(context.getAttrColorValue(android.R.attr.windowBackground))
+            this.alpha = 175.coerceIn(0, 255)
+        }
+    }
 
     init {
         val view = View.inflate(context, R.layout.component_tutorial, this)
@@ -46,30 +59,11 @@ class TutorialView @JvmOverloads constructor(
         setOnClickListener(this)
         skip?.setOnClickListener(this)
         previous?.setOnClickListener(this)
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
 
         applyInsetter {
             type(navigationBars = true, statusBars = true) {
-                margin()
+                padding()
             }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val blurRenderer = RenderEffect.createBlurEffect(
-                20F,
-                20F,
-                Shader.TileMode.CLAMP
-            )
-            parentView?.setRenderEffect(blurRenderer)
-        } else {
-            val darkenShape = GradientDrawable().apply {
-                this.setColor(context.getAttrColorValue(android.R.attr.windowBackground))
-                this.alpha = 175.coerceIn(0, 255)
-            }
-            background = darkenShape
         }
     }
 
@@ -122,14 +116,7 @@ class TutorialView @JvmOverloads constructor(
 
     fun setRootView(view: View) {
         this.parentView = view
-        requestLayout()
-
-        // TODO maybe not better solution. need to redraw blur effect on updating [parentView]
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            this.parentView?.viewTreeObserver?.addOnDrawListener {
-                invalidate()
-            }
-        }
+        updateBackground()
     }
 
     fun setSkipCallback(action: (view: TutorialView) -> Unit) {
@@ -141,15 +128,55 @@ class TutorialView @JvmOverloads constructor(
         updateDisplayedTip(currentDisplayedTip)
     }
 
+    // TODO need to update blur on updating RecyclerView. This is more much harder, than expected
+    fun updateBackground() {
+        if (!isVisible) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val blurRenderer = RenderEffect.createBlurEffect(
+                20F,
+                20F,
+                Shader.TileMode.CLAMP
+            )
+            parentView?.setRenderEffect(blurRenderer)
+            parentView?.invalidate()
+        } else {
+            background = darkenShape
+        }
+    }
+
     private fun updateDisplayedTip(position: Int) {
         previous?.isVisible = currentDisplayedTip > 0
-        displayedTips.getOrNull(position)?.let { tip ->
-            message?.text = context.getString(tip.message)
-            tip.icon?.let { iconResource ->
-                icon?.setImageResource(iconResource)
-            } ?: icon?.setImageDrawable(null)
-            invalidate()
+        revealAnimator?.cancel()
+        revealAnimator = AnimatorSet().apply {
+            val hideAnimator = ValueAnimator.ofFloat(1F, 0F).apply {
+                duration = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                addUpdateListener { value ->
+                    message?.alpha = value.animatedValue as Float
+                    icon?.alpha = value.animatedValue as Float
+                }
+                doOnEnd {
+                    displayedTips.getOrNull(position)?.let { tip ->
+                        message?.text = context.getString(tip.message)
+                        tip.icon?.let { iconResource ->
+                            icon?.setImageResource(iconResource)
+                        } ?: icon?.setImageDrawable(null)
+                    }
+                }
+            }
+            val showAnimator = ValueAnimator.ofFloat(0F, 1F).apply {
+                duration = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                addUpdateListener { value ->
+                    message?.alpha = value.animatedValue as Float
+                    icon?.alpha = value.animatedValue as Float
+                }
+            }
+            playSequentially(hideAnimator, showAnimator)
+            doOnEnd {
+                message?.alpha = 1F
+                icon?.alpha = 1F
+            }
         }
+        revealAnimator?.start()
     }
 
     class Tip(
