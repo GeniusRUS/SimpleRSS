@@ -22,7 +22,7 @@
         <item name="android:textSize">16sp</item>
     </style>
 
-    <style name="SRSSRegularButtonStyle" parent="Widget.MaterialComponents.Button">
+    <style name="SRSSRegularButtonStyle" parent="Widget.Material3.Button">
         <item name="android:textColor">@color/button_text_color</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textAllCaps">false</item>
@@ -34,23 +34,17 @@
         <item name="backgroundTint">@color/color_button</item>
     </style>
 
-    <style name="DefaultToolbarStyle" parent="Widget.AppCompat.Toolbar">
+    <style name="DefaultToolbarStyle" parent="Widget.Material3.Toolbar">
         <item name="android:background">@android:color/transparent</item>
         <item name="titleTextColor">@color/default_background_inverted</item>
-        <item name="titleTextAppearance">@style/ToolbarTextTitleAppearance</item>
     </style>
 
     <style name="DefaultCardViewStyle" parent="CardView">
         <item name="cardBackgroundColor">@color/subscription_background</item>
     </style>
 
-    <style name="DefaultCollapsingToolbarLayoutStyle" parent="Widget.Design.CollapsingToolbar">
+    <style name="DefaultCollapsingToolbarLayoutStyle" parent="Widget.Material3.CollapsingToolbar">
         <item name="contentScrim">@android:color/transparent</item>
-    </style>
-
-    <style name="ToolbarTextTitleAppearance">
-        <item name="android:textSize">18sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <style name="ImageViewRoundedAppearance" parent="">
