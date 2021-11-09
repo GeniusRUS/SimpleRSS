@@ -43,6 +43,7 @@
     <string name="tutorial_remove_subscription">To remove a feed, swipe left from the list on the home screen</string>
     <string name="tutorial_unlink_subscription">To unlink the feed from a folder, swipe it to the right in the folder list</string>
     <string name="tutorial_manual_folder_sorting">Folders can be sorted manually using a long tap</string>
+    <string name="tutorial_manual_folder_mode">You can change the display mode of feeds in a folder using the button</string>
 
     <string name="content_description_image">Picture</string>
 

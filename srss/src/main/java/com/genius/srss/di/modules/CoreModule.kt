@@ -1,6 +1,11 @@
 package com.genius.srss.di.modules
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.dataStoreFile
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.genius.srss.BuildConfig
 import com.genius.srss.di.services.database.DatabaseService
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
@@ -44,4 +49,13 @@ object CoreModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(apiService: NetworkService): OkHttpClient = apiService.okHttpClient
+
+    @Provides
+    @Singleton
+    fun provideDataStore(context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            produceFile = {
+                context.preferencesDataStoreFile("srss")
+            }
+        )
 }

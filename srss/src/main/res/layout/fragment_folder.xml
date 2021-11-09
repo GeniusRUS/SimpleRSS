@@ -84,7 +84,7 @@
             android:visibility="gone"
             app:backgroundTint="@color/active_element"
             app:iconTint="?attr/colorOnPrimary"
-            app:icon="@drawable/ic_vector_arrow_upward_24dp"
+            app:icon="@drawable/ic_vector_arrow_upward"
             tools:visibility="visible"/>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

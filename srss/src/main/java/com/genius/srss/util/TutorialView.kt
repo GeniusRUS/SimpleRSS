@@ -1,4 +1,4 @@
-package com.genius.srss.ui
+package com.genius.srss.util
 
 import android.content.Context
 import android.graphics.RenderEffect
@@ -8,10 +8,14 @@ import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import com.genius.srss.R
-import com.genius.srss.util.getAttrColorValue
+import com.ub.utils.renew
 import dev.chrisbanes.insetter.applyInsetter
 
 class TutorialView @JvmOverloads constructor(
@@ -20,22 +24,27 @@ class TutorialView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ): ConstraintLayout(context, attributeSet, defStyleAttr), View.OnClickListener {
 
-    private var messageView: TextView? = null
+    private var message: TextView? = null
+    private var icon: ImageView? = null
     private var skip: Button? = null
     private var next: Button? = null
     private var previous: Button? = null
     private var parentView: View? = null
 
     private var skipCallback: ((view: TutorialView) -> Unit)? = null
+    private val displayedTips: MutableList<Tip> = mutableListOf()
+    private var currentDisplayedTip = 0
 
     init {
         val view = View.inflate(context, R.layout.component_tutorial, this)
 
-        messageView = view.findViewById(R.id.message)
+        message = view.findViewById(R.id.message)
+        icon = view.findViewById(R.id.icon)
         skip = view.findViewById(R.id.skip)
         next = view.findViewById(R.id.to_next_tip)
         previous = view.findViewById(R.id.to_previous_tip)
 
+        setOnClickListener(this)
         skip?.setOnClickListener(this)
         next?.setOnClickListener(this)
         previous?.setOnClickListener(this)
@@ -64,8 +73,6 @@ class TutorialView @JvmOverloads constructor(
             }
             background = darkenShape
         }
-
-        messageView?.setText(R.string.tutorial_assign_subscription_to_folder)
     }
 
     override fun onClick(v: View?) {
@@ -79,10 +86,21 @@ class TutorialView @JvmOverloads constructor(
                 skipCallback?.invoke(this)
             }
             R.id.to_next_tip -> {
-
+                if (currentDisplayedTip + 1 < displayedTips.size) {
+                    currentDisplayedTip += 1
+                    updateDisplayedTip(currentDisplayedTip)
+                } else {
+                    skipCallback?.invoke(this)
+                }
             }
             R.id.to_previous_tip -> {
-
+                if (currentDisplayedTip > 0) {
+                    currentDisplayedTip -= 1
+                }
+                updateDisplayedTip(currentDisplayedTip)
+            }
+            else -> {
+                // no-op
             }
         }
     }
@@ -102,6 +120,28 @@ class TutorialView @JvmOverloads constructor(
     fun setSkipCallback(action: (view: TutorialView) -> Unit) {
         this.skipCallback = action
     }
+
+    fun setDisplayedTips(tips: List<Tip>) {
+        this.displayedTips.renew(tips)
+        updateDisplayedTip(currentDisplayedTip)
+    }
+
+    private fun updateDisplayedTip(position: Int) {
+        next?.isVisible = currentDisplayedTip + 1 < displayedTips.size
+        previous?.isVisible = currentDisplayedTip > 0
+        displayedTips.getOrNull(position)?.let { tip ->
+            message?.text = context.getString(tip.message)
+            tip.icon?.let { iconResource ->
+                icon?.setImageResource(iconResource)
+            } ?: icon?.setImageDrawable(null)
+        }
+    }
+
+    class Tip(
+        @StringRes val message: Int,
+        @DrawableRes val icon: Int? = null,
+        val anchoredView: View? = null
+    )
 
     companion object {
         const val IS_TUTORIAL_SHOW = "is_tutorial_show"

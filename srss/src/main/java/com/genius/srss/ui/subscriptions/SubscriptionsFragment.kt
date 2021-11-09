@@ -25,6 +25,7 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
+import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.ub.utils.animator
@@ -68,7 +69,22 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.tutorial.rootView = binding.rootView
+        binding.tutorial.rootView = binding.contentView
+        binding.tutorial.setSkipCallback {
+            viewModel.skipTutorial()
+        }
+        binding.tutorial.setDisplayedTips(
+            listOf(
+                TutorialView.Tip(R.string.tutorial_pinch_zoom_in, R.drawable.ic_vector_pinch),
+                TutorialView.Tip(R.string.tutorial_pinch_zoom_out, R.drawable.ic_vector_pinch),
+                TutorialView.Tip(R.string.tutorial_assign_subscription_to_folder, R.drawable.ic_vector_touch_app),
+                TutorialView.Tip(R.string.tutorial_create_folder_or_subscription, R.drawable.ic_vector_add_circle_outline, binding.fab),
+                TutorialView.Tip(R.string.tutorial_remove_subscription, R.drawable.ic_vector_swipe_left),
+                TutorialView.Tip(R.string.tutorial_unlink_subscription, R.drawable.ic_vector_swipe_right),
+                TutorialView.Tip(R.string.tutorial_manual_folder_sorting, R.drawable.ic_vector_touch_app),
+                TutorialView.Tip(R.string.tutorial_manual_folder_mode, R.drawable.ic_vector_list)
+            )
+        )
 
         activity?.window?.let { window ->
             WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -98,7 +114,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
         ResourcesCompat.getDrawable(
             resources,
-            R.drawable.ic_vector_delete_outline_24px,
+            R.drawable.ic_vector_delete_outline,
             context?.theme
         )?.let { icon ->
             val callback = SubscriptionsItemTouchCallback(
@@ -196,6 +212,11 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
             launch {
                 viewModel.state.collect { state ->
                     adapter.update(state.feedList)
+                }
+            }
+            launch {
+                viewModel.tutorialState.collect { isShowTutorial ->
+                    binding.tutorial.isVisible = isShowTutorial
                 }
             }
         }

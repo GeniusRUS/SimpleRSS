@@ -43,6 +43,7 @@
     <string name="tutorial_remove_subscription">Чтобы удалить ленту, смахните ее влево из списка на главном экране</string>
     <string name="tutorial_unlink_subscription">Чтобы отвязать ленту от папки, смахните ее вправо в списке папки</string>
     <string name="tutorial_manual_folder_sorting">Папки можно сортировать вручную, с помощью долгого тапа</string>
+    <string name="tutorial_manual_folder_mode">Можно изменить режим отображения лент в папке с помощью кнопки</string>
 
     <string name="content_description_image">Изображение</string>
 

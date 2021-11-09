@@ -1,5 +1,10 @@
 package com.genius.srss.util
 
+import android.content.Context
+import android.content.res.TypedArray
+import android.util.TypedValue
+import androidx.annotation.AttrRes
+import androidx.annotation.ColorInt
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -71,4 +76,18 @@ fun List<SubscriptionFolderDatabaseModel>.swapSortingToAscends(
             else -> folder
         }
     }
+}
+
+/**
+ * Retrieving color int value from attributes
+ */
+@ColorInt
+fun Context.getAttrColorValue(@AttrRes resId: Int): Int {
+    val typedValue = TypedValue()
+    val resultFlag = intArrayOf(resId)
+    val indexOfAttrTextSize = 0
+    val array: TypedArray = obtainStyledAttributes(typedValue.data, resultFlag)
+    val result = array.getColor(indexOfAttrTextSize, -1)
+    array.recycle()
+    return result
 }

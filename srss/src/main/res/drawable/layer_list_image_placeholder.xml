@@ -19,6 +19,6 @@
     </item>
 
     <item
-        android:drawable="@drawable/ic_vector_rss_feed_black_24dp"
+        android:drawable="@drawable/ic_vector_rss_feed_black"
         android:gravity="center" />
 </layer-list>
