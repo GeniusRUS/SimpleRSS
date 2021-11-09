@@ -40,19 +40,7 @@
         android:background="@drawable/ic_vector_chevron_left"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/to_next_tip"/>
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/to_next_tip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
-        android:layout_margin="16dp"
-        android:background="@drawable/ic_vector_chevron_right"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/to_previous_tip"/>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/skip"

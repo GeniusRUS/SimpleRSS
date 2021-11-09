@@ -1,10 +1,11 @@
 package com.genius.srss.util
 
 import android.content.Context
-import android.graphics.RenderEffect
-import android.graphics.Shader
+import android.graphics.*
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.Button
@@ -22,12 +23,11 @@ class TutorialView @JvmOverloads constructor(
     context: Context,
     attributeSet: AttributeSet? = null,
     defStyleAttr: Int = 0
-): ConstraintLayout(context, attributeSet, defStyleAttr), View.OnClickListener {
+) : ConstraintLayout(context, attributeSet, defStyleAttr), View.OnClickListener {
 
     private var message: TextView? = null
     private var icon: ImageView? = null
     private var skip: Button? = null
-    private var next: Button? = null
     private var previous: Button? = null
     private var parentView: View? = null
 
@@ -41,12 +41,10 @@ class TutorialView @JvmOverloads constructor(
         message = view.findViewById(R.id.message)
         icon = view.findViewById(R.id.icon)
         skip = view.findViewById(R.id.skip)
-        next = view.findViewById(R.id.to_next_tip)
         previous = view.findViewById(R.id.to_previous_tip)
 
         setOnClickListener(this)
         skip?.setOnClickListener(this)
-        next?.setOnClickListener(this)
         previous?.setOnClickListener(this)
     }
 
@@ -75,6 +73,26 @@ class TutorialView @JvmOverloads constructor(
         }
     }
 
+    override fun onSaveInstanceState(): Parcelable? {
+        val superState = super.onSaveInstanceState() ?: return null
+
+        return TutorialViewSavedState(superState).apply {
+            currentTipPosition = this@TutorialView.currentDisplayedTip
+        }
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state !is TutorialViewSavedState) {
+            super.onRestoreInstanceState(state)
+            return
+        }
+
+        super.onRestoreInstanceState(state.superState)
+
+        currentDisplayedTip = state.currentTipPosition
+        updateDisplayedTip(currentDisplayedTip)
+    }
+
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.skip -> {
@@ -85,14 +103,6 @@ class TutorialView @JvmOverloads constructor(
                 }
                 skipCallback?.invoke(this)
             }
-            R.id.to_next_tip -> {
-                if (currentDisplayedTip + 1 < displayedTips.size) {
-                    currentDisplayedTip += 1
-                    updateDisplayedTip(currentDisplayedTip)
-                } else {
-                    skipCallback?.invoke(this)
-                }
-            }
             R.id.to_previous_tip -> {
                 if (currentDisplayedTip > 0) {
                     currentDisplayedTip -= 1
@@ -100,7 +110,12 @@ class TutorialView @JvmOverloads constructor(
                 updateDisplayedTip(currentDisplayedTip)
             }
             else -> {
-                // no-op
+                if (currentDisplayedTip + 1 < displayedTips.size) {
+                    currentDisplayedTip += 1
+                    updateDisplayedTip(currentDisplayedTip)
+                } else {
+                    onClick(skip)
+                }
             }
         }
     }
@@ -127,21 +142,49 @@ class TutorialView @JvmOverloads constructor(
     }
 
     private fun updateDisplayedTip(position: Int) {
-        next?.isVisible = currentDisplayedTip + 1 < displayedTips.size
         previous?.isVisible = currentDisplayedTip > 0
         displayedTips.getOrNull(position)?.let { tip ->
             message?.text = context.getString(tip.message)
             tip.icon?.let { iconResource ->
                 icon?.setImageResource(iconResource)
             } ?: icon?.setImageDrawable(null)
+            invalidate()
         }
     }
 
     class Tip(
         @StringRes val message: Int,
-        @DrawableRes val icon: Int? = null,
-        val anchoredView: View? = null
+        @DrawableRes val icon: Int? = null
     )
+
+    private class TutorialViewSavedState : BaseSavedState {
+        var currentTipPosition: Int = 0
+
+        constructor(superState: Parcelable) : super(superState)
+
+        private constructor(`in`: Parcel) : super(`in`) {
+            this.currentTipPosition = `in`.readInt()
+        }
+
+        override fun writeToParcel(out: Parcel, flags: Int) {
+            super.writeToParcel(out, flags)
+            out.writeInt(this.currentTipPosition)
+        }
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        companion object CREATOR : Parcelable.Creator<TutorialViewSavedState> {
+            override fun createFromParcel(parcel: Parcel): TutorialViewSavedState {
+                return TutorialViewSavedState(parcel)
+            }
+
+            override fun newArray(size: Int): Array<TutorialViewSavedState?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
 
     companion object {
         const val IS_TUTORIAL_SHOW = "is_tutorial_show"
