@@ -14,6 +14,7 @@ data class SubscriptionDatabaseModel(
 data class SubscriptionFolderDatabaseModel(
     @PrimaryKey
     val id: String,
+    val sortIndex: Long,
     val name: String,
     val dateOfCreation: Long,
     val isInFeedMode: Boolean = false

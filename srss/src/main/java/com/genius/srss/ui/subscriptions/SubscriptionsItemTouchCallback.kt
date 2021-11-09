@@ -10,14 +10,12 @@ import androidx.annotation.ColorInt
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_SWIPE
 import androidx.recyclerview.widget.RecyclerView
-import kotlin.reflect.KClass
 
 class SubscriptionsItemTouchCallback(
     private val listener: TouchListener,
     private val deleteIconDrawable: Drawable,
     @ColorInt
     private val backgroundColor: Int,
-    private val excludedViewHolderTypes: List<KClass<out RecyclerView.ViewHolder>> = listOf()
 ) : ItemTouchHelper.Callback() {
 
     // хороший тутор по возможностям helper'a
@@ -33,11 +31,11 @@ class SubscriptionsItemTouchCallback(
     private val clearPaint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
 
     override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-        return if (excludedViewHolderTypes.contains(viewHolder::class)) {
-            makeMovementFlags(0, 0)
+        val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN or
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        return if (viewHolder is SubscriptionsListAdapter.SubscriptionFolderViewHolder) {
+            makeMovementFlags(dragFlags, 0)
         } else {
-            val dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN or
-                    ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
             makeMovementFlags(
                 dragFlags,
                 ItemTouchHelper.START or ItemTouchHelper.LEFT
@@ -45,18 +43,27 @@ class SubscriptionsItemTouchCallback(
         }
     }
 
+    override fun canDropOver(
+        recyclerView: RecyclerView,
+        current: RecyclerView.ViewHolder,
+        target: RecyclerView.ViewHolder
+    ): Boolean {
+        return current is SubscriptionsListAdapter.SubscriptionFolderViewHolder
+            && target is SubscriptionsListAdapter.SubscriptionFolderViewHolder
+    }
+
     override fun onMove(
         recyclerView: RecyclerView,
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
-//        viewHolder is SubscriptionsListAdapter.SubscriptionItemViewHolder && target is SubscriptionsListAdapter.SubscriptionFolderViewHolder
+        listener.onChangeFolderSort(viewHolder.absoluteAdapterPosition, target.absoluteAdapterPosition)
         return true
     }
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) = listener.onItemDismiss(viewHolder.absoluteAdapterPosition)
 
-    override fun isLongPressDragEnabled(): Boolean = false
+    override fun isLongPressDragEnabled(): Boolean = true
 
     override fun isItemViewSwipeEnabled(): Boolean = true
 
@@ -114,5 +121,6 @@ class SubscriptionsItemTouchCallback(
     interface TouchListener {
         fun onItemDismiss(position: Int)
         fun onDragHolderToPosition(holderPosition: Int, targetPosition: Int)
+        fun onChangeFolderSort(fromPosition: Int, toPosition: Int)
     }
 }

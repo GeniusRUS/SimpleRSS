@@ -104,8 +104,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
             val callback = SubscriptionsItemTouchCallback(
                 this,
                 icon,
-                Color.TRANSPARENT,
-                listOf(SubscriptionsListAdapter.SubscriptionFolderViewHolder::class)
+                Color.TRANSPARENT
             )
             ItemTouchHelper(callback).attachToRecyclerView(binding.subscriptionsContent)
         }
@@ -273,6 +272,10 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
     override fun onDragHolderToPosition(holderPosition: Int, targetPosition: Int) {
         viewModel.handleHolderMove(holderPosition, targetPosition)
+    }
+
+    override fun onChangeFolderSort(fromPosition: Int, toPosition: Int) {
+        viewModel.handleFolderSortingChange(fromPosition, toPosition)
     }
 
     private fun transformFab(toExtend: Boolean) {

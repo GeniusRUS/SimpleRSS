@@ -31,13 +31,29 @@ class SubscriptionsViewModel(
 ): ViewModel() {
 
     private val _state: MutableStateFlow<SubscriptionsStateModel> = MutableStateFlow(SubscriptionsStateModel())
+    private val _sortingState: MutableStateFlow<Pair<Int, Int>> = MutableStateFlow(Pair(-1, -1))
 
     val state: StateFlow<SubscriptionsStateModel> = _state
+
+    init {
+        try {
+            viewModelScope.launch {
+                _sortingState.collect { pair ->
+                    val fromPosition = pair.first
+                    val toPosition = pair.second
+                    subscriptionDao.changeFolderSort(fromPosition, toPosition)
+                    updateFeed()
+                }
+            }
+        } catch (e: Exception) {
+            LogUtils.e(TAG, e.message, e)
+        }
+    }
 
     fun updateFeed(isFull: Boolean = _state.value.isFullList) {
         viewModelScope.launch {
             try {
-                val folders = subscriptionDao.loadAllFolders().sortedBy { it.dateOfCreation }
+                val folders = subscriptionDao.loadAllFoldersWithAutoSortingIfNeeded()
                 val subscriptions = if (isFull) {
                     subscriptionDao.loadSubscriptions()
                 } else {
@@ -94,19 +110,28 @@ class SubscriptionsViewModel(
         viewModelScope.launch {
             try {
                 if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch
-                val holderToMove = _state.value.feedList[holderPosition]
-                val targetOfMove = _state.value.feedList[targetPosition]
-                when {
-                    holderToMove is SubscriptionItemModel && targetOfMove is SubscriptionFolderItemModel -> {
-                        subscriptionDao.saveSubscriptionFolderCrossRef(
-                            SubscriptionFolderCrossRefDatabaseModel(
-                                holderToMove.urlToLoad ?: return@launch,
-                                targetOfMove.id
-                            )
-                        )
-                        updateFeed()
-                    }
-                }
+                val holderToMove = _state.value.feedList[holderPosition] as? SubscriptionItemModel ?: return@launch
+                val targetOfMove = _state.value.feedList[targetPosition] as? SubscriptionFolderItemModel ?: return@launch
+                subscriptionDao.saveSubscriptionFolderCrossRef(
+                    SubscriptionFolderCrossRefDatabaseModel(
+                        holderToMove.urlToLoad ?: return@launch,
+                        targetOfMove.id
+                    )
+                )
+                updateFeed()
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
+            }
+        }
+    }
+
+    fun handleFolderSortingChange(fromPosition: Int, toPosition: Int) {
+        viewModelScope.launch {
+            try {
+                if (fromPosition == RecyclerView.NO_POSITION || toPosition == RecyclerView.NO_POSITION) return@launch
+                if (_state.value.feedList[fromPosition] !is SubscriptionFolderItemModel) return@launch
+                if (_state.value.feedList[toPosition] !is SubscriptionFolderItemModel) return@launch
+                _sortingState.emit(Pair(fromPosition, toPosition))
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

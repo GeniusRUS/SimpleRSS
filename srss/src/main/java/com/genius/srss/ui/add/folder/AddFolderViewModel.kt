@@ -54,9 +54,11 @@ class AddFolderViewModel(
                     _errorFlow.emit(R.string.add_new_subscription_folder_must_be_not_empty)
                     return@launch
                 }
+                val lastIndex = subscriptionsDao.getLastFolderSortIndex() ?: 0
                 subscriptionsDao.saveFolder(
                     SubscriptionFolderDatabaseModel(
                         generator.generateRandomId(),
+                        lastIndex + 1,
                         folderName,
                         System.currentTimeMillis()
                     )
