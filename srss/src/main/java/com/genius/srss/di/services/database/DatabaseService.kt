@@ -27,7 +27,7 @@ abstract class DatabaseService : RoomDatabase() {
 
     companion object {
         private const val DATABASE_NAME = "srss.db"
-        internal const val DATABASE_VERSION = 2
+        internal const val DATABASE_VERSION = 3
 
         private var INSTANCE: DatabaseService? = null
 
@@ -37,7 +37,7 @@ abstract class DatabaseService : RoomDatabase() {
                     INSTANCE = Room.databaseBuilder(context.applicationContext, DatabaseService::class.java,
                         DATABASE_NAME
                     )
-                        .addMigrations(migrationFrom1To2)
+                        .addMigrations(migrationFrom1To2, migrationFrom2to3)
                         .fallbackToDestructiveMigration()
                         .build()
                 }
@@ -49,6 +49,12 @@ abstract class DatabaseService : RoomDatabase() {
         private val migrationFrom1To2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE folders ADD COLUMN isInFeedMode INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val migrationFrom2to3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE folders ADD COLUMN sortIndex INTEGER NOT NULL DEFAULT -1")
             }
         }
     }
