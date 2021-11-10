@@ -37,7 +37,7 @@ class SubscriptionsItemTouchCallback(
             makeMovementFlags(dragFlags, 0)
         } else {
             makeMovementFlags(
-                dragFlags,
+                0,
                 ItemTouchHelper.START or ItemTouchHelper.LEFT
             )
         }

@@ -180,7 +180,7 @@ class FolderFragment : Fragment(),
                     menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
                     menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
                     menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-                    menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode
+                    menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode && state.feedList.any { feed -> feed !is SubscriptionFolderEmptyModel }
                     menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
                         VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
                     } else {
