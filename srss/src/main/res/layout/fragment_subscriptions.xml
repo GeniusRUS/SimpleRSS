@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,54 +16,62 @@
         android:padding="8dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:spanCount="2"
-        tools:listitem="@layout/rv_subscription_item"/>
+        tools:listitem="@layout/rv_subscription_item"
+        tools:itemCount="50"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/add_folder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_gravity="bottom|end"
-        android:contentDescription="@string/subscriptions_add_folder_text"
-        android:src="@drawable/ic_vector_create_new_folder_black_24dp"
-        android:visibility="invisible"
-        app:fabSize="mini"
-        app:backgroundTint="@color/active_element"
-        app:tint="?attr/colorOnPrimary"
-        app:layout_constraintBottom_toTopOf="@id/fab"
-        app:layout_constraintEnd_toEndOf="@id/fab"
-        app:layout_constraintStart_toStartOf="@id/fab"
-        tools:visibility="visible"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/inner_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_dodgeInsetEdges="bottom">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/add_subscription"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_gravity="bottom|end"
-        android:contentDescription="@string/subscriptions_add_subscription_text"
-        android:src="@drawable/ic_vector_rss_feed_black_24dp"
-        android:visibility="invisible"
-        app:fabSize="mini"
-        app:backgroundTint="@color/active_element"
-        app:tint="?attr/colorOnPrimary"
-        app:layout_constraintBottom_toTopOf="@id/add_folder"
-        app:layout_constraintEnd_toEndOf="@id/add_folder"
-        app:layout_constraintStart_toStartOf="@id/add_folder"
-        tools:visibility="visible"/>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_folder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="bottom|end"
+            android:contentDescription="@string/subscriptions_add_folder_text"
+            android:src="@drawable/ic_vector_create_new_folder_black_24dp"
+            android:visibility="invisible"
+            app:fabSize="mini"
+            app:backgroundTint="@color/active_element"
+            app:tint="?attr/colorOnPrimary"
+            app:layout_constraintBottom_toTopOf="@id/fab"
+            app:layout_constraintEnd_toEndOf="@id/fab"
+            app:layout_constraintStart_toStartOf="@id/fab"
+            tools:visibility="visible"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        android:layout_gravity="bottom|end"
-        android:contentDescription="@string/subscriptions_add_text_open"
-        android:src="@drawable/ic_vector_animate_plus_x"
-        app:tint="?attr/colorOnPrimary"
-        app:backgroundTint="@color/active_element"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_subscription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="bottom|end"
+            android:contentDescription="@string/subscriptions_add_subscription_text"
+            android:src="@drawable/ic_vector_rss_feed_black_24dp"
+            android:visibility="invisible"
+            app:fabSize="mini"
+            app:backgroundTint="@color/active_element"
+            app:tint="?attr/colorOnPrimary"
+            app:layout_constraintBottom_toTopOf="@id/add_folder"
+            app:layout_constraintEnd_toEndOf="@id/add_folder"
+            app:layout_constraintStart_toStartOf="@id/add_folder"
+            tools:visibility="visible"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_gravity="bottom|end"
+            android:contentDescription="@string/subscriptions_add_text_open"
+            android:src="@drawable/ic_vector_animate_plus_x"
+            app:tint="?attr/colorOnPrimary"
+            app:backgroundTint="@color/active_element"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
