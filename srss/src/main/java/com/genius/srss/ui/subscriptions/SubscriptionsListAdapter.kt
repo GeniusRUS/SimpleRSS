@@ -109,6 +109,7 @@ class SubscriptionsListAdapter(
         private val folderContent: LinearLayout = binding.folderContent
 
         init {
+            folderName.isSelected = true
             folderContent.setOnClickListener(this)
             folderContent.setOnDragListener { _, event ->
                 return@setOnDragListener when (event.action) {
