@@ -1,5 +1,6 @@
 package com.genius.srss.ui.subscriptions
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -37,10 +38,12 @@ class SubscriptionsViewModel(
     private val dataStore: DataStore<Preferences>
 ): ViewModel() {
 
+    private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
     private val _state: MutableStateFlow<SubscriptionsStateModel> = MutableStateFlow(SubscriptionsStateModel())
     private val _tutorialState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val _sortingState: MutableStateFlow<Pair<Int, Int>> = MutableStateFlow(Pair(-1, -1))
 
+    val errorFlow: SharedFlow<Int> = _errorFlow
     val state: StateFlow<SubscriptionsStateModel> = _state
     val tutorialState: StateFlow<Boolean> = _tutorialState
 
@@ -149,6 +152,8 @@ class SubscriptionsViewModel(
                     )
                 )
                 updateFeed()
+            } catch (linkAlreadyExistedException: SQLiteConstraintException)  {
+                _errorFlow.emit(R.string.error_link_to_folder_already_exist)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

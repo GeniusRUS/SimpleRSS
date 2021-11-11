@@ -1,5 +1,6 @@
 package com.genius.srss.ui.add.subscription
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -117,6 +118,8 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     }
                     _sourceAddedFlow.emit(state.sourceUrl!!)
                 }
+            } catch (linkAlreadyExistedException: SQLiteConstraintException)  {
+                _errorFlow.emit(R.string.error_link_to_folder_already_exist)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

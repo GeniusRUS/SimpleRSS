@@ -23,6 +23,7 @@
     <string name="feed_date_yesterday">Yesterday</string>
     <string name="error_data_format_exception">No feed was found for this address</string>
     <string name="error_illegal_argument_url">Incorrect address format</string>
+    <string name="error_link_to_folder_already_exist">This feed has already been added to the folder</string>
 
     <string name="folder_go_upward">Scroll to up</string>
 

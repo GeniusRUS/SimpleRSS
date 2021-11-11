@@ -18,7 +18,7 @@ interface SubscriptionsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveFolders(folders: List<SubscriptionFolderDatabaseModel>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun saveSubscriptionFolderCrossRef(crossRef: SubscriptionFolderCrossRefDatabaseModel)
 
     @Query("SELECT * FROM subscriptions")

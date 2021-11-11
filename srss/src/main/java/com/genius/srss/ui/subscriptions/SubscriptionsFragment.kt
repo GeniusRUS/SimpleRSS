@@ -1,6 +1,7 @@
 package com.genius.srss.ui.subscriptions
 
 import android.animation.AnimatorSet
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
@@ -28,6 +29,7 @@ import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
@@ -66,10 +68,11 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
     private var scaleDetector: ScaleGestureDetector? = null
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.tutorial.rootView = binding.contentView
+        binding.tutorial.rootView = binding.innerContent
         binding.tutorial.setSkipCallback {
             viewModel.skipTutorial()
         }
@@ -219,6 +222,11 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
                     binding.tutorial.isVisible = isShowTutorial
                 }
             }
+            launch {
+                viewModel.errorFlow.collect { errorResId ->
+                    Snackbar.make(binding.innerContent, errorResId, Snackbar.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
@@ -229,6 +237,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         super.onDestroyView()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         return if (event?.pointerCount?.compareTo(1) == 1) {
             scaleDetector?.onTouchEvent(event) ?: false
@@ -255,6 +264,9 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
             }
             is SubscriptionFolderEmptyModel -> {
                 onClick(binding.addSubscription)
+            }
+            else -> {
+                // no-op
             }
         }
     }
