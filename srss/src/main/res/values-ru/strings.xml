@@ -23,7 +23,8 @@
     <string name="folder_menu_edit_title">Редактировать</string>
     <string name="feed_date_today">Сегодня</string>
     <string name="feed_date_yesterday">Вчера</string>
-    <string name="error_data_format_exception">Лента для данного адреса не найдена</string>
+    <string name="error_data_format_exception">Лента не найдена</string>
+    <string name="error_data_or_malformed_exception">Лента не найдена или повреждена</string>
     <string name="error_illegal_argument_url">Некорретный формат адреса</string>
     <string name="error_link_to_folder_already_exist">Данная лента уже добавлена в папку</string>
 
