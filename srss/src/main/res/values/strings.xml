@@ -21,7 +21,8 @@
     <string name="folder_menu_edit_title">Edit</string>
     <string name="feed_date_today">Today</string>
     <string name="feed_date_yesterday">Yesterday</string>
-    <string name="error_data_format_exception">No feed was found for this address</string>
+    <string name="error_data_format_exception">No feed found</string>
+    <string name="error_data_or_malformed_exception">No feed found or malformed</string>
     <string name="error_illegal_argument_url">Incorrect address format</string>
     <string name="error_link_to_folder_already_exist">This feed has already been added to the folder</string>
 

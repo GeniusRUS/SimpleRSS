@@ -91,7 +91,7 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     isLoading = false
                 )
                 when (e) {
-                    is XmlPullParserException -> _errorFlow.emit(R.string.error_data_format_exception)
+                    is XmlPullParserException -> _errorFlow.emit(R.string.error_data_or_malformed_exception)
                     is DataFormatException -> _errorFlow.emit(R.string.error_data_format_exception)
                     is IllegalArgumentException -> _errorFlow.emit(R.string.error_illegal_argument_url)
                 }
