@@ -12,6 +12,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -47,6 +48,8 @@ class TutorialView @JvmOverloads constructor(
             this.alpha = 175.coerceIn(0, 255)
         }
     }
+
+    private val onDrawListener = ViewTreeObserver.OnDrawListener { updateBackground() }
 
     init {
         val view = View.inflate(context, R.layout.component_tutorial, this)
@@ -90,6 +93,7 @@ class TutorialView @JvmOverloads constructor(
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.skip -> {
+                this.parentView?.viewTreeObserver?.removeOnDrawListener(onDrawListener)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     parentView?.setRenderEffect(null)
                 } else {
@@ -116,7 +120,8 @@ class TutorialView @JvmOverloads constructor(
 
     fun setRootView(view: View) {
         this.parentView = view
-        updateBackground()
+        // TODO **very** expensive operation. need to refactor to more efficiency way
+        this.parentView?.viewTreeObserver?.addOnDrawListener(onDrawListener)
     }
 
     fun setSkipCallback(action: (view: TutorialView) -> Unit) {
@@ -128,8 +133,7 @@ class TutorialView @JvmOverloads constructor(
         updateDisplayedTip(currentDisplayedTip)
     }
 
-    // TODO need to update blur on updating RecyclerView. This is more much harder, than expected
-    fun updateBackground() {
+    private fun updateBackground() {
         if (!isVisible) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val blurRenderer = RenderEffect.createBlurEffect(
