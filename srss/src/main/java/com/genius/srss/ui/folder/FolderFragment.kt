@@ -135,7 +135,7 @@ class FolderFragment : Fragment(),
             FolderTouchHelperCallback(
                 view.context,
                 this,
-                R.drawable.ic_vector_link_off_24dp,
+                R.drawable.ic_vector_link_off,
                 Color.TRANSPARENT
             )
         ).attachToRecyclerView(binding.folderContent)
@@ -182,9 +182,9 @@ class FolderFragment : Fragment(),
                     menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
                     menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode && state.feedList.any { feed -> feed !is SubscriptionFolderEmptyModel }
                     menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
-                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder_24dp, context?.theme)
+                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder, context?.theme)
                     } else {
-                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_list_24dp, context?.theme)
+                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_list, context?.theme)
                     }
                     binding.refresher.isEnabled = state.isCombinedMode
                     if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {

@@ -8,22 +8,22 @@
     android:layout_height="match_parent"
     tools:context=".ui.subscriptions.SubscriptionsFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/subscriptions_content"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="8dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"
-        tools:listitem="@layout/rv_subscription_item"
-        tools:itemCount="50"/>
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/inner_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_dodgeInsetEdges="bottom">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/subscriptions_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"
+            tools:listitem="@layout/rv_subscription_item"
+            tools:itemCount="50"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/add_folder"
@@ -32,7 +32,7 @@
             android:layout_marginBottom="8dp"
             android:layout_gravity="bottom|end"
             android:contentDescription="@string/subscriptions_add_folder_text"
-            android:src="@drawable/ic_vector_create_new_folder_black_24dp"
+            android:src="@drawable/ic_vector_create_new_folder_black"
             android:visibility="invisible"
             app:fabSize="mini"
             app:backgroundTint="@color/active_element"
@@ -49,7 +49,7 @@
             android:layout_marginBottom="8dp"
             android:layout_gravity="bottom|end"
             android:contentDescription="@string/subscriptions_add_subscription_text"
-            android:src="@drawable/ic_vector_rss_feed_black_24dp"
+            android:src="@drawable/ic_vector_rss_feed_black"
             android:visibility="invisible"
             app:fabSize="mini"
             app:backgroundTint="@color/active_element"
@@ -64,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginStart="16dp"
             android:layout_marginBottom="16dp"
             android:layout_gravity="bottom|end"
             android:contentDescription="@string/subscriptions_add_text_open"
@@ -74,4 +74,11 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.genius.srss.util.TutorialView
+        android:id="@+id/tutorial"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="visible"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

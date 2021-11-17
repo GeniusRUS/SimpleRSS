@@ -38,6 +38,15 @@
     <string name="subscription_folder_empty">The folder is empty</string>
     <string name="subscription_folder_add_subscription">Add new feed</string>
 
+    <string name="tutorial_pinch_zoom_in">To see all feeds, make a pinch to zoom in gesture</string>
+    <string name="tutorial_pinch_zoom_out">To see tapes without folders, use the pinch to zoom out gesture</string>
+    <string name="tutorial_assign_subscription_to_folder">To add a feed to a folder, just drag and drop it there</string>
+    <string name="tutorial_create_folder_or_subscription">To add a feed or create a folder, use the button below</string>
+    <string name="tutorial_remove_subscription">To remove a feed, swipe left from the list on the home screen</string>
+    <string name="tutorial_unlink_subscription">To unlink the feed from a folder, swipe it to the right in the folder list</string>
+    <string name="tutorial_manual_folder_sorting">Folders can be sorted manually using a long tap</string>
+    <string name="tutorial_manual_folder_mode">You can change the display mode of feeds in a folder using the button</string>
+
     <string name="content_description_image">Picture</string>
 
     <plurals name="subscriptions_folder_count_template">
