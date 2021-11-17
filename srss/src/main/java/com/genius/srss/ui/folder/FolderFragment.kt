@@ -292,6 +292,9 @@ class FolderFragment : Fragment(),
                     .build()
                 customTabsIntent.launchUrl(view.context, Uri.parse(item.url))
             }
+            else -> {
+                // no-op
+            }
         }
     }
 
