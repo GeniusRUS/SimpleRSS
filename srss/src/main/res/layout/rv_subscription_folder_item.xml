@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/folder_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        app:cardCornerRadius="8dp">
+
+        <LinearLayout
+            android:id="@+id/folder_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/folder_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                tools:text="@tools:sample/full_names"/>
+
+            <TextView
+                android:id="@+id/folder_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="@color/inactive"
+                tools:text="@tools:sample/us_zipcodes"
+                tools:ignore="SmallSp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</FrameLayout>

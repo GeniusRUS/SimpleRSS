@@ -1,49 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/feed_content"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="6dp"
+    android:paddingTop="6dp">
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/content_description_image"
+        android:background="@drawable/stroke_feed_item"
+        app:shapeAppearanceOverlay="@style/ImageViewRoundedAppearance"
+        tools:src="@tools:sample/backgrounds/scenic"/>
+
+    <TextView
+        android:id="@+id/article_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:includeFontPadding="false"
+        android:layout_alignBottom="@+id/image"
         android:layout_marginBottom="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:cardCornerRadius="8dp">
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:padding="4dp"
+        android:background="@drawable/shape_feed_background"
+        tools:text="@tools:sample/cities"/>
 
-        <LinearLayout
-            android:id="@+id/feed_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <ImageView
-                android:id="@+id/image"
-                android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/content_description_image"
-                tools:src="@tools:sample/backgrounds/scenic"/>
-
-            <TextView
-                android:id="@+id/article_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Test title"/>
-
-            <TextView
-                android:id="@+id/publication_date"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="8sp"
-                android:gravity="end"
-                tools:text="@tools:sample/date/ddmmyy"
-                tools:ignore="SmallSp" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</FrameLayout>
+    <TextView
+        android:id="@+id/publication_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="8sp"
+        android:gravity="end"
+        android:includeFontPadding="false"
+        android:layout_alignRight="@+id/image"
+        android:layout_alignEnd="@+id/image"
+        android:layout_alignTop="@+id/image"
+        android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:padding="4dp"
+        android:background="@drawable/shape_feed_background"
+        tools:text="@tools:sample/date/ddmmyy"
+        tools:ignore="SmallSp" />
+</RelativeLayout>
