@@ -3,8 +3,10 @@ package com.genius.srss.di.components
 import android.content.Context
 import com.genius.srss.SRSSApplication
 import com.genius.srss.di.modules.AppModule
-import com.genius.srss.ui.add.AddFragment
+import com.genius.srss.ui.add.folder.AddFolderFragment
+import com.genius.srss.ui.add.subscription.AddSubscriptionFragment
 import com.genius.srss.ui.feed.FeedFragment
+import com.genius.srss.ui.folder.FolderFragment
 import com.genius.srss.ui.subscriptions.SubscriptionsFragment
 import dagger.BindsInstance
 import dagger.Component
@@ -22,7 +24,11 @@ interface AppComponent {
 
     fun inject(fragment: FeedFragment)
 
-    fun inject(fragment: AddFragment)
+    fun inject(fragment: AddSubscriptionFragment)
+
+    fun inject(fragment: AddFolderFragment)
+
+    fun inject(fragment: FolderFragment)
 
     @Component.Builder
     interface Builder {

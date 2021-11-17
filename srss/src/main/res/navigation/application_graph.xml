@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/subscriptionsFragment">
+
+    <fragment
+        android:id="@+id/subscriptionsFragment"
+        android:name="com.genius.srss.ui.subscriptions.SubscriptionsFragment"
+        android:label="fragment_subscriptions"
+        tools:layout="@layout/fragment_subscriptions">
+        <action
+            android:id="@+id/action_subscriptionsFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+        <action
+            android:id="@+id/action_subscriptionsFragment_to_addFragment"
+            app:destination="@id/addFragment" />
+        <action
+            android:id="@+id/action_subscriptionsFragment_to_addFolderFragment"
+            app:destination="@id/addFolderFragment" />
+        <action
+            android:id="@+id/action_subscriptionsFragment_to_folderFragment"
+            app:destination="@id/folderFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/feedFragment"
+        android:name="com.genius.srss.ui.feed.FeedFragment"
+        android:label="fragment_feed"
+        tools:layout="@layout/fragment_feed">
+        <argument
+            android:name="feed_url"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/addFragment"
+        android:name="com.genius.srss.ui.add.subscription.AddSubscriptionFragment"
+        android:label="fragment_add"
+        tools:layout="@layout/fragment_add_subscription">
+        <action
+            android:id="@+id/action_addFragment_to_feedFragment"
+            app:destination="@id/feedFragment"
+            app:popUpTo="@id/addFragment"
+            app:popUpToInclusive="true" />
+        <argument
+            android:name="urlToAdd"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="folderId"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/addFolderFragment"
+        android:name="com.genius.srss.ui.add.folder.AddFolderFragment"
+        android:label="fragment_add_folder"
+        tools:layout="@layout/fragment_add_folder" />
+    <fragment
+        android:id="@+id/folderFragment"
+        android:name="com.genius.srss.ui.folder.FolderFragment"
+        android:label="fragment_folder"
+        tools:layout="@layout/fragment_folder">
+        <action
+            android:id="@+id/action_folderFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+        <argument
+            android:name="folderId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_folderFragment_to_addFragment"
+            app:destination="@id/addFragment" />
+    </fragment>
+    <action
+        android:id="@+id/action_global_addFragment"
+        app:destination="@id/addFragment" />
+</navigation>

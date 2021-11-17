@@ -3,8 +3,7 @@ package com.genius.srss.di.services.network
 import com.einmalfel.earl.EarlParser
 import com.einmalfel.earl.Feed
 import com.ub.utils.download
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
+import okhttp3.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
