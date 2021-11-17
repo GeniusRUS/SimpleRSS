@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="placeholder_background">#33808080</color>
-    <color name="feed_background">#CCFBFBFB</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="gray">#828282</color>
+    <color name="primary_color">#d68c43</color>
+    <color name="primary_dark_color">#ae6c2b</color>
     <color name="default_background">#FBFBFB</color>
     <color name="default_background_inverted">#333333</color>
-    <color name="default_background_inverted_inactive">#33333333</color>
-    <color name="inactive">#828282</color>
-    <color name="active_element">#DC1B1E</color>
-    <color name="primary">#E3484A</color>
-    <color name="primary_dark">#9A1215</color>
-    <color name="on_primary">#FFFFFF</color>
-    <color name="button_text_color">#FBFBFB</color>
-
-    <color name="subscription_background">?attr/cardBackgroundColor</color>
-    <color name="secondary">#FF000000</color>
+    <color name="button_text_color">#FFFFFF</color>
 </resources>

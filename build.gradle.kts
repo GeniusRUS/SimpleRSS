@@ -1,12 +1,22 @@
+import java.net.URI
+
 buildscript {
     repositories {
         google()
-        mavenCentral()
+        jcenter()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.3")
-        classpath(kotlin("gradle-plugin", version = "1.6.0"))
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.3.5")
+        classpath("com.android.tools.build:gradle:4.1.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.30")
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.3.3")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url = URI("https://jitpack.io") }
     }
 }
 

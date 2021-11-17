@@ -9,17 +9,16 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdkVersion(30)
     defaultConfig {
         applicationId = "com.genius.srss"
-        minSdk = 21
-        targetSdk = 31
-        versionCode = 3
-        versionName = "1.2.0"
+        minSdkVersion(16)
+        targetSdkVersion(30)
+        versionCode = 1
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
-        vectorDrawables.useSupportLibrary = true
-        resourceConfigurations.addAll(listOf("ru", "en"))
+        resConfigs("ru", "en")
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -45,7 +44,6 @@ android {
     buildTypes {
         getByName("debug") {
             isMinifyEnabled = true
-            applicationIdSuffix = ".develop"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -69,74 +67,68 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
     buildFeatures {
         viewBinding = true
-        dataBinding = true
     }
 }
 
-val daggerVer = "2.40"
-val roomVer = "2.3.0"
-val coroutineVer = "1.5.2"
-val navigationVer = "2.3.5"
-val okHttpVer = "4.9.1"
-val lifecycleVer = "2.4.0"
+val daggerVer = "2.32"
+val moxyVer = "2.2.1"
+val roomVer = "2.2.6"
+val coroutineVer = "1.4.2"
+val navigationVer = "2.3.3"
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
-    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
+    implementation("androidx.appcompat:appcompat:1.2.0")
+    implementation("androidx.recyclerview:recyclerview:1.1.0")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.browser:browser:1.4.0")
-    implementation("androidx.activity:activity-ktx:1.4.0")
-    implementation("androidx.fragment:fragment-ktx:1.3.6")
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.browser:browser:1.3.0")
 
-    implementation("com.google.android.material:material:1.5.0-alpha05")
+    implementation("com.google.android.material:material:1.3.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:2.2.0")
+    implementation("com.unitbean.core:android:1.7.1")
 
-    implementation("io.coil-kt:coil:1.4.0")
+    implementation("io.coil-kt:coil:1.1.1")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
 
-    implementation("dev.chrisbanes.insetter:insetter:0.6.0")
+    implementation("dev.chrisbanes.insetter:insetter:0.4.0")
 
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVer")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVer")
+    implementation("com.github.moxy-community:moxy:$moxyVer")
+    implementation("com.github.moxy-community:moxy-androidx:$moxyVer")
+    implementation("com.github.moxy-community:moxy-material:$moxyVer")
+    implementation("com.github.moxy-community:moxy-ktx:$moxyVer")
+    kapt("com.github.moxy-community:moxy-compiler:$moxyVer")
 
-    implementation("com.github.GeniusRUS:Earl:5589667ed6")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.7")
-    implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
+    implementation("com.github.GeniusRUS:Earl:128065f54c")
 
-    implementation("com.squareup.okhttp3:okhttp:$okHttpVer")
-    implementation("com.squareup.okhttp3:logging-interceptor:$okHttpVer")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
     implementation("androidx.room:room-runtime:$roomVer")
     implementation("androidx.room:room-ktx:$roomVer")
     kapt("androidx.room:room-compiler:$roomVer")
-    kapt("org.xerial:sqlite-jdbc:3.36.0.1")
 
     implementation("com.google.dagger:dagger:$daggerVer")
     implementation("com.google.dagger:dagger-android:$daggerVer")
     kapt("com.google.dagger:dagger-compiler:$daggerVer")
     kapt("com.google.dagger:dagger-android-processor:$daggerVer")
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    testImplementation("junit:junit:4.13.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.2")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.3.0")
 }

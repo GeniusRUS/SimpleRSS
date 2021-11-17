@@ -2,8 +2,6 @@ package com.genius.srss.di.modules
 
 import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.di.services.converters.SRSSConverters
-import com.genius.srss.di.services.generator.IGenerator
-import com.genius.srss.di.services.generator.UUIDGenerator
 import com.genius.srss.di.services.network.INetworkSource
 import com.genius.srss.di.services.network.NetworkService
 import dagger.Binds
@@ -21,9 +19,9 @@ abstract class AppModule {
     @Binds
     abstract fun provideConverters(converters: SRSSConverters): IConverters
 
-    @Singleton
-    @Binds
-    abstract fun provideGenerator(generator: UUIDGenerator): IGenerator
+//    @Singleton
+//    @Binds
+//    abstract fun provideCartChangeService(service: CartService): ICartChange
 
 //    @Singleton
 //    @Binds
