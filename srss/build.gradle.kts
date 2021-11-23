@@ -81,7 +81,7 @@ android {
     }
 }
 
-val daggerVer = "2.40"
+val daggerVer = "2.40.1"
 val roomVer = "2.3.0"
 val coroutineVer = "1.5.2"
 val navigationVer = "2.3.5"
@@ -92,17 +92,17 @@ dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("androidx.appcompat:appcompat:1.4.0")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.2")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.4.0")
     implementation("androidx.activity:activity-ktx:1.4.0")
-    implementation("androidx.fragment:fragment-ktx:1.3.6")
+    implementation("androidx.fragment:fragment-ktx:1.4.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("com.google.android.material:material:1.5.0-alpha05")
+    implementation("com.google.android.material:material:1.5.0-beta01")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
@@ -114,13 +114,13 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
 
-    implementation("dev.chrisbanes.insetter:insetter:0.6.0")
+    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVer")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVer")
 
     implementation("com.github.GeniusRUS:Earl:5589667ed6")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.4.7")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.3")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:okhttp:$okHttpVer")
