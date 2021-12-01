@@ -81,7 +81,7 @@ android {
     }
 }
 
-val daggerVer = "2.40.1"
+val daggerVer = "2.40.3"
 val roomVer = "2.3.0"
 val coroutineVer = "1.5.2"
 val navigationVer = "2.3.5"

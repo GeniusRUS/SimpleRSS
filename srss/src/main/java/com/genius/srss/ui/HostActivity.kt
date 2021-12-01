@@ -17,7 +17,9 @@ class HostActivity : AppCompatActivity(R.layout.activity_host) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleSharingIntent(intent)
+        binding.applicationNavigationContainer.post {
+            handleSharingIntent(intent)
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
