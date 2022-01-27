@@ -81,9 +81,9 @@ android {
     }
 }
 
-val daggerVer = "2.40.3"
-val roomVer = "2.3.0"
-val coroutineVer = "1.5.2"
+val daggerVer = "2.40.5"
+val roomVer = "2.4.1"
+val coroutineVer = "1.6.0"
 val navigationVer = "2.3.5"
 val okHttpVer = "4.9.1"
 val lifecycleVer = "2.4.0"
@@ -92,22 +92,22 @@ dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation("androidx.appcompat:appcompat:1.4.0")
+    implementation("androidx.appcompat:appcompat:1.4.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.2")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.4.0")
     implementation("androidx.activity:activity-ktx:1.4.0")
     implementation("androidx.fragment:fragment-ktx:1.4.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("com.google.android.material:material:1.5.0-beta01")
+    implementation("com.google.android.material:material:1.5.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:2.2.0")
+    implementation("io.github.unitbean:androidcore:2.3.0")
 
     implementation("io.coil-kt:coil:1.4.0")
 
@@ -120,7 +120,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVer")
 
     implementation("com.github.GeniusRUS:Earl:5589667ed6")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.3")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.6")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
     implementation("com.squareup.okhttp3:okhttp:$okHttpVer")
@@ -129,7 +129,6 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVer")
     implementation("androidx.room:room-ktx:$roomVer")
     kapt("androidx.room:room-compiler:$roomVer")
-    kapt("org.xerial:sqlite-jdbc:3.36.0.1")
 
     implementation("com.google.dagger:dagger:$daggerVer")
     implementation("com.google.dagger:dagger-android:$daggerVer")

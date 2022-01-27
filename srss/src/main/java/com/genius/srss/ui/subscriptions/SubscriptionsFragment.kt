@@ -34,7 +34,6 @@ import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
