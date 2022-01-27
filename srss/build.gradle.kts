@@ -14,8 +14,8 @@ android {
         applicationId = "com.genius.srss"
         minSdk = 21
         targetSdk = 31
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.2.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
