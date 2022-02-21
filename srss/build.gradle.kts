@@ -81,12 +81,11 @@ android {
     }
 }
 
-val daggerVer = "2.40.5"
+val daggerVer = "2.41"
 val roomVer = "2.4.1"
 val coroutineVer = "1.6.0"
-val navigationVer = "2.3.5"
-val okHttpVer = "4.9.1"
-val lifecycleVer = "2.4.0"
+val navigationVer = "2.4.1"
+val lifecycleVer = "2.4.1"
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
@@ -99,7 +98,7 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.4.0")
     implementation("androidx.activity:activity-ktx:1.4.0")
-    implementation("androidx.fragment:fragment-ktx:1.4.0")
+    implementation("androidx.fragment:fragment-ktx:1.4.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     implementation("com.google.android.material:material:1.5.0")
@@ -123,8 +122,9 @@ dependencies {
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.6")
     implementation("com.github.razir.progressbutton:progressbutton:2.1.0")
 
-    implementation("com.squareup.okhttp3:okhttp:$okHttpVer")
-    implementation("com.squareup.okhttp3:logging-interceptor:$okHttpVer")
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
 
     implementation("androidx.room:room-runtime:$roomVer")
     implementation("androidx.room:room-ktx:$roomVer")
