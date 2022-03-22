@@ -9,12 +9,28 @@ import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.GridCells
+import androidx.compose.foundation.lazy.GridItemSpan
+import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -410,5 +426,102 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         private const val SCROLL_SLOW_THRESHOLD = 250F
         private const val SCROLL_MEDIUM_THRESHOLD = 150F
         private const val SCROLL_FAST_THRESHOLD = 50F
+    }
+}
+
+@ExperimentalMaterialApi
+@ExperimentalFoundationApi
+@Composable
+fun SubscriptionScreen(navController: NavController) {
+    val viewModel = viewModel<SubscriptionsViewModel>(
+        factory = SubscriptionsViewModelFactory(
+            DIManager.appComponent.subscriptionDao,
+            DIManager.appComponent.dataStore
+        )
+    )
+    val state = viewModel.state.collectAsState()
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("addSubscription")
+                }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.plus_vector),
+                    contentDescription = stringResource(id = R.string.subscriptions_add_text_open)
+                )
+            }
+        }
+    ) {
+        LazyVerticalGrid(
+            cells = GridCells.Fixed(2)
+        ) {
+            state.value.feedList.forEach { model ->
+                when (model) {
+                    is SubscriptionItemModel -> item(
+                        span = {
+                            GridItemSpan(maxCurrentLineSpan)
+                        }
+                    ) {
+                        SubscriptionItem(model) { clickedSubscription ->
+                            navController.navigate("feed")
+                        }
+                    }
+                    is SubscriptionFolderItemModel -> item {
+                        FolderItem(model) { clickedFolder ->
+                            navController.navigate("folder")
+                        }
+                    }
+                    else -> {
+                        // ignore
+                    }
+                }
+            }
+        }
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun FolderItem(
+    model: SubscriptionFolderItemModel,
+    onClick: (SubscriptionFolderItemModel) -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        onClick = {
+            onClick.invoke(model)
+        }
+    ) {
+        Column {
+            Text(
+                text = model.name
+            )
+            Text(
+                text = LocalContext.current.resources.getQuantityString(
+                    R.plurals.subscriptions_folder_count_template, model.countOtOfSources, model.countOtOfSources
+                ),
+                style = TextStyle(
+                    fontSize = 10.sp
+                )
+            )
+        }
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun SubscriptionItem(
+    model: SubscriptionItemModel,
+    onClick: (SubscriptionItemModel) -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        onClick = {
+            onClick.invoke(model)
+        }
+    ) {
+        Text(text = model.title ?: "n/a")
     }
 }

@@ -11,10 +11,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -301,4 +303,9 @@ class FolderFragment : Fragment(),
     override fun onFolderDismiss(position: Int) {
         viewModel.unlinkFolderByPosition(position)
     }
+}
+
+@Composable
+fun FolderScreen(navController: NavController) {
+
 }

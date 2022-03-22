@@ -5,9 +5,11 @@ import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
@@ -94,4 +96,9 @@ class AddFolderFragment : Fragment(R.layout.fragment_add_folder), View.OnClickLi
             else -> super.onOptionsItemSelected(item)
         }
     }
+}
+
+@Composable
+fun AddFolderScreen(navController: NavController) {
+
 }

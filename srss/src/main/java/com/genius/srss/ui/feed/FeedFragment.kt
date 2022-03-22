@@ -10,10 +10,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.genius.srss.R
@@ -221,4 +223,9 @@ class FeedFragment : Fragment(),
             viewModel.updateFeed()
         }
     }
+}
+
+@Composable
+fun FeedScreen(navController: NavController) {
+
 }

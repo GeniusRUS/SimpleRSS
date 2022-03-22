@@ -73,19 +73,29 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "1.8"
     }
     buildFeatures {
         viewBinding = true
         dataBinding = true
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = rootProject.extra["compose_version"] as String
+    }
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
 val daggerVer = "2.41"
-val roomVer = "2.4.1"
+val roomVer = "2.4.2"
 val coroutineVer = "1.6.0"
 val navigationVer = "2.4.1"
 val lifecycleVer = "2.4.1"
+val composeVer = rootProject.extra["compose_version"]
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
@@ -130,6 +140,13 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVer")
     kapt("androidx.room:room-compiler:$roomVer")
 
+    implementation("androidx.compose.ui:ui:$composeVer")
+    implementation("androidx.compose.material:material:$composeVer")
+    implementation("androidx.compose.animation:animation-graphics:$composeVer")
+    implementation("androidx.compose.ui:ui-tooling-preview:$composeVer")
+    implementation("androidx.navigation:navigation-compose:$navigationVer")
+    implementation("androidx.activity:activity-compose:1.4.0")
+
     implementation("com.google.dagger:dagger:$daggerVer")
     implementation("com.google.dagger:dagger-android:$daggerVer")
     kapt("com.google.dagger:dagger-compiler:$daggerVer")
@@ -138,4 +155,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVer")
+    debugImplementation("androidx.compose.ui:ui-tooling:$composeVer")
 }
