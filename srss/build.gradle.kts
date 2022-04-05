@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
     defaultConfig {
         applicationId = "com.genius.srss"
         minSdk = 21
-        targetSdk = 31
+        targetSdk = 32
         versionCode = 4
         versionName = "1.2.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -82,8 +82,8 @@ android {
 }
 
 val daggerVer = "2.41"
-val roomVer = "2.4.1"
-val coroutineVer = "1.6.0"
+val roomVer = "2.4.2"
+val coroutineVer = "1.6.1"
 val navigationVer = "2.4.1"
 val lifecycleVer = "2.4.1"
 
