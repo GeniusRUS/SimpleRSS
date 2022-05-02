@@ -16,12 +16,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
 import com.genius.srss.ui.subscriptions.FeedItemModel
+import com.genius.srss.ui.subscriptions.FeedLoadingModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
@@ -30,7 +33,6 @@ import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
@@ -124,6 +126,17 @@ class FeedFragment : Fragment(),
                 margin(top = true)
             }
         }
+        binding.feedContent.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val indexOfLoadingItem = viewModel.state.value.feedContent.indexOfFirst { it is FeedLoadingModel }
+                if (indexOfLoadingItem != -1) {
+                    val lastVisibleIndex = (recyclerView.layoutManager as? LinearLayoutManager)?.findLastVisibleItemPosition() ?: return
+                    if (lastVisibleIndex.compareTo(indexOfLoadingItem) != -1) {
+                        viewModel.loadNextFeed()
+                    }
+                }
+            }
+        })
 
         viewModel.updateFeed()
 

@@ -22,9 +22,11 @@ import coil.size.Scale
 import com.genius.srss.R
 import com.genius.srss.databinding.RvFeedEmptyBinding
 import com.genius.srss.databinding.RvFeedItemBinding
+import com.genius.srss.databinding.RvLoadingItemBinding
 import com.genius.srss.databinding.RvSubscriptionFolderItemBinding
 import com.genius.srss.databinding.RvSubscriptionItemBinding
 import com.genius.srss.di.services.converters.IConverters
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.ub.utils.base.BaseListAdapter
 
 class SubscriptionsListAdapter(
@@ -44,6 +46,7 @@ class SubscriptionsListAdapter(
             R.layout.rv_subscription_folder_item -> SubscriptionFolderViewHolder(RvSubscriptionFolderItemBinding.inflate(inflater, parent, false))
             R.layout.rv_feed_empty -> SubscriptionFolderEmptyViewHolder(RvFeedEmptyBinding.inflate(inflater, parent, false))
             R.layout.rv_feed_item -> FeedItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
+            R.layout.rv_loading_item -> FeedLoadingViewHolder(RvLoadingItemBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Unknown view type for inflate: $viewType")
         }
     }
@@ -54,6 +57,7 @@ class SubscriptionsListAdapter(
             is SubscriptionFolderViewHolder -> holder.bind(getItem(position) as SubscriptionFolderItemModel)
             is SubscriptionFolderEmptyViewHolder -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
             is FeedItemViewHolder -> holder.bind(getItem(position) as FeedItemModel)
+            is FeedLoadingViewHolder -> holder.bind(getItem(position) as FeedLoadingModel)
         }
     }
 
@@ -219,6 +223,16 @@ class SubscriptionsListAdapter(
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
             listListener?.onClick(v, getItem(position), position)
+        }
+    }
+
+    inner class FeedLoadingViewHolder(binding: RvLoadingItemBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        private val pageNumber: TextView = binding.pageNumber
+        private val progress: CircularProgressIndicator = binding.progress
+
+        fun bind(model: FeedLoadingModel) {
+            pageNumber.text = model.page.toString()
         }
     }
 }

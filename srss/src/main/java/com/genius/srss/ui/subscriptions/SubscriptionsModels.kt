@@ -68,3 +68,11 @@ data class FeedEmptyModel(
 ) : BaseSubscriptionModel() {
     override fun getItemId(): Int = id.hashCode()
 }
+
+data class FeedLoadingModel(
+    val page: Int,
+    private val id: String = "loading",
+    override val layoutId: Int = R.layout.rv_loading_item,
+) : BaseSubscriptionModel() {
+    override fun getItemId(): Int = id.hashCode()
+}

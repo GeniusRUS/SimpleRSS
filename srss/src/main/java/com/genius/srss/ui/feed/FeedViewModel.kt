@@ -4,10 +4,12 @@ import android.text.Editable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.einmalfel.earl.Feed
 import com.genius.srss.R
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.network.INetworkSource
+import com.genius.srss.ui.subscriptions.FeedLoadingModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.ub.utils.LogUtils
 import dagger.assisted.Assisted
@@ -54,6 +56,8 @@ class FeedViewModel(
     private val innerCloseState: MutableSharedFlow<Unit> = MutableSharedFlow()
     private val innerNameToEditState: MutableStateFlow<String?> = MutableStateFlow(null)
 
+    private var initialLoadedFeed: Feed? = null
+
     private val _swipeRefreshing = MutableStateFlow(false)
     val swipeRefreshing: StateFlow<Boolean> = _swipeRefreshing
 
@@ -79,7 +83,7 @@ class FeedViewModel(
         viewModelScope.launch {
             try {
                 _swipeRefreshing.emit(true)
-                updateFeedInternal()
+                loadFeed(fromStart = true)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
                 innerMainState.update { state ->
@@ -95,6 +99,19 @@ class FeedViewModel(
                 }
             } finally {
                 _swipeRefreshing.emit(false)
+            }
+        }
+    }
+
+    fun loadNextFeed() {
+        viewModelScope.launch {
+            try {
+                initialLoadedFeed?.let { feed ->
+                    val pagedFeed = networkSource.paginationLoad(feedUrl, feed)
+
+                }
+            } catch (e: Exception) {
+                LogUtils.e(TAG, e.message, e)
             }
         }
     }
@@ -124,7 +141,7 @@ class FeedViewModel(
                     subscriptionsDao.updateSubscriptionTitleByUrl(feedUrl, newName)
                 }
                 _isInEditMode.emit(false)
-                updateFeedInternal()
+                loadFeed(fromStart = true)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
                 innerMainState.update { state ->
@@ -159,7 +176,7 @@ class FeedViewModel(
         }
     }
 
-    private suspend fun updateFeedInternal() {
+    private suspend fun loadFeed(fromStart: Boolean = false) {
         subscriptionsDao.loadSubscriptionById(feedUrl)?.let { feed ->
             innerMainState.update { state ->
                 state.copy(
@@ -169,6 +186,9 @@ class FeedViewModel(
         }
         val feed =
             networkSource.loadFeed(feedUrl) ?: throw NullPointerException("Parsed feed is null")
+        if (initialLoadedFeed == null) {
+            initialLoadedFeed = feed
+        }
         innerMainState.update { state ->
             state.copy(
                 feedContent = feed.items.map { item ->
@@ -182,6 +202,12 @@ class FeedViewModel(
                             message = R.string.subscription_feed_empty
                         )
                     )
+                }.run {
+                    if (networkSource.isFeedSupportedPagination(feed) && feed.items.isNotEmpty()) {
+                        networkSource.extractPageNumber(feed)?.let { pageNumber ->
+                            plus(FeedLoadingModel(pageNumber))
+                        } ?: this
+                    } else this
                 }
             )
         }

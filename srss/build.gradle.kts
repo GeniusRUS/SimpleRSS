@@ -84,7 +84,7 @@ android {
 val daggerVer = "2.41"
 val roomVer = "2.4.2"
 val coroutineVer = "1.6.1"
-val navigationVer = "2.4.1"
+val navigationVer = "2.4.2"
 val lifecycleVer = "2.4.1"
 
 dependencies {
