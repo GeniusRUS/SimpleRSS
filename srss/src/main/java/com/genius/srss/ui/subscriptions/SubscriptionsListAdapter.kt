@@ -5,6 +5,7 @@ import android.content.ClipDescription
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.view.DragEvent
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.DragShadowBuilder
@@ -115,7 +116,7 @@ class SubscriptionsListAdapter(
         init {
             folderName.isSelected = true
             folderContent.setOnClickListener(this)
-            folderContent.setOnDragListener { _, event ->
+            folderContent.setOnDragListener { view, event ->
                 return@setOnDragListener when (event.action) {
                     DragEvent.ACTION_DRAG_STARTED -> {                     // drag has started, return true to tell that you're listening to the drag
                         true
@@ -133,6 +134,13 @@ class SubscriptionsListAdapter(
                     DragEvent.ACTION_DRAG_ENDED ->                     // the drag has ended
                         false
                     DragEvent.ACTION_DRAG_ENTERED -> {
+                        view.performHapticFeedback(
+                            if (VERSION.SDK_INT >= VERSION_CODES.M) {
+                                HapticFeedbackConstants.CONTEXT_CLICK
+                            } else {
+                                HapticFeedbackConstants.VIRTUAL_KEY
+                            }
+                        )
                         folderRoot.setBackgroundResource(R.drawable.shape_default_background_border)
                         false
                     }
