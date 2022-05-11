@@ -81,10 +81,10 @@ android {
     }
 }
 
-val daggerVer = "2.41"
+val daggerVer = "2.42"
 val roomVer = "2.4.2"
 val coroutineVer = "1.6.1"
-val navigationVer = "2.4.1"
+val navigationVer = "2.4.2"
 val lifecycleVer = "2.4.1"
 
 dependencies {
@@ -101,7 +101,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.4.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.android.material:material:1.6.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
