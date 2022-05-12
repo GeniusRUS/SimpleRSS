@@ -52,10 +52,15 @@ data class FeedItemModel(
     val url: String?,
     val pictureUrl: String?,
     val title: String?,
-    val publicationDate: Date?,
+    val timestamp: Timestamp?,
     override val layoutId: Int = R.layout.rv_feed_item,
 ) : BaseSubscriptionModel() {
     override fun getItemId(): Int = id.hashCode()
+
+    data class Timestamp(
+        val date: Date,
+        val stringRepresentation: String
+    )
 }
 
 data class FeedEmptyModel(

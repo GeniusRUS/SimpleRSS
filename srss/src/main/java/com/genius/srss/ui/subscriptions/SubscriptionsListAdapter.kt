@@ -9,14 +9,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.DragShadowBuilder
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import coil.clear
+import coil.dispose
 import coil.load
 import coil.size.Scale
 import com.genius.srss.R
@@ -24,12 +30,10 @@ import com.genius.srss.databinding.RvFeedEmptyBinding
 import com.genius.srss.databinding.RvFeedItemBinding
 import com.genius.srss.databinding.RvSubscriptionFolderItemBinding
 import com.genius.srss.databinding.RvSubscriptionItemBinding
-import com.genius.srss.di.services.converters.IConverters
+import com.genius.srss.ui.feed.FeedItem
 import com.ub.utils.base.BaseListAdapter
 
-class SubscriptionsListAdapter(
-    private val converters: IConverters
-) : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
+class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, RecyclerView.ViewHolder>() {
 
     var longTouchListener: SubscriptionsItemTouchCallback.TouchListener? = null
 
@@ -43,7 +47,7 @@ class SubscriptionsListAdapter(
             R.layout.rv_subscription_item -> SubscriptionItemViewHolder(RvSubscriptionItemBinding.inflate(inflater, parent, false))
             R.layout.rv_subscription_folder_item -> SubscriptionFolderViewHolder(RvSubscriptionFolderItemBinding.inflate(inflater, parent, false))
             R.layout.rv_feed_empty -> SubscriptionFolderEmptyViewHolder(RvFeedEmptyBinding.inflate(inflater, parent, false))
-            R.layout.rv_feed_item -> FeedItemViewHolder(RvFeedItemBinding.inflate(inflater, parent, false))
+            R.layout.rv_feed_item -> FeedItemCompose(ComposeView(parent.context))
             else -> throw IllegalArgumentException("Unknown view type for inflate: $viewType")
         }
     }
@@ -53,7 +57,13 @@ class SubscriptionsListAdapter(
             is SubscriptionItemViewHolder -> holder.bind(getItem(position) as SubscriptionItemModel)
             is SubscriptionFolderViewHolder -> holder.bind(getItem(position) as SubscriptionFolderItemModel)
             is SubscriptionFolderEmptyViewHolder -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
-            is FeedItemViewHolder -> holder.bind(getItem(position) as FeedItemModel)
+            is FeedItemCompose -> holder.bind(getItem(position) as FeedItemModel)
+        }
+    }
+
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        when (holder) {
+            is FeedItemCompose -> holder.composeView.disposeComposition()
         }
     }
 
@@ -182,6 +192,27 @@ class SubscriptionsListAdapter(
         }
     }
 
+    inner class FeedItemCompose(val composeView: ComposeView) : RecyclerView.ViewHolder(composeView) {
+
+        init {
+            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        }
+
+        fun bind(model: FeedItemModel) {
+            composeView.setContent {
+                FeedItem(
+                    title = model.title,
+                    date = model.timestamp?.stringRepresentation,
+                    pictureUrl = model.pictureUrl,
+                    onClick = {
+                        val position = absoluteAdapterPosition
+                        listListener?.onClick(composeView, getItem(position), position)
+                    }
+                )
+            }
+        }
+    }
+
     inner class FeedItemViewHolder(binding: RvFeedItemBinding) : RecyclerView.ViewHolder(binding.root),
         View.OnClickListener {
 
@@ -200,7 +231,7 @@ class SubscriptionsListAdapter(
             } else {
                 articleTitle.isGone = true
             }
-            articleImage.clear()
+            articleImage.dispose()
             articleImage.load(model.pictureUrl) {
                 scale(Scale.FIT)
                 crossfade(true)
@@ -208,12 +239,8 @@ class SubscriptionsListAdapter(
                 fallback(R.drawable.layer_list_image_placeholder)
                 error(R.drawable.layer_list_image_placeholder)
             }
-            if (model.publicationDate != null) {
-                publicationDate.isVisible = true
-                publicationDate.text = converters.formatDateToString(model.publicationDate)
-            } else {
-                publicationDate.isGone = true
-            }
+            publicationDate.isVisible = model.timestamp != null
+            model.timestamp?.stringRepresentation?.let(publicationDate::setText)
         }
 
         override fun onClick(v: View) {

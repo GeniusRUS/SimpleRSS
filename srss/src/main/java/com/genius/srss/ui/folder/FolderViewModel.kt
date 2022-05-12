@@ -296,7 +296,7 @@ class FolderViewModel(
                     iterateFeedReceiver.invoke(
                         combinedFeed.sortedByDescending { item ->
                             if (item is FeedItemModel) {
-                                item.publicationDate?.time
+                                item.timestamp?.date?.time
                             } else null
                         }
                     )

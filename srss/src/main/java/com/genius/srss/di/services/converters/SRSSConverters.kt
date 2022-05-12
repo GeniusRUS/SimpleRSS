@@ -64,6 +64,11 @@ class SRSSConverters @Inject constructor(
         val image = item.imageLink
             ?: item.enclosures.firstOrNull { it.type?.startsWith("image/") == true }?.link
             ?: extractImageUrlFromText(item.description)
-        return FeedItemModel(item.id, item.link, image, item.title, item.publicationDate)
+        return FeedItemModel(item.id, item.link, image, item.title, item.publicationDate?.let {
+            FeedItemModel.Timestamp(
+                it,
+                formatDateToString(it)
+            )
+        })
     }
 }

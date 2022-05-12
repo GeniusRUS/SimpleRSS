@@ -15,8 +15,14 @@ import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.GridItemSpan
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -26,7 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,7 +50,6 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
-import com.genius.srss.di.services.converters.IConverters
 import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -59,9 +67,6 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     View.OnClickListener, SubscriptionsItemTouchCallback.TouchListener, View.OnTouchListener {
 
     @Inject
-    lateinit var convertersProvider: Provider<IConverters>
-
-    @Inject
     lateinit var viewModelProvider: Provider<SubscriptionsViewModelFactory>
 
     private val viewModel: SubscriptionsViewModel by viewModels {
@@ -71,7 +76,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
     private val adapter: SubscriptionsListAdapter by lazy {
         DIManager.appComponent.inject(this)
-        SubscriptionsListAdapter(convertersProvider.get())
+        SubscriptionsListAdapter()
     }
 
     private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> = viewBinding(

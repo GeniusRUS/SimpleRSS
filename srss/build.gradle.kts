@@ -73,7 +73,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     buildFeatures {
         viewBinding = true
@@ -81,7 +81,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = rootProject.extra["compose_version"] as String
+        kotlinCompilerExtensionVersion = getExtra("compose_version")
     }
     packagingOptions {
         resources {
@@ -90,12 +90,12 @@ android {
     }
 }
 
-val daggerVer = "2.41"
+val daggerVer = "2.42"
 val roomVer = "2.4.2"
-val coroutineVer = "1.6.0"
-val navigationVer = "2.4.1"
+val coroutineVer = "1.6.1"
+val navigationVer = "2.4.2"
 val lifecycleVer = "2.4.1"
-val composeVer = rootProject.extra["compose_version"]
+val composeVer = getExtra<String>("compose_version")
 
 dependencies {
     implementation(kotlin("stdlib-jdk7", org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION))
@@ -111,14 +111,15 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.4.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("com.google.android.material:material:1.5.0")
+    implementation("com.google.android.material:material:1.6.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
     implementation("io.github.unitbean:androidcore:2.3.0")
 
-    implementation("io.coil-kt:coil:1.4.0")
+    implementation("io.coil-kt:coil:2.0.0")
+    implementation("io.coil-kt:coil-compose:2.0.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")
@@ -159,3 +160,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVer")
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVer")
 }
+
+@Suppress("UNCHECKED_CAST")
+fun <T> Project.getExtra(key: String) = rootProject.extra.get(key) as T

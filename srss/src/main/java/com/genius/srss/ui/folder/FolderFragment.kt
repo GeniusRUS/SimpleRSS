@@ -33,7 +33,6 @@ import com.ub.utils.LogUtils
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
@@ -55,7 +54,7 @@ class FolderFragment : Fragment(),
 
     private val adapter: SubscriptionsListAdapter by lazy {
         DIManager.appComponent.inject(this)
-        SubscriptionsListAdapter(convertersProvider.get())
+        SubscriptionsListAdapter()
     }
 
     private lateinit var binding: FragmentFolderBinding

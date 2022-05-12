@@ -174,7 +174,7 @@ class FeedViewModel(
                 feedContent = feed.items.map { item ->
                     converters.convertNetworkFeedToLocal(item)
                 }.sortedByDescending { feedItem ->
-                    feedItem.publicationDate?.time
+                    feedItem.timestamp?.date?.time
                 }.ifEmpty {
                     listOf(
                         SubscriptionFolderEmptyModel(
