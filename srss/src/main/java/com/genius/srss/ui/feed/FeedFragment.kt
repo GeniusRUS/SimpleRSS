@@ -1,6 +1,7 @@
 package com.genius.srss.ui.feed
 
 import android.app.Activity
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,10 +36,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -53,6 +58,7 @@ import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
 import com.genius.srss.ui.theme.SRSSTheme
+import com.genius.srss.ui.theme.strokeColor
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.ub.utils.LogUtils
 import com.ub.utils.ViewHolderItemDecoration
@@ -252,10 +258,16 @@ fun FeedScreen(
     feedUrl: String,
     navController: NavController,
     viewModel: FeedViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-//        factory = FeedViewModelFactory(feedUrl = feedUrl)
+        factory = FeedViewModelFactory(
+            feedUrl = feedUrl,
+            networkSource = DIManager.appComponent.network,
+            subscriptionsDao = DIManager.appComponent.subscriptionDao,
+            converters = DIManager.appComponent.converters
+        )
     )
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     SRSSTheme {
         LazyColumn(
             content = {
@@ -265,7 +277,10 @@ fun FeedScreen(
                         is FeedItemModel -> FeedItem(
                             title = item.title ?: "",
                             date = item.timestamp?.stringRepresentation,
-                            pictureUrl = item.pictureUrl ?: ""
+                            pictureUrl = item.pictureUrl,
+                            onClick = {
+                                openFeed(context, item.url)
+                            }
                         )
                     }
                 }
@@ -288,6 +303,8 @@ fun FeedItem(
                     horizontal = 8.dp,
                     vertical = 6.dp
                 )
+                .clip(RoundedCornerShape(4.dp))
+                .border(1.dp, MaterialTheme.colors.strokeColor, RoundedCornerShape(4.dp))
                 .clickable {
                     onClick?.invoke()
                 }
@@ -298,7 +315,9 @@ fun FeedItem(
                     .crossfade(true)
                     .build(),
                 contentScale = ContentScale.Crop,
-//                placeholder = painterResource(R.drawable.layer_list_image_placeholder),
+                placeholder = painterResource(R.drawable.ic_vector_placeholder),
+                error = painterResource(R.drawable.ic_vector_placeholder),
+                fallback = painterResource(R.drawable.ic_vector_placeholder),
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
                     .sizeIn(minHeight = 180.dp, maxHeight = 180.dp)
@@ -307,7 +326,7 @@ fun FeedItem(
             )
             if (title != null) {
                 Text(
-                    text = title,
+                    text = HtmlCompat.fromHtml(title, HtmlCompat.FROM_HTML_MODE_LEGACY).toString(),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
@@ -333,4 +352,16 @@ fun FeedItem(
             }
         }
     }
+}
+
+fun openFeed(context: Context, url: String?) {
+    val colorScheme = CustomTabColorSchemeParams.Builder()
+        .setToolbarColor(ContextCompat.getColor(context, R.color.primary_dark))
+        .build()
+    val customTabsIntent = CustomTabsIntent.Builder()
+        .setDefaultColorSchemeParams(colorScheme)
+        .setShareState(CustomTabsIntent.SHARE_STATE_ON)
+        .setUrlBarHidingEnabled(true)
+        .build()
+    customTabsIntent.launchUrl(context, Uri.parse(url))
 }

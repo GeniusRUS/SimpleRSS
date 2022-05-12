@@ -37,7 +37,11 @@ fun SRSSTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable (
 
     MaterialTheme(
         colors = colors,
-        typography = Typography,
+        typography = if (darkTheme) {
+            TypographyDark
+        } else {
+            TypographyLight
+        },
         shapes = Shapes,
         content = content
     )
