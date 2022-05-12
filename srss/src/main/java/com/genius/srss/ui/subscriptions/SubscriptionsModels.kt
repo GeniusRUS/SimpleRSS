@@ -66,7 +66,7 @@ data class FeedItemModel(
 data class FeedEmptyModel(
     @DrawableRes
     val icon: Int,
-    val message: String? = null,
+    val message: String,
     val actionText: String? = null,
     private val id: String = "empty",
     override val layoutId: Int = R.layout.rv_feed_empty,

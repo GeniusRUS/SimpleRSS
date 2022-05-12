@@ -14,6 +14,8 @@ val TextColorLight = Color(0xFF333333)
 val StrokeColorDark = Color(0x33FBFBFB)
 val StrokeColorLight = Color(0x33333333)
 
+val Primary = Color(0xFFE3484A)
+
 val Colors.strokeColor: Color
     @Composable
     get() = if (isLight) StrokeColorLight else StrokeColorDark

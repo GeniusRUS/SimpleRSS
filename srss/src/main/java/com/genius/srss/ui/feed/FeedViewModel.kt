@@ -1,5 +1,7 @@
 package com.genius.srss.ui.feed
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.text.Editable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -8,6 +10,7 @@ import com.genius.srss.R
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
 import com.genius.srss.di.services.network.INetworkSource
+import com.genius.srss.ui.subscriptions.FeedEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.ub.utils.LogUtils
 import dagger.assisted.Assisted
@@ -26,6 +29,7 @@ class FeedViewModelFactory @AssistedInject constructor(
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
+    private val context: Context,
     @Assisted private val feedUrl: String
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -35,6 +39,7 @@ class FeedViewModelFactory @AssistedInject constructor(
                 networkSource,
                 subscriptionsDao,
                 converters,
+                context,
                 feedUrl
             ) as T
         }
@@ -42,10 +47,12 @@ class FeedViewModelFactory @AssistedInject constructor(
     }
 }
 
+@SuppressLint("StaticFieldLeak")
 class FeedViewModel(
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao,
     private val converters: SRSSConverters,
+    private val context: Context,
     private val feedUrl: String
 ) : ViewModel() {
 
@@ -130,10 +137,10 @@ class FeedViewModel(
                 innerMainState.update { state ->
                     state.copy(
                         feedContent = listOf(
-                            SubscriptionFolderEmptyModel(
+                            FeedEmptyModel(
                                 icon = R.drawable.ic_vector_warning,
-                                message = R.string.subscription_feed_error,
-                                action = R.string.subscription_feed_error_action
+                                message = context.getString(R.string.subscription_feed_error),
+                                actionText = context.getString(R.string.subscription_feed_error_action)
                             )
                         )
                     )
@@ -177,9 +184,9 @@ class FeedViewModel(
                     feedItem.timestamp?.date?.time
                 }.ifEmpty {
                     listOf(
-                        SubscriptionFolderEmptyModel(
+                        FeedEmptyModel(
                             icon = R.drawable.ic_vector_empty_folder,
-                            message = R.string.subscription_feed_empty
+                            message = context.getString(R.string.subscription_feed_empty)
                         )
                     )
                 }

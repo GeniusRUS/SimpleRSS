@@ -16,17 +16,25 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,6 +46,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -54,9 +64,11 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
+import com.genius.srss.ui.subscriptions.FeedEmptyModel
 import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
+import com.genius.srss.ui.theme.Primary
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.ui.theme.strokeColor
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
@@ -262,7 +274,8 @@ fun FeedScreen(
             feedUrl = feedUrl,
             networkSource = DIManager.appComponent.network,
             subscriptionsDao = DIManager.appComponent.subscriptionDao,
-            converters = DIManager.appComponent.converters
+            converters = DIManager.appComponent.converters,
+            context = DIManager.appComponent.context
         )
     )
 ) {
@@ -272,8 +285,7 @@ fun FeedScreen(
         LazyColumn(
             content = {
                 items(count = state.feedContent.size) { index ->
-                    val item = state.feedContent[index]
-                    when (item) {
+                    when (val item = state.feedContent[index]) {
                         is FeedItemModel -> FeedItem(
                             title = item.title ?: "",
                             date = item.timestamp?.stringRepresentation,
@@ -282,6 +294,15 @@ fun FeedScreen(
                                 openFeed(context, item.url)
                             }
                         )
+                        is FeedEmptyModel -> FeedEmptyItem(
+                            icon = item.icon,
+                            message = item.message,
+                            action = item.actionText,
+                            onClick = {
+                                viewModel.updateFeed()
+                            }
+                        )
+                        else -> throw IllegalArgumentException("Unsupported feed model")
                     }
                 }
             }
@@ -332,7 +353,8 @@ fun FeedItem(
                         .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
                         .background(
                             color = colorResource(id = R.color.feed_background),
-                            shape = RoundedCornerShape(4.dp))
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .padding(4.dp)
                         .fillMaxWidth()
                 )
@@ -346,9 +368,54 @@ fun FeedItem(
                         .padding(top = 6.dp, end = 8.dp)
                         .background(
                             color = colorResource(id = R.color.feed_background),
-                            shape = RoundedCornerShape(4.dp))
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .padding(4.dp)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun FeedEmptyItem(
+    icon: Int,
+    message: String,
+    action: String?,
+    onClick: (() -> Unit)? = null
+) {
+    SRSSTheme {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxHeight()
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(24.dp)
+            )
+            Text(
+                text = message,
+                fontSize = 18.sp,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Medium
+            )
+            if (action != null) {
+                TextButton(
+                    modifier = Modifier
+                        .padding(24.dp),
+                    onClick = {
+                        onClick?.invoke()
+                    }
+                ) {
+                    Text(
+                        text = action,
+                        color = Primary
+                    )
+                }
             }
         }
     }

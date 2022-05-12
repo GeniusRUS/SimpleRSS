@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -30,6 +31,7 @@ import com.genius.srss.databinding.RvFeedEmptyBinding
 import com.genius.srss.databinding.RvFeedItemBinding
 import com.genius.srss.databinding.RvSubscriptionFolderItemBinding
 import com.genius.srss.databinding.RvSubscriptionItemBinding
+import com.genius.srss.ui.feed.FeedEmptyItem
 import com.genius.srss.ui.feed.FeedItem
 import com.ub.utils.base.BaseListAdapter
 
@@ -46,7 +48,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         return when (viewType) {
             R.layout.rv_subscription_item -> SubscriptionItemViewHolder(RvSubscriptionItemBinding.inflate(inflater, parent, false))
             R.layout.rv_subscription_folder_item -> SubscriptionFolderViewHolder(RvSubscriptionFolderItemBinding.inflate(inflater, parent, false))
-            R.layout.rv_feed_empty -> SubscriptionFolderEmptyViewHolder(RvFeedEmptyBinding.inflate(inflater, parent, false))
+            R.layout.rv_feed_empty -> EmptyItemCompose(ComposeView(parent.context))
             R.layout.rv_feed_item -> FeedItemCompose(ComposeView(parent.context))
             else -> throw IllegalArgumentException("Unknown view type for inflate: $viewType")
         }
@@ -56,13 +58,14 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         when (holder) {
             is SubscriptionItemViewHolder -> holder.bind(getItem(position) as SubscriptionItemModel)
             is SubscriptionFolderViewHolder -> holder.bind(getItem(position) as SubscriptionFolderItemModel)
-            is SubscriptionFolderEmptyViewHolder -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
+            is EmptyItemCompose -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
             is FeedItemCompose -> holder.bind(getItem(position) as FeedItemModel)
         }
     }
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         when (holder) {
+            is EmptyItemCompose -> holder.composeView.disposeComposition()
             is FeedItemCompose -> holder.composeView.disposeComposition()
         }
     }
@@ -161,6 +164,30 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
         override fun onClick(v: View) {
             val position = absoluteAdapterPosition
             listListener?.onClick(v, getItem(position), position)
+        }
+    }
+
+    inner class EmptyItemCompose(val composeView: ComposeView) : RecyclerView.ViewHolder(composeView) {
+
+        init {
+            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        }
+
+        fun bind(model: SubscriptionFolderEmptyModel) {
+            composeView.setContent {
+                val actionText = if (model.action != null) {
+                    stringResource(id = model.action)
+                } else null
+                FeedEmptyItem(
+                    icon = model.icon,
+                    message = stringResource(id = model.message),
+                    action = actionText,
+                    onClick = {
+                        val position = absoluteAdapterPosition
+                        listListener?.onClick(composeView, getItem(position), position)
+                    }
+                )
+            }
         }
     }
 
