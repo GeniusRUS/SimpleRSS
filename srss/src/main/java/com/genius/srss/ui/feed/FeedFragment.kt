@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
@@ -32,16 +33,25 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -56,6 +66,7 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import coil.compose.AsyncImage
@@ -101,6 +112,20 @@ class FeedFragment : Fragment(),
     private var menu: Menu? = null
 
     private val arguments: FeedFragmentArgs by navArgs()
+
+    /*override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                SRSSTheme {
+                    FeedScreen(feedUrl = arguments.feedUrl, navController = findNavController())
+                }
+            }
+        }
+    }*/
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -240,7 +265,7 @@ class FeedFragment : Fragment(),
 
     override fun onDestroyView() {
         adapter.listListener = null
-        binding.feedContent.adapter = null
+//        binding.feedContent.adapter = null
         super.onDestroyView()
     }
 
@@ -282,31 +307,62 @@ fun FeedScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     SRSSTheme {
-        LazyColumn(
-            content = {
-                items(count = state.feedContent.size) { index ->
-                    when (val item = state.feedContent[index]) {
-                        is FeedItemModel -> FeedItem(
-                            title = item.title ?: "",
-                            date = item.timestamp?.stringRepresentation,
-                            pictureUrl = item.pictureUrl,
-                            onClick = {
-                                openFeed(context, item.url)
-                            }
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    backgroundColor = Color.Black.copy(alpha = 0F),
+                    title = {
+                        Text(
+                            text = state.title ?: ""
                         )
-                        is FeedEmptyModel -> FeedEmptyItem(
-                            icon = item.icon,
-                            message = item.message,
-                            action = item.actionText,
-                            onClick = {
-                                viewModel.updateFeed()
+                    },
+                    navigationIcon = if (navController.previousBackStackEntry != null) {
+                        {
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowBack,
+                                    contentDescription = stringResource(id = android.R.string.cancel)
+                                )
                             }
-                        )
-                        else -> throw IllegalArgumentException("Unsupported feed model")
-                    }
-                }
+                        }
+                    } else {
+                        null
+                    },
+                    elevation = 0.dp,
+                )
             }
-        )
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colors.background
+            ) {
+                LazyColumn(
+                    content = {
+                        items(count = state.feedContent.size) { index ->
+                            when (val item = state.feedContent[index]) {
+                                is FeedItemModel -> FeedItem(
+                                    title = item.title ?: "",
+                                    date = item.timestamp?.stringRepresentation,
+                                    pictureUrl = item.pictureUrl,
+                                    onClick = {
+                                        openFeed(context, item.url)
+                                    }
+                                )
+                                is FeedEmptyModel -> FeedEmptyItem(
+                                    icon = item.icon,
+                                    message = item.message,
+                                    action = item.actionText,
+                                    onClick = {
+                                        viewModel.updateFeed()
+                                    }
+                                )
+                                else -> throw IllegalArgumentException("Unsupported feed model")
+                            }
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 

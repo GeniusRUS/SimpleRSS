@@ -143,6 +143,7 @@ dependencies {
 
     implementation("androidx.compose.ui:ui:$composeVer")
     implementation("androidx.compose.material:material:$composeVer")
+    implementation("androidx.compose.foundation:foundation:$composeVer")
     implementation("androidx.compose.animation:animation-graphics:$composeVer")
     implementation("androidx.compose.ui:ui-tooling-preview:$composeVer")
     implementation("androidx.navigation:navigation-compose:$navigationVer")
