@@ -1,19 +1,15 @@
 package com.genius.srss.ui.feed
 
-import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.text.SpannableStringBuilder
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
-import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.Image
@@ -23,16 +19,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -44,30 +39,33 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
-import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -82,14 +80,14 @@ import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
 import com.genius.srss.ui.theme.Primary
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.ui.theme.strokeColor
-import com.genius.srss.util.launchAndRepeatWithViewLifecycle
-import com.ub.utils.LogUtils
-import com.ub.utils.ViewHolderItemDecoration
 import com.ub.utils.base.BaseListAdapter
-import com.ub.utils.openSoftKeyboard
-import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class FeedFragment : Fragment(),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
@@ -113,7 +111,7 @@ class FeedFragment : Fragment(),
 
     private val arguments: FeedFragmentArgs by navArgs()
 
-    /*override fun onCreateView(
+    override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -125,9 +123,9 @@ class FeedFragment : Fragment(),
                 }
             }
         }
-    }*/
+    }
 
-    override fun onCreateView(
+    /*override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -231,7 +229,7 @@ class FeedFragment : Fragment(),
                 }
             }
         }
-    }
+    }*/
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
@@ -305,20 +303,45 @@ fun FeedScreen(
     )
 ) {
     val state by viewModel.state.collectAsState()
+    val isInEditMode by viewModel.isInEditMode.collectAsState()
+    var newFeedName by remember { mutableStateOf<String?>(null) }
+    viewModel.closeFlow.collectAsEffect(block = {
+        navController.popBackStack()
+    })
+    viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
+        newFeedName = nameToEdit
+    }
     val context = LocalContext.current
     SRSSTheme {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    backgroundColor = Color.Black.copy(alpha = 0F),
+                    backgroundColor = MaterialTheme.colors.background,
                     title = {
-                        Text(
-                            text = state.title ?: ""
-                        )
+                        if (isInEditMode) {
+                            BasicTextField(
+                                value = newFeedName ?: "",
+                                onValueChange = {
+                                    newFeedName = it
+                                    viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
+                                },
+                                singleLine = true
+                            )
+                        } else {
+                            Text(
+                                text = state.title ?: ""
+                            )
+                        }
                     },
                     navigationIcon = if (navController.previousBackStackEntry != null) {
                         {
-                            IconButton(onClick = { navController.navigateUp() }) {
+                            IconButton(onClick = {
+                                if (isInEditMode) {
+                                    viewModel.changeEditMode(isEdit = false)
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            }) {
                                 Icon(
                                     imageVector = Icons.Filled.ArrowBack,
                                     contentDescription = stringResource(id = android.R.string.cancel)
@@ -328,9 +351,42 @@ fun FeedScreen(
                     } else {
                         null
                     },
+                    actions = {
+                        if (!isInEditMode) {
+                            IconButton(onClick = {
+                                viewModel.changeEditMode(isEdit = true)
+                            }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_vector_mode),
+                                    contentDescription = stringResource(id = R.string.folder_menu_edit_title)
+                                )
+                            }
+                        }
+                        if (isInEditMode) {
+                            IconButton(onClick = {
+                                viewModel.deleteFeed()
+                            }) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_delete_outline),
+                                    contentDescription = stringResource(id = R.string.option_menu_delete)
+                                )
+                            }
+                        }
+                        if (isInEditMode) {
+                            IconButton(onClick = {
+                                viewModel.updateSubscription(newSubscriptionName = newFeedName)
+                            }, enabled = state.isAvailableToSave) {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_vector_done),
+                                    contentDescription = stringResource(id = R.string.option_menu_save)
+                                )
+                            }
+                        }
+                    },
                     elevation = 0.dp,
                 )
-            }
+            },
+            modifier = Modifier.systemBarsPadding()
         ) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -474,6 +530,16 @@ fun FeedEmptyItem(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun <T> Flow<T>.collectAsEffect(
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: (T) -> Unit
+) {
+    LaunchedEffect(key1 = Unit) {
+        onEach(block).flowOn(context).launchIn(this)
     }
 }
 

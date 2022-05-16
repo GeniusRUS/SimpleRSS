@@ -82,6 +82,10 @@ class FeedViewModel(
 
     val nameToEditFlow: StateFlow<String?> = innerNameToEditState
 
+    init {
+        updateFeed()
+    }
+
     fun updateFeed() {
         viewModelScope.launch {
             try {
@@ -153,16 +157,10 @@ class FeedViewModel(
 
     fun checkSaveAvailability(newSubscriptionName: Editable?) {
         if (!_isInEditMode.value) return
-        viewModelScope.launch {
-            try {
-                innerMainState.update { state ->
-                    state.copy(
-                        isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerMainState.value.title != newSubscriptionName.toString()
-                    )
-                }
-            } catch (e: Exception) {
-                LogUtils.e(TAG, e.message, e)
-            }
+        innerMainState.update { state ->
+            state.copy(
+                isAvailableToSave = newSubscriptionName?.isNotEmpty() == true && innerMainState.value.title != newSubscriptionName.toString()
+            )
         }
     }
 

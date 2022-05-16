@@ -11,9 +11,9 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.GridItemSpan
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
@@ -460,7 +460,7 @@ fun SubscriptionScreen(navController: NavController) {
         }
     ) {
         LazyVerticalGrid(
-            cells = GridCells.Fixed(2)
+            columns = GridCells.Fixed(2)
         ) {
             state.value.feedList.forEach { model ->
                 when (model) {
