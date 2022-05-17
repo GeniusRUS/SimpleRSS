@@ -46,7 +46,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            R.layout.rv_subscription_item -> SubscriptionItemViewHolder(RvSubscriptionItemBinding.inflate(inflater, parent, false))
+            R.layout.rv_subscription_item -> SubscriptionCompose(ComposeView(parent.context))
             R.layout.rv_subscription_folder_item -> SubscriptionFolderViewHolder(RvSubscriptionFolderItemBinding.inflate(inflater, parent, false))
             R.layout.rv_feed_empty -> EmptyItemCompose(ComposeView(parent.context))
             R.layout.rv_feed_item -> FeedItemCompose(ComposeView(parent.context))
@@ -56,7 +56,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
-            is SubscriptionItemViewHolder -> holder.bind(getItem(position) as SubscriptionItemModel)
+            is SubscriptionCompose -> holder.bind(getItem(position) as SubscriptionItemModel)
             is SubscriptionFolderViewHolder -> holder.bind(getItem(position) as SubscriptionFolderItemModel)
             is EmptyItemCompose -> holder.bind(getItem(position) as SubscriptionFolderEmptyModel)
             is FeedItemCompose -> holder.bind(getItem(position) as FeedItemModel)
@@ -65,8 +65,28 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         when (holder) {
+            is SubscriptionCompose -> holder.composeView.disposeComposition()
             is EmptyItemCompose -> holder.composeView.disposeComposition()
             is FeedItemCompose -> holder.composeView.disposeComposition()
+        }
+    }
+
+    inner class SubscriptionCompose(val composeView: ComposeView) : RecyclerView.ViewHolder(composeView) {
+
+        init {
+            composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        }
+
+        fun bind(model: SubscriptionItemModel) {
+            composeView.setContent {
+                SubscriptionItem(
+                    title = model.title ?: return@setContent,
+                    {
+                        val position = absoluteAdapterPosition
+                        listListener?.onClick(composeView, getItem(position), position)
+                    }
+                )
+            }
         }
     }
 

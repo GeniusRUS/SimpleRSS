@@ -19,13 +19,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
@@ -312,111 +322,118 @@ fun FeedScreen(
         newFeedName = nameToEdit
     }
     val context = LocalContext.current
+    val scrollState = rememberLazyListState()
     SRSSTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    backgroundColor = MaterialTheme.colors.background,
-                    title = {
-                        if (isInEditMode) {
-                            BasicTextField(
-                                value = newFeedName ?: "",
-                                onValueChange = {
-                                    newFeedName = it
-                                    viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
-                                },
-                                singleLine = true
-                            )
-                        } else {
-                            Text(
-                                text = state.title ?: ""
-                            )
-                        }
-                    },
-                    navigationIcon = if (navController.previousBackStackEntry != null) {
-                        {
-                            IconButton(onClick = {
-                                if (isInEditMode) {
-                                    viewModel.changeEditMode(isEdit = false)
-                                } else {
-                                    navController.popBackStack()
+        Surface {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        backgroundColor = MaterialTheme.colors.background,
+                        title = {
+                            if (isInEditMode) {
+                                BasicTextField(
+                                    value = newFeedName ?: "",
+                                    onValueChange = {
+                                        newFeedName = it
+                                        viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
+                                    },
+                                    singleLine = true
+                                )
+                            } else {
+                                Text(
+                                    text = state.title ?: ""
+                                )
+                            }
+                        },
+                        navigationIcon = if (navController.previousBackStackEntry != null) {
+                            {
+                                IconButton(onClick = {
+                                    if (isInEditMode) {
+                                        viewModel.changeEditMode(isEdit = false)
+                                    } else {
+                                        navController.popBackStack()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBack,
+                                        contentDescription = stringResource(id = android.R.string.cancel)
+                                    )
                                 }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.ArrowBack,
-                                    contentDescription = stringResource(id = android.R.string.cancel)
-                                )
+                            }
+                        } else {
+                            null
+                        },
+                        actions = {
+                            if (!isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.changeEditMode(isEdit = true)
+                                }) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_vector_mode),
+                                        contentDescription = stringResource(id = R.string.folder_menu_edit_title)
+                                    )
+                                }
+                            }
+                            if (isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.deleteFeed()
+                                }) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_delete_outline),
+                                        contentDescription = stringResource(id = R.string.option_menu_delete)
+                                    )
+                                }
+                            }
+                            if (isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.updateSubscription(newSubscriptionName = newFeedName)
+                                }, enabled = state.isAvailableToSave) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_vector_done),
+                                        contentDescription = stringResource(id = R.string.option_menu_save)
+                                    )
+                                }
+                            }
+                        },
+                        elevation = 0.dp,
+                    )
+                },
+                modifier = Modifier.statusBarsPadding()
+            ) { paddings ->
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colors.background
+                ) {
+                    LazyColumn(
+                        state = scrollState,
+                        contentPadding = WindowInsets.navigationBars
+                            .only(WindowInsetsSides.Bottom)
+                            .asPaddingValues(),
+                        content = {
+                            items(count = state.feedContent.size) { index ->
+                                when (val item = state.feedContent[index]) {
+                                    is FeedItemModel -> FeedItem(
+                                        title = item.title ?: "",
+                                        date = item.timestamp?.stringRepresentation,
+                                        pictureUrl = item.pictureUrl,
+                                        onClick = {
+                                            openFeed(context, item.url)
+                                        }
+                                    )
+                                    is FeedEmptyModel -> FeedEmptyItem(
+                                        icon = item.icon,
+                                        message = item.message,
+                                        action = item.actionText,
+                                        onClick = {
+                                            viewModel.updateFeed()
+                                        }
+                                    )
+                                    else -> throw IllegalArgumentException("Unsupported feed model")
+                                }
                             }
                         }
-                    } else {
-                        null
-                    },
-                    actions = {
-                        if (!isInEditMode) {
-                            IconButton(onClick = {
-                                viewModel.changeEditMode(isEdit = true)
-                            }) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_vector_mode),
-                                    contentDescription = stringResource(id = R.string.folder_menu_edit_title)
-                                )
-                            }
-                        }
-                        if (isInEditMode) {
-                            IconButton(onClick = {
-                                viewModel.deleteFeed()
-                            }) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_delete_outline),
-                                    contentDescription = stringResource(id = R.string.option_menu_delete)
-                                )
-                            }
-                        }
-                        if (isInEditMode) {
-                            IconButton(onClick = {
-                                viewModel.updateSubscription(newSubscriptionName = newFeedName)
-                            }, enabled = state.isAvailableToSave) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_vector_done),
-                                    contentDescription = stringResource(id = R.string.option_menu_save)
-                                )
-                            }
-                        }
-                    },
-                    elevation = 0.dp,
-                )
-            },
-            modifier = Modifier.systemBarsPadding()
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colors.background
-            ) {
-                LazyColumn(
-                    content = {
-                        items(count = state.feedContent.size) { index ->
-                            when (val item = state.feedContent[index]) {
-                                is FeedItemModel -> FeedItem(
-                                    title = item.title ?: "",
-                                    date = item.timestamp?.stringRepresentation,
-                                    pictureUrl = item.pictureUrl,
-                                    onClick = {
-                                        openFeed(context, item.url)
-                                    }
-                                )
-                                is FeedEmptyModel -> FeedEmptyItem(
-                                    icon = item.icon,
-                                    message = item.message,
-                                    action = item.actionText,
-                                    onClick = {
-                                        viewModel.updateFeed()
-                                    }
-                                )
-                                else -> throw IllegalArgumentException("Unsupported feed model")
-                            }
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     }

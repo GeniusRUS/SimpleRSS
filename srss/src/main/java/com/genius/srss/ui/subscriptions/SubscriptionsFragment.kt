@@ -10,7 +10,10 @@ import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,10 +26,14 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.animation.doOnEnd
@@ -50,6 +57,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
+import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -437,13 +445,13 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
-fun SubscriptionScreen(navController: NavController) {
-    val viewModel = viewModel<SubscriptionsViewModel>(
-        factory = SubscriptionsViewModelFactory(
-            DIManager.appComponent.subscriptionDao,
-            DIManager.appComponent.dataStore
-        )
+fun SubscriptionScreen(navController: NavController, viewModel: SubscriptionsViewModel = viewModel(
+    factory = SubscriptionsViewModelFactory(
+        DIManager.appComponent.subscriptionDao,
+        DIManager.appComponent.dataStore
     )
+)
+) {
     val state = viewModel.state.collectAsState()
     Scaffold(
         floatingActionButton = {
@@ -458,7 +466,7 @@ fun SubscriptionScreen(navController: NavController) {
                 )
             }
         }
-    ) {
+    ) { paddings ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2)
         ) {
@@ -529,4 +537,33 @@ fun SubscriptionItem(
     ) {
         Text(text = model.title ?: "n/a")
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SubscriptionItem(
+    @PreviewParameter(SubscriptionItemProvider::class) title: String,
+    onClick: (() -> Unit)? = null
+) {
+    SRSSTheme {
+        Card(
+            elevation = 2.dp,
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth()
+                .clickable {
+                    onClick?.invoke()
+                }
+        ) {
+            Text(
+                text = title,
+                modifier = Modifier.padding(8.dp),
+            )
+        }
+    }
+}
+
+class SubscriptionItemProvider : PreviewParameterProvider<String> {
+    override val values = listOf("First feed", "Second feed").asSequence()
 }
