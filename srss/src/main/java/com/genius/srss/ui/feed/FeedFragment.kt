@@ -19,7 +19,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -27,13 +26,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,7 +70,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import coil.compose.AsyncImage
@@ -129,7 +124,11 @@ class FeedFragment : Fragment(),
         return ComposeView(requireContext()).apply {
             setContent {
                 SRSSTheme {
-                    FeedScreen(feedUrl = arguments.feedUrl, navController = findNavController())
+                    FeedScreen(
+                        feedUrl = arguments.feedUrl,
+                        navigateToUp = { findNavController().navigateUp() },
+                        isCanNavigateUp = findNavController().previousBackStackEntry != null
+                    )
                 }
             }
         }
@@ -301,7 +300,8 @@ class FeedFragment : Fragment(),
 @Composable
 fun FeedScreen(
     feedUrl: String,
-    navController: NavController,
+    navigateToUp: () -> Unit,
+    isCanNavigateUp: Boolean,
     viewModel: FeedViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
         factory = FeedViewModelFactory(
             feedUrl = feedUrl,
@@ -316,7 +316,7 @@ fun FeedScreen(
     val isInEditMode by viewModel.isInEditMode.collectAsState()
     var newFeedName by remember { mutableStateOf<String?>(null) }
     viewModel.closeFlow.collectAsEffect(block = {
-        navController.popBackStack()
+        navigateToUp.invoke()
     })
     viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
         newFeedName = nameToEdit
@@ -345,13 +345,13 @@ fun FeedScreen(
                                 )
                             }
                         },
-                        navigationIcon = if (navController.previousBackStackEntry != null) {
+                        navigationIcon = if (isCanNavigateUp) {
                             {
                                 IconButton(onClick = {
                                     if (isInEditMode) {
                                         viewModel.changeEditMode(isEdit = false)
                                     } else {
-                                        navController.popBackStack()
+                                        navigateToUp.invoke()
                                     }
                                 }) {
                                     Icon(

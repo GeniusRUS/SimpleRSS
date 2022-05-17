@@ -12,6 +12,8 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -23,6 +25,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -46,7 +49,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -67,6 +69,9 @@ import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -87,9 +92,10 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         SubscriptionsListAdapter()
     }
 
-    private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> = viewBinding(
-        FragmentSubscriptionsBinding::bind
-    )
+    private val bindingDelegate: ViewBindingProperty<SubscriptionsFragment, FragmentSubscriptionsBinding> =
+        viewBinding(
+            FragmentSubscriptionsBinding::bind
+        )
     private val binding: FragmentSubscriptionsBinding by bindingDelegate
 
     private var activeAnimation: AnimatorSet? = null
@@ -108,11 +114,26 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
             listOf(
                 TutorialView.Tip(R.string.tutorial_pinch_zoom_in, R.drawable.ic_vector_pinch),
                 TutorialView.Tip(R.string.tutorial_pinch_zoom_out, R.drawable.ic_vector_pinch),
-                TutorialView.Tip(R.string.tutorial_assign_subscription_to_folder, R.drawable.ic_vector_touch_app),
-                TutorialView.Tip(R.string.tutorial_create_folder_or_subscription, R.drawable.ic_vector_add_circle_outline),
-                TutorialView.Tip(R.string.tutorial_remove_subscription, R.drawable.ic_vector_swipe_left),
-                TutorialView.Tip(R.string.tutorial_unlink_subscription, R.drawable.ic_vector_swipe_right),
-                TutorialView.Tip(R.string.tutorial_manual_folder_sorting, R.drawable.ic_vector_touch_app),
+                TutorialView.Tip(
+                    R.string.tutorial_assign_subscription_to_folder,
+                    R.drawable.ic_vector_touch_app
+                ),
+                TutorialView.Tip(
+                    R.string.tutorial_create_folder_or_subscription,
+                    R.drawable.ic_vector_add_circle_outline
+                ),
+                TutorialView.Tip(
+                    R.string.tutorial_remove_subscription,
+                    R.drawable.ic_vector_swipe_left
+                ),
+                TutorialView.Tip(
+                    R.string.tutorial_unlink_subscription,
+                    R.drawable.ic_vector_swipe_right
+                ),
+                TutorialView.Tip(
+                    R.string.tutorial_manual_folder_sorting,
+                    R.drawable.ic_vector_touch_app
+                ),
                 TutorialView.Tip(R.string.tutorial_manual_folder_mode, R.drawable.ic_vector_list)
             )
         )
@@ -191,29 +212,49 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         })
         binding.subscriptionsContent.setOnDragListener { _, event ->
             val offsetFromTop = event.y - binding.subscriptionsContent.paddingTop
-            val offsetFromBottom = binding.subscriptionsContent.height - binding.subscriptionsContent.paddingBottom - event.y
+            val offsetFromBottom =
+                binding.subscriptionsContent.height - binding.subscriptionsContent.paddingBottom - event.y
 
-            if (offsetFromTop in 0F..SCROLL_SLOW_THRESHOLD && binding.subscriptionsContent.canScrollVertically(-1)) {
+            if (offsetFromTop in 0F..SCROLL_SLOW_THRESHOLD && binding.subscriptionsContent.canScrollVertically(
+                    -1
+                )
+            ) {
                 when (offsetFromTop) {
                     in 0F..SCROLL_FAST_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, -50)
-                    in SCROLL_FAST_THRESHOLD..SCROLL_MEDIUM_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, -25)
-                    in SCROLL_MEDIUM_THRESHOLD..SCROLL_SLOW_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, -10)
+                    in SCROLL_FAST_THRESHOLD..SCROLL_MEDIUM_THRESHOLD -> binding.subscriptionsContent.scrollBy(
+                        0,
+                        -25
+                    )
+                    in SCROLL_MEDIUM_THRESHOLD..SCROLL_SLOW_THRESHOLD -> binding.subscriptionsContent.scrollBy(
+                        0,
+                        -10
+                    )
                 }
-            } else if (offsetFromBottom in 0F..SCROLL_SLOW_THRESHOLD && binding.subscriptionsContent.canScrollVertically(1)) {
+            } else if (offsetFromBottom in 0F..SCROLL_SLOW_THRESHOLD && binding.subscriptionsContent.canScrollVertically(
+                    1
+                )
+            ) {
                 when (offsetFromBottom) {
                     in 0F..SCROLL_FAST_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, 50)
-                    in SCROLL_FAST_THRESHOLD..SCROLL_MEDIUM_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, 25)
-                    in SCROLL_MEDIUM_THRESHOLD..SCROLL_SLOW_THRESHOLD -> binding.subscriptionsContent.scrollBy(0, 10)
+                    in SCROLL_FAST_THRESHOLD..SCROLL_MEDIUM_THRESHOLD -> binding.subscriptionsContent.scrollBy(
+                        0,
+                        25
+                    )
+                    in SCROLL_MEDIUM_THRESHOLD..SCROLL_SLOW_THRESHOLD -> binding.subscriptionsContent.scrollBy(
+                        0,
+                        10
+                    )
                 }
             }
 
             return@setOnDragListener true
         }
-        (binding.subscriptionsContent.layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-            override fun getSpanSize(position: Int): Int {
-                return if (adapter.currentList[position] is SubscriptionFolderItemModel) 1 else 2
+        (binding.subscriptionsContent.layoutManager as GridLayoutManager).spanSizeLookup =
+            object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (adapter.currentList[position] is SubscriptionFolderItemModel) 1 else 2
+                }
             }
-        }
 
         binding.fab.applyInsetter {
             type(ime = true, statusBars = true, navigationBars = true) {
@@ -279,15 +320,17 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     ) {
         when (item) {
             is SubscriptionItemModel -> {
-                val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
-                    item.urlToLoad ?: return
-                )
+                val direction =
+                    SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFeedFragment(
+                        item.urlToLoad ?: return
+                    )
                 findNavController().navigate(direction)
             }
             is SubscriptionFolderItemModel -> {
-                val direction = SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
-                    item.id
-                )
+                val direction =
+                    SubscriptionsFragmentDirections.actionSubscriptionsFragmentToFolderFragment(
+                        item.id
+                    )
                 findNavController().navigate(direction)
             }
             is SubscriptionFolderEmptyModel -> {
@@ -445,49 +488,62 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 @ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
-fun SubscriptionScreen(navController: NavController, viewModel: SubscriptionsViewModel = viewModel(
-    factory = SubscriptionsViewModelFactory(
-        DIManager.appComponent.subscriptionDao,
-        DIManager.appComponent.dataStore
+fun SubscriptionScreen(
+    navigateToFolder: (String) -> Unit,
+    navigateToFeed: (String) -> Unit,
+    navigateToAddSubscription: () -> Unit,
+    viewModel: SubscriptionsViewModel = viewModel(
+        factory = SubscriptionsViewModelFactory(
+            DIManager.appComponent.subscriptionDao,
+            DIManager.appComponent.dataStore
+        )
     )
-)
 ) {
     val state = viewModel.state.collectAsState()
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate("addSubscription")
-                }
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.plus_vector),
-                    contentDescription = stringResource(id = R.string.subscriptions_add_text_open)
-                )
-            }
-        }
-    ) { paddings ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2)
-        ) {
-            state.value.feedList.forEach { model ->
-                when (model) {
-                    is SubscriptionItemModel -> item(
-                        span = {
-                            GridItemSpan(maxCurrentLineSpan)
+    SRSSTheme {
+        Surface {
+            Scaffold(
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = {
+                            navigateToAddSubscription.invoke()
                         }
                     ) {
-                        SubscriptionItem(model) { clickedSubscription ->
-                            navController.navigate("feed")
-                        }
+                        Icon(
+                            painter = painterResource(id = R.drawable.plus_vector),
+                            contentDescription = stringResource(id = R.string.subscriptions_add_text_open)
+                        )
                     }
-                    is SubscriptionFolderItemModel -> item {
-                        FolderItem(model) { clickedFolder ->
-                            navController.navigate("folder")
+                }
+            ) { paddings ->
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxHeight(),
+                    contentPadding = PaddingValues(8.dp)
+                ) {
+                    state.value.feedList.forEach { model ->
+                        when (model) {
+                            is SubscriptionItemModel -> item(
+                                span = {
+                                    GridItemSpan(maxCurrentLineSpan)
+                                }
+                            ) {
+                                SubscriptionItem(
+                                    title = model.title ?: "",
+                                    onClick = {
+                                        navigateToFeed.invoke(model.urlToLoad?.urlEncode() ?: return@SubscriptionItem)
+                                    }
+                                )
+                            }
+                            is SubscriptionFolderItemModel -> item {
+                                FolderItem(model.id, model.name, model.countOtOfSources) { folderId ->
+                                    navigateToFolder.invoke(folderId)
+                                }
+                            }
+                            else -> {
+                                // ignore
+                            }
                         }
-                    }
-                    else -> {
-                        // ignore
                     }
                 }
             }
@@ -495,47 +551,42 @@ fun SubscriptionScreen(navController: NavController, viewModel: SubscriptionsVie
     }
 }
 
-@ExperimentalMaterialApi
 @Composable
 fun FolderItem(
-    model: SubscriptionFolderItemModel,
-    onClick: (SubscriptionFolderItemModel) -> Unit
+    id: String,
+    name: String,
+    count: Int,
+    onClick: (String) -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        onClick = {
-            onClick.invoke(model)
-        }
-    ) {
-        Column {
-            Text(
-                text = model.name
-            )
-            Text(
-                text = LocalContext.current.resources.getQuantityString(
-                    R.plurals.subscriptions_folder_count_template, model.countOtOfSources, model.countOtOfSources
-                ),
-                style = TextStyle(
-                    fontSize = 10.sp
+    SRSSTheme {
+        Card(
+            elevation = 2.dp,
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth()
+                .clickable {
+                    onClick.invoke(id)
+                }
+        ) {
+            Column(
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(
+                    text = name
                 )
-            )
+                Text(
+                    text = LocalContext.current.resources.getQuantityString(
+                        R.plurals.subscriptions_folder_count_template,
+                        count,
+                        count
+                    ),
+                    style = TextStyle(
+                        fontSize = 10.sp
+                    )
+                )
+            }
         }
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
-fun SubscriptionItem(
-    model: SubscriptionItemModel,
-    onClick: (SubscriptionItemModel) -> Unit
-) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        onClick = {
-            onClick.invoke(model)
-        }
-    ) {
-        Text(text = model.title ?: "n/a")
     }
 }
 
@@ -566,4 +617,12 @@ fun SubscriptionItem(
 
 class SubscriptionItemProvider : PreviewParameterProvider<String> {
     override val values = listOf("First feed", "Second feed").asSequence()
+}
+
+fun String.urlEncode(): String {
+    return URLEncoder.encode(this, StandardCharsets.UTF_8.toString())
+}
+
+fun String.urlDecode(): String {
+    return URLDecoder.decode(this, StandardCharsets.UTF_8.toString())
 }

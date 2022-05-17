@@ -7,34 +7,53 @@ import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarResult
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentAddSubscriptionBinding
 import com.genius.srss.di.DIManager
-import com.genius.srss.ui.Greeting
+import com.genius.srss.ui.feed.collectAsEffect
+import com.genius.srss.ui.subscriptions.urlEncode
+import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.github.razir.progressbutton.attachTextChangeAnimator
 import com.github.razir.progressbutton.bindProgressButton
@@ -126,7 +145,8 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
                             binding.confirmButton.showProgress {
                                 buttonTextRes =
                                     R.string.add_new_subscription_address_checking_process
-                                progressColor = ContextCompat.getColor(view.context, R.color.button_text_color)
+                                progressColor =
+                                    ContextCompat.getColor(view.context, R.color.button_text_color)
                             }
                         }
                         loadingState.isAvailableToSave -> {
@@ -167,63 +187,117 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
 }
 
 @Composable
-fun AddSubscriptionScreen(navController: NavController) {
-    val viewModel = viewModel<AddSubscriptionViewModel>(
+fun AddSubscriptionScreen(
+    isCanNavigateUp: Boolean,
+    navigateOnAdd: (String) -> Unit,
+    navigateUp: () -> Unit,
+    viewModel: AddSubscriptionViewModel = viewModel(
         factory = AddSubscriptionViewModelFactory(
             null,
             DIManager.appComponent.network,
             DIManager.appComponent.subscriptionDao
         )
     )
-    val stateSourceInfo = viewModel.loadingSourceInfoFlow.collectAsState()
-    Scaffold(topBar = {
-        TopAppBar(
-            backgroundColor = Color.Black.copy(alpha = 0F),
-            title = {},
-            navigationIcon = if (navController.previousBackStackEntry != null) {
-                {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            } else {
-                null
-            },
-            elevation = 0.dp,
-        )
-    }) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.background
-        ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                OutlinedTextField(
-                    value = "", // TODO text from state
-                    label = {
-                        Text(text = stringResource(id = R.string.add_new_subscription_address_hint))
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done,
-                        keyboardType = KeyboardType.Uri
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    onValueChange = {
+) {
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
+    val state = viewModel.loadingSourceInfoFlow.collectAsState()
+    var feedUrl by remember { mutableStateOf<String?>(null) }
+    viewModel.sourceAddedFlow.collectAsEffect { addedFeedUrl ->
+        navigateOnAdd.invoke(addedFeedUrl.urlEncode())
+    }
+    viewModel.errorFlow.collectAsEffect { error ->
+        coroutineScope.launch {
+            val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(
+                message = error.toString()
+            )
+            when (snackbarResult) {
+                SnackbarResult.Dismissed -> {}
+                SnackbarResult.ActionPerformed -> {}
+            }
+        }
+    }
 
-                    }
-                )
-                Button(
-                    enabled = !stateSourceInfo.value.isLoading,
-                    onClick = { /*TODO*/ }
+    SRSSTheme {
+        Surface {
+            Scaffold(
+                scaffoldState = scaffoldState,
+                topBar = {
+                    TopAppBar(
+                        backgroundColor = MaterialTheme.colors.background,
+                        title = {},
+                        navigationIcon = if (isCanNavigateUp) {
+                            {
+                                IconButton(onClick = { navigateUp.invoke() }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBack,
+                                        contentDescription = "Back"
+                                    )
+                                }
+                            }
+                        } else {
+                            null
+                        },
+                        elevation = 0.dp,
+                    )
+                },
+            ) { paddings ->
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colors.background
                 ) {
-                    Text(text = stringResource(id = R.string.add_new_subscription_check))
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        OutlinedTextField(
+                            enabled = !state.value.isAvailableToSave,
+                            value = feedUrl ?: "",
+                            label = {
+                                Text(text = stringResource(id = R.string.add_new_subscription_address_hint))
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Done,
+                                keyboardType = KeyboardType.Uri
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            onValueChange = {
+                                feedUrl = it
+                            },
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        )
+                        Button(
+                            enabled = !state.value.isLoading,
+                            onClick = {
+                                viewModel.checkOrSave(feedUrl ?: "")
+                            },
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(vertical = 16.dp),
+                            modifier = Modifier
+                                .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = if (state.value.isAvailableToSave) {
+                                    stringResource(id = R.string.add_new_subscription_save)
+                                } else {
+                                    stringResource(id = R.string.add_new_subscription_check)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddSubscriptionPreview() {
+    SRSSTheme {
+        AddSubscriptionScreen(isCanNavigateUp = true, navigateOnAdd = {}, navigateUp = { /*TODO*/ })
     }
 }
