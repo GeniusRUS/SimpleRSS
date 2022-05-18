@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -182,13 +184,16 @@ fun AddFolderScreen(
                             null
                         },
                         elevation = 0.dp,
+                        modifier = Modifier.statusBarsPadding()
                     )
                 }
             ) { padding ->
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxHeight()
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .imePadding()
                 ) {
                     OutlinedTextField(
                         value = folderName ?: "",

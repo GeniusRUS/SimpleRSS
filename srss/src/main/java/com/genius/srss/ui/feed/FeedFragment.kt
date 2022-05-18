@@ -394,9 +394,9 @@ fun FeedScreen(
                             }
                         },
                         elevation = 0.dp,
+                        modifier = Modifier.statusBarsPadding()
                     )
-                },
-                modifier = Modifier.statusBarsPadding()
+                }
             ) { paddings ->
                 Surface(
                     modifier = Modifier.fillMaxSize(),

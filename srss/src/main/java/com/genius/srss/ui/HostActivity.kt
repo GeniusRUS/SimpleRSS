@@ -5,8 +5,7 @@ import android.os.Bundle
 import android.webkit.URLUtil
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,7 +17,6 @@ import com.genius.srss.MainGraphDirections
 import com.genius.srss.R
 import com.genius.srss.databinding.ActivityHostBinding
 import com.genius.srss.ui.add.folder.AddFolderScreen
-import com.genius.srss.ui.add.subscription.AddSubscriptionFragmentDirections
 import com.genius.srss.ui.add.subscription.AddSubscriptionScreen
 import com.genius.srss.ui.feed.FeedScreen
 import com.genius.srss.ui.folder.FolderScreen
@@ -26,8 +24,6 @@ import com.genius.srss.ui.subscriptions.SubscriptionScreen
 import com.genius.srss.ui.subscriptions.urlDecode
 import com.google.android.material.snackbar.Snackbar
 
-@ExperimentalFoundationApi
-@ExperimentalMaterialApi
 class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
 
     private val binding: ActivityHostBinding by viewBinding(ActivityHostBinding::bind)
@@ -38,9 +34,14 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
             handleSharingIntent(intent)
         }*/
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
             val navController = rememberNavController()
-            NavHost(navController, startDestination = "subscription") {
+            NavHost(
+                navController = navController,
+                startDestination = "subscription"
+            ) {
                 composable("subscription") {
                     SubscriptionScreen(
                         navigateToFolder = { folderId ->

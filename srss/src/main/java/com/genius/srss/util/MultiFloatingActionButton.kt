@@ -60,6 +60,7 @@ fun MultiFloatingActionButton(
     contentDescription: String,
     items: List<MultiFabItem>,
     toState: MultiFabState,
+    modifier: Modifier = Modifier,
     showLabels: Boolean = true,
     stateChanged: (fabstate: MultiFabState) -> Unit,
     onFabItemClicked: (item: MultiFabItem) -> Unit
@@ -91,6 +92,7 @@ fun MultiFloatingActionButton(
             Spacer(modifier = Modifier.height(20.dp))
         }
         FloatingActionButton(
+            modifier = modifier,
             onClick = {
                 stateChanged(
                     if (transition.currentState == MultiFabState.EXPANDED) {

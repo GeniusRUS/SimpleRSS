@@ -9,20 +9,26 @@ import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -33,11 +39,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -493,8 +497,6 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     }
 }
 
-@ExperimentalMaterialApi
-@ExperimentalFoundationApi
 @Composable
 fun SubscriptionScreen(
     navigateToFolder: (String) -> Unit,
@@ -529,6 +531,7 @@ fun SubscriptionScreen(
                                 label = stringResource(id = R.string.subscriptions_add_subscription_text)
                             )
                         ),
+                        modifier = Modifier.navigationBarsPadding(),
                         toState = toState,
                         stateChanged = { multiState ->
                             toState = multiState
@@ -548,14 +551,16 @@ fun SubscriptionScreen(
             ) { paddings ->
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxHeight(),
-                    contentPadding = PaddingValues(8.dp)
+                    contentPadding = WindowInsets.systemBars
+                        .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
+                        .asPaddingValues(),
+                    modifier = Modifier.fillMaxHeight()
                 ) {
                     state.value.feedList.forEach { model ->
                         when (model) {
                             is SubscriptionItemModel -> item(
                                 span = {
-                                    GridItemSpan(maxCurrentLineSpan)
+                                    GridItemSpan(maxLineSpan)
                                 }
                             ) {
                                 SubscriptionItem(
