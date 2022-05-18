@@ -10,6 +10,7 @@ import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,7 +77,11 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.theme.ActiveElement
+import com.genius.srss.ui.theme.DefaultBackgroundInverted
 import com.genius.srss.ui.theme.SRSSTheme
+import com.genius.srss.util.DragTarget
+import com.genius.srss.util.DropTarget
+import com.genius.srss.util.LongPressDraggable
 import com.genius.srss.util.MultiFabItem
 import com.genius.srss.util.MultiFabState
 import com.genius.srss.util.MultiFloatingActionButton
@@ -558,62 +563,81 @@ fun SubscriptionScreen(
                     )
                 }
             ) { paddings ->
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = WindowInsets.systemBars
-                        .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
-                        .asPaddingValues(),
-                    modifier = Modifier.fillMaxHeight()
+                LongPressDraggable(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    state.value.feedList.forEachIndexed { index, model ->
-                        when (model) {
-                            is SubscriptionItemModel -> item(
-                                span = {
-                                    GridItemSpan(maxLineSpan)
-                                }
-                            ) {
-                                val dismissState = rememberDismissState()
-                                if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-                                    viewModel.removeSubscriptionByPosition(index)
-                                }
-                                SwipeToDismiss(
-                                    directions = setOf(DismissDirection.EndToStart),
-                                    state = dismissState,
-                                    dismissThresholds = { FractionalThreshold(0.25f) },
-                                    background = {
-                                        val scale by animateFloatAsState(
-                                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
-                                        )
-                                        Box(
-                                            Modifier
-                                                .fillMaxSize()
-                                                .padding(horizontal = 20.dp),
-                                            contentAlignment = Alignment.CenterEnd
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.ic_vector_delete_outline),
-                                                contentDescription = stringResource(id = R.string.option_menu_delete),
-                                                tint = ActiveElement,
-                                                modifier = Modifier.scale(scale)
-                                            )
-                                        }
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = WindowInsets.systemBars
+                            .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
+                            .asPaddingValues(),
+                        modifier = Modifier.fillMaxHeight()
+                    ) {
+                        state.value.feedList.forEachIndexed { index, model ->
+                            when (model) {
+                                is SubscriptionItemModel -> item(
+                                    span = {
+                                        GridItemSpan(maxLineSpan)
                                     }
                                 ) {
-                                    SubscriptionItem(
-                                        title = model.title ?: "",
-                                        onClick = {
-                                            navigateToFeed.invoke(model.urlToLoad?.urlEncode() ?: return@SubscriptionItem)
+                                    val dismissState = rememberDismissState()
+                                    if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                                        viewModel.removeSubscriptionByPosition(index)
+                                    }
+                                    SwipeToDismiss(
+                                        directions = setOf(DismissDirection.EndToStart),
+                                        state = dismissState,
+                                        dismissThresholds = { FractionalThreshold(0.25f) },
+                                        background = {
+                                            val scale by animateFloatAsState(
+                                                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                                            )
+                                            Box(
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 20.dp),
+                                                contentAlignment = Alignment.CenterEnd
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.ic_vector_delete_outline),
+                                                    contentDescription = stringResource(id = R.string.option_menu_delete),
+                                                    tint = ActiveElement,
+                                                    modifier = Modifier.scale(scale)
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        SubscriptionItem(
+                                            title = model.title ?: "",
+                                            position = index,
+                                            onClick = {
+                                                navigateToFeed.invoke(
+                                                    model.urlToLoad?.urlEncode()
+                                                        ?: return@SubscriptionItem
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                                is SubscriptionFolderItemModel -> item {
+                                    FolderItem(
+                                        id = model.id,
+                                        name = model.name,
+                                        count = model.countOtOfSources,
+                                        onClick = { folderId ->
+                                            navigateToFolder.invoke(folderId)
+                                        },
+                                        onAddFeed = { position ->
+                                            viewModel.handleHolderMove(
+                                                holderPosition = position,
+                                                targetPosition = index
+                                            )
                                         }
                                     )
                                 }
-                            }
-                            is SubscriptionFolderItemModel -> item {
-                                FolderItem(model.id, model.name, model.countOtOfSources) { folderId ->
-                                    navigateToFolder.invoke(folderId)
+                                else -> {
+                                    // ignore
                                 }
-                            }
-                            else -> {
-                                // ignore
                             }
                         }
                     }
@@ -628,35 +652,46 @@ fun FolderItem(
     id: String,
     name: String,
     count: Int,
-    onClick: (String) -> Unit
+    onClick: (String) -> Unit,
+    onAddFeed: (Int) -> Unit
 ) {
     SRSSTheme {
-        Card(
-            elevation = 2.dp,
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier
-                .padding(4.dp)
-                .fillMaxWidth()
-                .clickable {
-                    onClick.invoke(id)
-                }
-        ) {
-            Column(
-                modifier = Modifier.padding(8.dp)
+        DropTarget<Int> { isInBound, position ->
+            Card(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(8.dp),
+                border = if (isInBound) {
+                    BorderStroke(1.dp, DefaultBackgroundInverted)
+                } else null,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        onClick.invoke(id)
+                    }
             ) {
-                Text(
-                    text = name
-                )
-                Text(
-                    text = LocalContext.current.resources.getQuantityString(
-                        R.plurals.subscriptions_folder_count_template,
-                        count,
-                        count
-                    ),
-                    style = TextStyle(
-                        fontSize = 10.sp
+                position?.let { position ->
+                    if (isInBound) {
+                        onAddFeed.invoke(position)
+                    }
+                }
+                Column(
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(
+                        text = name
                     )
-                )
+                    Text(
+                        text = LocalContext.current.resources.getQuantityString(
+                            R.plurals.subscriptions_folder_count_template,
+                            count,
+                            count
+                        ),
+                        style = TextStyle(
+                            fontSize = 10.sp
+                        )
+                    )
+                }
             }
         }
     }
@@ -666,23 +701,28 @@ fun FolderItem(
 @Composable
 fun SubscriptionItem(
     @PreviewParameter(SubscriptionItemProvider::class) title: String,
+    position: Int? = null,
     onClick: (() -> Unit)? = null
 ) {
     SRSSTheme {
-        Card(
-            elevation = 2.dp,
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier
-                .padding(4.dp)
-                .fillMaxWidth()
-                .clickable {
-                    onClick?.invoke()
-                }
+        DragTarget(
+            dataToDrop = position
         ) {
-            Text(
-                text = title,
-                modifier = Modifier.padding(8.dp),
-            )
+            Card(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        onClick?.invoke()
+                    }
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.padding(8.dp),
+                )
+            }
         }
     }
 }

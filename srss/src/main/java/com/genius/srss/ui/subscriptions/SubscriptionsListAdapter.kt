@@ -81,6 +81,7 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
             composeView.setContent {
                 SubscriptionItem(
                     title = model.title ?: return@setContent,
+                    position = absoluteAdapterPosition,
                     {
                         val position = absoluteAdapterPosition
                         listListener?.onClick(composeView, getItem(position), position)

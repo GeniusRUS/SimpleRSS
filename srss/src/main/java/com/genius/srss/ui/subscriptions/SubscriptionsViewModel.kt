@@ -54,9 +54,13 @@ class SubscriptionsViewModel(
         viewModelScope.launch {
             combine(
                 subscriptionDao.loadAllFoldersWithAutoSortingIfNeeded(),
-                subscriptionDao.loadSubscriptions(),
+                if (_state.value.isFullList) {
+                    subscriptionDao.loadSubscriptions()
+                } else {
+                    subscriptionDao.loadSubscriptionsWithoutFolders()
+                },
                 _updateTriggerState
-            ) { folders, feeds, trigger ->
+            ) { folders, feeds, _ ->
                 folders.map {
                     SubscriptionFolderItemModel(
                         it.id,
@@ -72,7 +76,7 @@ class SubscriptionsViewModel(
             }.collect { models ->
                 _state.update { state ->
                     state.copy(
-                        isFullList = _updateTriggerState.value,
+                        isFullList = _state.value.isFullList,
                         feedList = models.ifEmpty {
                             listOf(
                                 SubscriptionFolderEmptyModel(
@@ -208,6 +212,7 @@ class SubscriptionsViewModel(
                         targetOfMove.id
                     )
                 )
+                _updateTriggerState.emit(_updateTriggerState.value.not())
             } catch (linkAlreadyExistedException: SQLiteConstraintException) {
                 _errorFlow.emit(R.string.error_link_to_folder_already_exist)
             } catch (e: Exception) {
