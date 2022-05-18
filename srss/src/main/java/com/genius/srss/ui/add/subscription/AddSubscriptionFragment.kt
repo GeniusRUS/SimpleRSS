@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -242,51 +243,47 @@ fun AddSubscriptionScreen(
                     )
                 },
             ) { paddings ->
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxHeight(),
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    OutlinedTextField(
+                        enabled = !state.value.isAvailableToSave,
+                        value = feedUrl ?: "",
+                        label = {
+                            Text(text = stringResource(id = R.string.add_new_subscription_address_hint))
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done,
+                            keyboardType = KeyboardType.Uri
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        onValueChange = {
+                            feedUrl = it
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                    )
+                    Button(
+                        enabled = !state.value.isLoading,
+                        onClick = {
+                            viewModel.checkOrSave(feedUrl ?: "")
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp),
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 16.dp)
+                            .fillMaxWidth()
                     ) {
-                        OutlinedTextField(
-                            enabled = !state.value.isAvailableToSave,
-                            value = feedUrl ?: "",
-                            label = {
-                                Text(text = stringResource(id = R.string.add_new_subscription_address_hint))
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Done,
-                                keyboardType = KeyboardType.Uri
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            onValueChange = {
-                                feedUrl = it
-                            },
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth()
+                        Text(
+                            text = if (state.value.isAvailableToSave) {
+                                stringResource(id = R.string.add_new_subscription_save)
+                            } else {
+                                stringResource(id = R.string.add_new_subscription_check)
+                            }
                         )
-                        Button(
-                            enabled = !state.value.isLoading,
-                            onClick = {
-                                viewModel.checkOrSave(feedUrl ?: "")
-                            },
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(vertical = 16.dp),
-                            modifier = Modifier
-                                .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = if (state.value.isAvailableToSave) {
-                                    stringResource(id = R.string.add_new_subscription_save)
-                                } else {
-                                    stringResource(id = R.string.add_new_subscription_check)
-                                }
-                            )
-                        }
                     }
                 }
             }

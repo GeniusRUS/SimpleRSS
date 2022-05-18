@@ -22,17 +22,22 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -60,6 +65,9 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.theme.SRSSTheme
+import com.genius.srss.util.MultiFabItem
+import com.genius.srss.util.MultiFabState
+import com.genius.srss.util.MultiFloatingActionButton
 import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -491,6 +499,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 fun SubscriptionScreen(
     navigateToFolder: (String) -> Unit,
     navigateToFeed: (String) -> Unit,
+    navigateToAddFolder: () -> Unit,
     navigateToAddSubscription: () -> Unit,
     viewModel: SubscriptionsViewModel = viewModel(
         factory = SubscriptionsViewModelFactory(
@@ -500,20 +509,41 @@ fun SubscriptionScreen(
     )
 ) {
     val state = viewModel.state.collectAsState()
+    var toState by remember { mutableStateOf(MultiFabState.COLLAPSED) }
     SRSSTheme {
         Surface {
             Scaffold(
                 floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = {
-                            navigateToAddSubscription.invoke()
+                    MultiFloatingActionButton(
+                        fabIcon = painterResource(id = R.drawable.ic_vector_add),
+                        contentDescription = stringResource(id = R.string.subscriptions_add_text_open),
+                        items = listOf(
+                            MultiFabItem(
+                                identifier = "folder",
+                                icon = painterResource(id = R.drawable.ic_vector_create_new_folder_black),
+                                label = stringResource(id = R.string.subscriptions_add_folder_text)
+                            ),
+                            MultiFabItem(
+                                identifier = "subscription",
+                                icon = painterResource(id = R.drawable.ic_vector_rss_feed_black),
+                                label = stringResource(id = R.string.subscriptions_add_subscription_text)
+                            )
+                        ),
+                        toState = toState,
+                        stateChanged = { multiState ->
+                            toState = multiState
+                        },
+                        onFabItemClicked = { fabItem ->
+                            when (fabItem.identifier) {
+                                "folder" -> {
+                                    navigateToAddFolder.invoke()
+                                }
+                                "subscription" -> {
+                                    navigateToAddSubscription.invoke()
+                                }
+                            }
                         }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.plus_vector),
-                            contentDescription = stringResource(id = R.string.subscriptions_add_text_open)
-                        )
-                    }
+                    )
                 }
             ) { paddings ->
                 LazyVerticalGrid(

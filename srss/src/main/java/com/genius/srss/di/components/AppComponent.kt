@@ -7,6 +7,7 @@ import com.genius.srss.SRSSApplication
 import com.genius.srss.di.modules.AppModule
 import com.genius.srss.di.services.converters.SRSSConverters
 import com.genius.srss.di.services.database.dao.SubscriptionsDao
+import com.genius.srss.di.services.generator.IGenerator
 import com.genius.srss.di.services.network.NetworkService
 import com.genius.srss.ui.add.folder.AddFolderFragment
 import com.genius.srss.ui.add.subscription.AddSubscriptionFragment
@@ -30,6 +31,8 @@ interface AppComponent {
     val dataStore: DataStore<Preferences>
 
     val converters: SRSSConverters
+
+    val generator: IGenerator
 
     fun inject(application: SRSSApplication)
 

@@ -83,6 +83,10 @@ class FolderViewModel(
     val isInFeedListMode: Boolean
         get() = _state.value.isCombinedMode
 
+    init {
+        updateFolderFeed()
+    }
+
     fun updateFolderFeed(isManual: Boolean = false) {
         viewModelScope.launch {
             try {

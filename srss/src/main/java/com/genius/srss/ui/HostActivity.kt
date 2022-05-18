@@ -49,6 +49,9 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                         navigateToFeed = { feedUrl ->
                             navController.navigate("feed/$feedUrl")
                         },
+                        navigateToAddFolder = {
+                            navController.navigate("addFolder")
+                        },
                         navigateToAddSubscription = {
                             navController.navigate("addSubscription")
                         }
@@ -69,7 +72,13 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                         }
                     )
                 }
-                composable("addFolder") { AddFolderScreen(navController) }
+                composable("addFolder") {
+                    AddFolderScreen(
+                        isCanNavigateUp = navController.previousBackStackEntry != null,
+                        navigateUp = { navController.navigateUp() },
+                        navigateOnAdd = { navController.navigateUp() }
+                    )
+                }
                 composable(
                     route = "feed/{url}",
                     arguments = listOf(navArgument("url") { type = NavType.StringType })
@@ -87,7 +96,9 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                 ) { backStackEntry ->
                     val folderId = backStackEntry.arguments?.getString("id")
                     FolderScreen(
-                        navController
+                        folderId = folderId ?: return@composable,
+                        navigateUp = { navController.navigateUp() },
+                        isCanNavigateUp = navController.previousBackStackEntry != null
                     )
                 }
             }

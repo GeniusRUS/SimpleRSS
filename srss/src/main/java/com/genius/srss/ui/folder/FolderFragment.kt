@@ -4,19 +4,42 @@ import android.app.Activity
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.view.*
+import android.text.SpannableStringBuilder
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -26,7 +49,13 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
-import com.genius.srss.ui.subscriptions.*
+import com.genius.srss.ui.feed.collectAsEffect
+import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
+import com.genius.srss.ui.subscriptions.FeedItemModel
+import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
+import com.genius.srss.ui.subscriptions.SubscriptionItemModel
+import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
+import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.LogUtils
@@ -305,6 +334,113 @@ class FolderFragment : Fragment(),
 }
 
 @Composable
-fun FolderScreen(navController: NavController) {
+fun FolderScreen(
+    folderId: String,
+    navigateUp: () -> Unit,
+    isCanNavigateUp: Boolean,
+    viewModel: FolderViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        factory = FolderModelFactory(
+            folderId = folderId,
+            subscriptionsDao = DIManager.appComponent.subscriptionDao,
+            converters = DIManager.appComponent.converters,
+            network = DIManager.appComponent.network
+        )
+    )
+) {
+    var newFolderName by remember { mutableStateOf<String?>(null) }
+    val state = viewModel.state.collectAsState()
+    viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
+        newFolderName = nameToEdit
+    }
+    viewModel.screenCloseFlow.collectAsEffect {
+        navigateUp.invoke()
+    }
+    SRSSTheme {
+        Surface {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        backgroundColor = MaterialTheme.colors.background,
+                        title = {
+                            if (state.value.isInEditMode) {
+                                BasicTextField(
+                                    value = newFolderName ?: "",
+                                    onValueChange = {
+                                        newFolderName = it
+                                        viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
+                                    },
+                                    singleLine = true
+                                )
+                            } else {
+                                Text(
+                                    text = state.value.title ?: ""
+                                )
+                            }
+                        },
+                        navigationIcon = if (isCanNavigateUp) {
+                            {
+                                IconButton(onClick = { navigateUp.invoke() }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBack,
+                                        contentDescription = "Back"
+                                    )
+                                }
+                            }
+                        } else {
+                            null
+                        },
+                        actions = {
+                            if (!state.value.isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.changeMode()
+                                }) {
+                                    Icon(
+                                        painter = if (state.value.isCombinedMode) {
+                                            painterResource(id = R.drawable.ic_vector_folder)
+                                        } else {
+                                            painterResource(id = R.drawable.ic_vector_list)
+                                        },
+                                        contentDescription = stringResource(id = R.string.folder_menu_mode)
+                                    )
+                                }
+                            }
+                            if (!state.value.isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.changeEditMode(isEdit = true)
+                                }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_vector_mode),
+                                        contentDescription = stringResource(id = R.string.folder_menu_edit_title)
+                                    )
+                                }
+                            }
+                            if (state.value.isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.deleteFolder()
+                                }) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_delete_outline),
+                                        contentDescription = stringResource(id = R.string.option_menu_delete)
+                                    )
+                                }
+                            }
+                            if (state.value.isInEditMode) {
+                                IconButton(onClick = {
+                                    viewModel.updateFolder(newFolderName = newFolderName)
+                                }, enabled = state.value.isAvailableToSave) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_vector_done),
+                                        contentDescription = stringResource(id = R.string.option_menu_save)
+                                    )
+                                }
+                            }
+                        },
+                        elevation = 0.dp,
+                    )
+                }
+            ) { paddings ->
 
+            }
+        }
+    }
 }

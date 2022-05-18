@@ -14,4 +14,5 @@
 
     <color name="subscription_background">?attr/cardBackgroundColor</color>
     <color name="secondary">#FF000000</color>
+    <color name="transparent_black">#1F000000</color>
 </resources>
