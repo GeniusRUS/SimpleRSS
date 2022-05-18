@@ -9,36 +9,43 @@ import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
+import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.Text
+import androidx.compose.material.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -68,6 +75,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
+import com.genius.srss.ui.theme.ActiveElement
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.MultiFabItem
 import com.genius.srss.util.MultiFabState
@@ -497,6 +505,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 fun SubscriptionScreen(
     navigateToFolder: (String) -> Unit,
@@ -556,19 +565,47 @@ fun SubscriptionScreen(
                         .asPaddingValues(),
                     modifier = Modifier.fillMaxHeight()
                 ) {
-                    state.value.feedList.forEach { model ->
+                    state.value.feedList.forEachIndexed { index, model ->
                         when (model) {
                             is SubscriptionItemModel -> item(
                                 span = {
                                     GridItemSpan(maxLineSpan)
                                 }
                             ) {
-                                SubscriptionItem(
-                                    title = model.title ?: "",
-                                    onClick = {
-                                        navigateToFeed.invoke(model.urlToLoad?.urlEncode() ?: return@SubscriptionItem)
+                                val dismissState = rememberDismissState()
+                                if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                                    viewModel.removeSubscriptionByPosition(index)
+                                }
+                                SwipeToDismiss(
+                                    directions = setOf(DismissDirection.EndToStart),
+                                    state = dismissState,
+                                    dismissThresholds = { FractionalThreshold(0.25f) },
+                                    background = {
+                                        val scale by animateFloatAsState(
+                                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                                        )
+                                        Box(
+                                            Modifier
+                                                .fillMaxSize()
+                                                .padding(horizontal = 20.dp),
+                                            contentAlignment = Alignment.CenterEnd
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.ic_vector_delete_outline),
+                                                contentDescription = stringResource(id = R.string.option_menu_delete),
+                                                tint = ActiveElement,
+                                                modifier = Modifier.scale(scale)
+                                            )
+                                        }
                                     }
-                                )
+                                ) {
+                                    SubscriptionItem(
+                                        title = model.title ?: "",
+                                        onClick = {
+                                            navigateToFeed.invoke(model.urlToLoad?.urlEncode() ?: return@SubscriptionItem)
+                                        }
+                                    )
+                                }
                             }
                             is SubscriptionFolderItemModel -> item {
                                 FolderItem(model.id, model.name, model.countOtOfSources) { folderId ->

@@ -60,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -335,7 +336,8 @@ fun FeedScreen(
                                         newFeedName = it
                                         viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
                                     },
-                                    singleLine = true
+                                    singleLine = true,
+                                    textStyle = TextStyle(color = MaterialTheme.typography.body1.color)
                                 )
                             } else {
                                 Text(

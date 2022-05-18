@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -124,7 +125,7 @@ class FolderFragment : Fragment(),
 
         activity?.onBackPressedDispatcher?.addCallback(
             viewLifecycleOwner,
-            object: OnBackPressedCallback(true){
+            object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     val isInEditMode = viewModel.isInEditMode
                     if (isInEditMode) {
@@ -195,7 +196,11 @@ class FolderFragment : Fragment(),
                 viewModel.loadedFeedCountFlow.collect { count ->
                     Snackbar.make(
                         binding.rootView,
-                        resources.getQuantityString(R.plurals.folder_feed_list_not_fully_loaded, count, count),
+                        resources.getQuantityString(
+                            R.plurals.folder_feed_list_not_fully_loaded,
+                            count,
+                            count
+                        ),
                         Snackbar.LENGTH_LONG
                     ).show()
                 }
@@ -212,11 +217,20 @@ class FolderFragment : Fragment(),
                     menu?.findItem(R.id.option_delete)?.isVisible = state.isInEditMode
                     menu?.findItem(R.id.option_save)?.isVisible = state.isInEditMode
                     menu?.findItem(R.id.option_edit)?.isVisible = !state.isInEditMode
-                    menu?.findItem(R.id.option_mode)?.isVisible = !state.isInEditMode && state.feedList.any { feed -> feed !is SubscriptionFolderEmptyModel }
+                    menu?.findItem(R.id.option_mode)?.isVisible =
+                        !state.isInEditMode && state.feedList.any { feed -> feed !is SubscriptionFolderEmptyModel }
                     menu?.findItem(R.id.option_mode)?.icon = if (state.isCombinedMode) {
-                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_folder, context?.theme)
+                        VectorDrawableCompat.create(
+                            resources,
+                            R.drawable.ic_vector_folder,
+                            context?.theme
+                        )
                     } else {
-                        VectorDrawableCompat.create(resources, R.drawable.ic_vector_list, context?.theme)
+                        VectorDrawableCompat.create(
+                            resources,
+                            R.drawable.ic_vector_list,
+                            context?.theme
+                        )
                     }
                     binding.refresher.isEnabled = state.isCombinedMode
                     if (state.isCombinedMode && binding.folderContent.canScrollVertically(-1)) {
@@ -234,8 +248,12 @@ class FolderFragment : Fragment(),
                         openSoftKeyboard(binding.updateNameField.context, binding.updateNameField)
                     } else {
                         try {
-                            val inputMethodManager = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                            inputMethodManager.hideSoftInputFromWindow(binding.updateNameField.windowToken, 0)
+                            val inputMethodManager =
+                                context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                            inputMethodManager.hideSoftInputFromWindow(
+                                binding.updateNameField.windowToken,
+                                0
+                            )
                             binding.updateNameField.clearFocus()
                         } catch (e: NullPointerException) {
                             LogUtils.e("KeyBoard", "NULL point exception in input method service")
@@ -369,9 +387,14 @@ fun FolderScreen(
                                     value = newFolderName ?: "",
                                     onValueChange = {
                                         newFolderName = it
-                                        viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
+                                        viewModel.checkSaveAvailability(
+                                            SpannableStringBuilder.valueOf(
+                                                it
+                                            )
+                                        )
                                     },
-                                    singleLine = true
+                                    singleLine = true,
+                                    textStyle = TextStyle(color = MaterialTheme.typography.body1.color)
                                 )
                             } else {
                                 Text(
@@ -381,10 +404,18 @@ fun FolderScreen(
                         },
                         navigationIcon = if (isCanNavigateUp) {
                             {
-                                IconButton(onClick = { navigateUp.invoke() }) {
+                                IconButton(
+                                    onClick = {
+                                        if (state.value.isInEditMode) {
+                                            viewModel.changeEditMode(isEdit = false)
+                                        } else {
+                                            navigateUp.invoke()
+                                        }
+                                    }
+                                ) {
                                     Icon(
                                         imageVector = Icons.Filled.ArrowBack,
-                                        contentDescription = "Back"
+                                        contentDescription = stringResource(id = android.R.string.cancel)
                                     )
                                 }
                             }

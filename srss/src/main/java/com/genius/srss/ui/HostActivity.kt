@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.webkit.URLUtil
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -24,6 +25,7 @@ import com.genius.srss.ui.subscriptions.SubscriptionScreen
 import com.genius.srss.ui.subscriptions.urlDecode
 import com.google.android.material.snackbar.Snackbar
 
+@ExperimentalMaterialApi
 class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
 
     private val binding: ActivityHostBinding by viewBinding(ActivityHostBinding::bind)
