@@ -75,7 +75,9 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     isLoading = true
                 )
                 val feed = networkSource.loadFeed(sourceUrl)
-                val subscriptions = subscriptionsDao.loadSubscriptions()
+                val subscription = feed?.link?.let { link ->
+                    subscriptionsDao.loadSubscriptionById(link)
+                }
                 state = state.copy(
                     sourceUrl = sourceUrl,
                     title = feed?.title,
@@ -83,7 +85,7 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                 )
                 _loadingSourceInfoFlow.value = _loadingSourceInfoFlow.value.copy(
                     isLoading = false,
-                    isAvailableToSave = subscriptions.firstOrNull { it.urlToLoad == feed?.link } == null
+                    isAvailableToSave = subscription == null
                 )
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)

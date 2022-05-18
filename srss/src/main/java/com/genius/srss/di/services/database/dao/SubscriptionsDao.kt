@@ -5,6 +5,7 @@ import com.genius.srss.di.services.database.models.*
 import com.genius.srss.util.swapSortingToDescends
 import com.genius.srss.util.swapSortingToAscends
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Dao
 interface SubscriptionsDao {
@@ -22,7 +23,7 @@ interface SubscriptionsDao {
     suspend fun saveSubscriptionFolderCrossRef(crossRef: SubscriptionFolderCrossRefDatabaseModel)
 
     @Query("SELECT * FROM subscriptions")
-    suspend fun loadSubscriptions(): List<SubscriptionDatabaseModel>
+    fun loadSubscriptions(): Flow<List<SubscriptionDatabaseModel>>
 
     @Query("SELECT * FROM subscriptions WHERE urlToLoad == :urlToLoad")
     suspend fun loadSubscriptionById(urlToLoad: String): SubscriptionDatabaseModel?
@@ -32,10 +33,10 @@ interface SubscriptionsDao {
 
     @RewriteQueriesToDropUnusedColumns
     @Query("SELECT * FROM subscriptions LEFT OUTER JOIN subscription_folder ON subscriptions.urlToLoad = subscription_folder.urlOfSource WHERE subscription_folder.urlOfSource IS NULL")
-    suspend fun loadSubscriptionsWithoutFolders(): List<SubscriptionDatabaseModel>
+    fun loadSubscriptionsWithoutFolders(): Flow<List<SubscriptionDatabaseModel>>
 
     @Query("SELECT * FROM folders ORDER BY sortIndex")
-    suspend fun loadAllFolders(): List<SubscriptionFolderDatabaseModel>
+    fun loadAllFolders(): Flow<List<SubscriptionFolderDatabaseModel>>
 
     @Query("SELECT sortIndex FROM folders ORDER BY sortIndex DESC LIMIT 1")
     suspend fun getLastFolderSortIndex(): Long?
@@ -48,44 +49,48 @@ interface SubscriptionsDao {
      *
      * This is necessary for correct display of folders after database migration from version 2 to version 3
      */
-    suspend fun loadAllFoldersWithAutoSortingIfNeeded(): List<SubscriptionFolderDatabaseModel> {
-        val folders = loadAllFolders()
-        return if (folders.firstOrNull { it.sortIndex == -1L } != null) {
-            val foldersSortedByDate = folders.sortedBy { it.dateOfCreation }
-            val lastSortedId = foldersSortedByDate.maxOf { it.sortIndex }
-            val foldersToUpdate = foldersSortedByDate
-                .filter {
-                    it.sortIndex == -1L
-                }
-                .mapIndexed { index, folder ->
-                    folder.copy(
-                        sortIndex = lastSortedId + index + 1
-                    )
-                }
-            saveFolders(foldersToUpdate)
-            val sortedFolders = loadAllFolders()
-            sortedFolders
-        } else {
-            folders
+    suspend fun loadAllFoldersWithAutoSortingIfNeeded(): Flow<List<SubscriptionFolderDatabaseModel>> {
+        return loadAllFolders().map { folders ->
+            if (folders.firstOrNull { it.sortIndex == -1L } != null) {
+                val foldersSortedByDate = folders.sortedBy { it.dateOfCreation }
+                val lastSortedId = foldersSortedByDate.maxOf { it.sortIndex }
+                val foldersToUpdate = foldersSortedByDate
+                    .filter {
+                        it.sortIndex == -1L
+                    }
+                    .mapIndexed { index, folder ->
+                        folder.copy(
+                            sortIndex = lastSortedId + index + 1
+                        )
+                    }
+                saveFolders(foldersToUpdate)
+                foldersToUpdate
+            } else {
+                folders
+            }
         }
     }
 
     suspend fun changeFolderSort(fromPosition: Int, toPosition: Int) {
-        val updatedFolders = when {
+        when {
             // dragging item from bottom to upper position
             fromPosition > toPosition -> {
-                val folders = loadAllFolders()
-                folders.swapSortingToAscends(fromPosition, toPosition)
+                loadAllFolders().map { folders ->
+                    folders.swapSortingToAscends(fromPosition, toPosition)
+                }.collect { updatedFolders ->
+                    saveFolders(updatedFolders)
+                }
             }
             // dragging item from top to lower position
             fromPosition < toPosition -> {
-                val folders = loadAllFolders()
-                folders.swapSortingToDescends(fromPosition, toPosition)
+                loadAllFolders().map { folders ->
+                    folders.swapSortingToDescends(fromPosition, toPosition)
+                }.collect { updatedFolders ->
+                    saveFolders(updatedFolders)
+                }
             }
             else -> return
         }
-
-        saveFolders(updatedFolders)
     }
 
     @Transaction

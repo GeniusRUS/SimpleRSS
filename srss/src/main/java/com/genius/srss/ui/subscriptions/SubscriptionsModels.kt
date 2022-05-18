@@ -9,7 +9,8 @@ import java.util.*
 
 data class SubscriptionsStateModel(
     val feedList: List<BaseSubscriptionModel> = listOf(),
-    val isFullList: Boolean = false
+    val isFullList: Boolean = false,
+    val isTutorialShow: Boolean = false
 )
 
 sealed class BaseSubscriptionModel : DiffComparable {

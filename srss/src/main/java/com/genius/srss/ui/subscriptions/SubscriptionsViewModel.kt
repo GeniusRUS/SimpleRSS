@@ -36,18 +36,78 @@ class SubscriptionsViewModelFactory @Inject constructor(
 class SubscriptionsViewModel(
     private val subscriptionDao: SubscriptionsDao,
     private val dataStore: DataStore<Preferences>
-): ViewModel() {
+) : ViewModel() {
 
     private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
-    private val _state: MutableStateFlow<SubscriptionsStateModel> = MutableStateFlow(SubscriptionsStateModel())
+    private val _state: MutableStateFlow<SubscriptionsStateModel> =
+        MutableStateFlow(SubscriptionsStateModel())
     private val _tutorialState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val _sortingState: MutableStateFlow<Pair<Int, Int>> = MutableStateFlow(Pair(-1, -1))
+
+    private val _updateTriggerState: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     val errorFlow: SharedFlow<Int> = _errorFlow
     val state: StateFlow<SubscriptionsStateModel> = _state
     val tutorialState: StateFlow<Boolean> = _tutorialState
 
     init {
+        viewModelScope.launch {
+            combine(
+                subscriptionDao.loadAllFoldersWithAutoSortingIfNeeded(),
+                subscriptionDao.loadSubscriptions(),
+                _updateTriggerState
+            ) { folders, feeds, trigger ->
+                folders.map {
+                    SubscriptionFolderItemModel(
+                        it.id,
+                        it.name,
+                        subscriptionDao.getCrossRefCountByFolderId(it.id)
+                    )
+                } + feeds.map {
+                    SubscriptionItemModel(
+                        it.title,
+                        it.urlToLoad
+                    )
+                }
+            }.collect { models ->
+                _state.update { state ->
+                    state.copy(
+                        isFullList = _updateTriggerState.value,
+                        feedList = models.ifEmpty {
+                            listOf(
+                                SubscriptionFolderEmptyModel(
+                                    icon = R.drawable.ic_vector_empty_folder,
+                                    message = R.string.subscription_empty,
+                                    action = R.string.subscription_empty_first
+                                )
+                            )
+                        }
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            _sortingState.collect { pair ->
+                val fromPosition = pair.first
+                val toPosition = pair.second
+                subscriptionDao.changeFolderSort(fromPosition, toPosition)
+            }
+        }
+        viewModelScope.launch {
+            dataStore.data.map { preferences ->
+                preferences[booleanPreferencesKey(IS_TUTORIAL_SHOW)] ?: true
+            }.collect { isTutorialShow ->
+                _tutorialState.emit(isTutorialShow)
+                _state.update { state ->
+                    state.copy(
+                        isTutorialShow = isTutorialShow
+                    )
+                }
+            }
+        }
+    }
+
+    fun init() {
         try {
             viewModelScope.launch {
                 _sortingState.collect { pair ->
@@ -55,13 +115,6 @@ class SubscriptionsViewModel(
                     val toPosition = pair.second
                     subscriptionDao.changeFolderSort(fromPosition, toPosition)
                     updateFeed()
-                }
-            }
-            viewModelScope.launch {
-                dataStore.data.map { preferences ->
-                    preferences[booleanPreferencesKey(IS_TUTORIAL_SHOW)] ?: true
-                }.collect { isTutorialShow ->
-                    _tutorialState.emit(isTutorialShow)
                 }
             }
         } catch (e: Exception) {
@@ -81,18 +134,21 @@ class SubscriptionsViewModel(
                 _state.update { state ->
                     state.copy(
                         isFullList = isFull,
-                        feedList = (folders.map {
-                            SubscriptionFolderItemModel(
-                                it.id,
-                                it.name,
-                                subscriptionDao.getCrossRefCountByFolderId(it.id)
-                            )
-                        } + subscriptions.map {
-                            SubscriptionItemModel(
-                                it.title,
-                                it.urlToLoad
-                            )
-                        }).ifEmpty {
+                        /*feedList = merge(
+                            folders.map {
+                                SubscriptionFolderItemModel(
+                                    it.id,
+                                    it.name,
+                                    subscriptionDao.getCrossRefCountByFolderId(it.id)
+                                )
+                            },
+                            subscriptions.map {
+                                SubscriptionItemModel(
+                                    it.title,
+                                    it.urlToLoad
+                                )
+                            }
+                        ).toList().ifEmpty {
                             listOf(
                                 SubscriptionFolderEmptyModel(
                                     icon = R.drawable.ic_vector_empty_folder,
@@ -100,7 +156,7 @@ class SubscriptionsViewModel(
                                     action = R.string.subscription_empty_first
                                 )
                             )
-                        }
+                        }*/
                     )
                 }
             } catch (e: Exception) {
@@ -119,8 +175,6 @@ class SubscriptionsViewModel(
                 }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
-            } finally {
-                updateFeed()
             }
         }
     }
@@ -143,16 +197,18 @@ class SubscriptionsViewModel(
         viewModelScope.launch {
             try {
                 if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch
-                val holderToMove = _state.value.feedList[holderPosition] as? SubscriptionItemModel ?: return@launch
-                val targetOfMove = _state.value.feedList[targetPosition] as? SubscriptionFolderItemModel ?: return@launch
+                val holderToMove =
+                    _state.value.feedList[holderPosition] as? SubscriptionItemModel ?: return@launch
+                val targetOfMove =
+                    _state.value.feedList[targetPosition] as? SubscriptionFolderItemModel
+                        ?: return@launch
                 subscriptionDao.saveSubscriptionFolderCrossRef(
                     SubscriptionFolderCrossRefDatabaseModel(
                         holderToMove.urlToLoad ?: return@launch,
                         targetOfMove.id
                     )
                 )
-                updateFeed()
-            } catch (linkAlreadyExistedException: SQLiteConstraintException)  {
+            } catch (linkAlreadyExistedException: SQLiteConstraintException) {
                 _errorFlow.emit(R.string.error_link_to_folder_already_exist)
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
