@@ -17,24 +17,44 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
+import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.rememberDismissState
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -52,12 +72,17 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.di.services.converters.IConverters
+import com.genius.srss.ui.feed.FeedEmptyItem
+import com.genius.srss.ui.feed.FeedItem
 import com.genius.srss.ui.feed.collectAsEffect
 import com.genius.srss.ui.subscriptions.BaseSubscriptionModel
 import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
+import com.genius.srss.ui.subscriptions.SubscriptionItem
 import com.genius.srss.ui.subscriptions.SubscriptionItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
+import com.genius.srss.ui.subscriptions.urlEncode
+import com.genius.srss.ui.theme.ActiveElement
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.snackbar.Snackbar
@@ -353,11 +378,15 @@ class FolderFragment : Fragment(),
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 fun FolderScreen(
     folderId: String,
     navigateUp: () -> Unit,
     isCanNavigateUp: Boolean,
+    navigateToFeed: (String) -> Unit,
+    navigateToPost: (String?) -> Unit,
+    navigateToAdd: (String) -> Unit,
     viewModel: FolderViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
         factory = FolderModelFactory(
             folderId = folderId,
@@ -367,22 +396,32 @@ fun FolderScreen(
         )
     )
 ) {
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
     var newFolderName by remember { mutableStateOf<String?>(null) }
-    val state = viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
         newFolderName = nameToEdit
     }
     viewModel.screenCloseFlow.collectAsEffect {
         navigateUp.invoke()
     }
+    viewModel.loadedFeedCountFlow.collectAsEffect { count ->
+        coroutineScope.launch {
+            scaffoldState.snackbarHostState.showSnackbar(
+                message = count.toString()
+            )
+        }
+    }
     SRSSTheme {
         Surface {
             Scaffold(
+                scaffoldState = scaffoldState,
                 topBar = {
                     TopAppBar(
                         backgroundColor = MaterialTheme.colors.background,
                         title = {
-                            if (state.value.isInEditMode) {
+                            if (state.isInEditMode) {
                                 BasicTextField(
                                     value = newFolderName ?: "",
                                     onValueChange = {
@@ -398,7 +437,7 @@ fun FolderScreen(
                                 )
                             } else {
                                 Text(
-                                    text = state.value.title ?: ""
+                                    text = state.title ?: ""
                                 )
                             }
                         },
@@ -406,7 +445,7 @@ fun FolderScreen(
                             {
                                 IconButton(
                                     onClick = {
-                                        if (state.value.isInEditMode) {
+                                        if (state.isInEditMode) {
                                             viewModel.changeEditMode(isEdit = false)
                                         } else {
                                             navigateUp.invoke()
@@ -423,12 +462,12 @@ fun FolderScreen(
                             null
                         },
                         actions = {
-                            if (!state.value.isInEditMode) {
+                            if (!state.isInEditMode) {
                                 IconButton(onClick = {
                                     viewModel.changeMode()
                                 }) {
                                     Icon(
-                                        painter = if (state.value.isCombinedMode) {
+                                        painter = if (state.isCombinedMode) {
                                             painterResource(id = R.drawable.ic_vector_folder)
                                         } else {
                                             painterResource(id = R.drawable.ic_vector_list)
@@ -437,7 +476,7 @@ fun FolderScreen(
                                     )
                                 }
                             }
-                            if (!state.value.isInEditMode) {
+                            if (!state.isInEditMode) {
                                 IconButton(onClick = {
                                     viewModel.changeEditMode(isEdit = true)
                                 }) {
@@ -447,7 +486,7 @@ fun FolderScreen(
                                     )
                                 }
                             }
-                            if (state.value.isInEditMode) {
+                            if (state.isInEditMode) {
                                 IconButton(onClick = {
                                     viewModel.deleteFolder()
                                 }) {
@@ -457,10 +496,10 @@ fun FolderScreen(
                                     )
                                 }
                             }
-                            if (state.value.isInEditMode) {
+                            if (state.isInEditMode) {
                                 IconButton(onClick = {
                                     viewModel.updateFolder(newFolderName = newFolderName)
-                                }, enabled = state.value.isAvailableToSave) {
+                                }, enabled = state.isAvailableToSave) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_vector_done),
                                         contentDescription = stringResource(id = R.string.option_menu_save)
@@ -473,7 +512,78 @@ fun FolderScreen(
                     )
                 }
             ) { paddings ->
-
+                LazyColumn(
+                    contentPadding = WindowInsets.navigationBars
+                        .only(WindowInsetsSides.Bottom)
+                        .asPaddingValues(),
+                    content = {
+                        state.feedList.forEachIndexed { index, model ->
+                            when (model) {
+                                is SubscriptionItemModel -> item {
+                                    val dismissState = rememberDismissState()
+                                    if (dismissState.isDismissed(DismissDirection.StartToEnd)) {
+                                        viewModel.unlinkFolderByPosition(index)
+                                    }
+                                    SwipeToDismiss(
+                                        directions = setOf(DismissDirection.StartToEnd),
+                                        state = dismissState,
+                                        dismissThresholds = { FractionalThreshold(0.25f) },
+                                        background = {
+                                            val scale by animateFloatAsState(
+                                                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                                            )
+                                            Box(
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 20.dp),
+                                                contentAlignment = Alignment.CenterStart
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.ic_vector_link_off),
+                                                    contentDescription = stringResource(id = R.string.option_menu_delete),
+                                                    tint = ActiveElement,
+                                                    modifier = Modifier.scale(scale)
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        SubscriptionItem(
+                                            title = model.title ?: "",
+                                            position = index,
+                                            onClick = {
+                                                navigateToFeed.invoke(
+                                                    model.urlToLoad?.urlEncode()
+                                                        ?: return@SubscriptionItem
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                                is FeedItemModel -> item {
+                                    FeedItem(
+                                        title = model.title ?: "",
+                                        date = model.timestamp?.stringRepresentation,
+                                        pictureUrl = model.pictureUrl,
+                                        onClick = {
+                                            navigateToPost.invoke(model.url)
+                                        }
+                                    )
+                                }
+                                is SubscriptionFolderEmptyModel -> item {
+                                    FeedEmptyItem(
+                                        icon = model.icon,
+                                        message = stringResource(id = model.message),
+                                        action = stringResource(id = model.action ?: return@item),
+                                        onClick = {
+                                            navigateToAdd.invoke(folderId)
+                                        }
+                                    )
+                                }
+                                else -> throw IllegalArgumentException("Unsupported feed model")
+                            }
+                        }
+                    }
+                )
             }
         }
     }

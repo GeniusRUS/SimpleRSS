@@ -334,7 +334,11 @@ fun FeedScreen(
                                     value = newFeedName ?: "",
                                     onValueChange = {
                                         newFeedName = it
-                                        viewModel.checkSaveAvailability(SpannableStringBuilder.valueOf(it))
+                                        viewModel.checkSaveAvailability(
+                                            SpannableStringBuilder.valueOf(
+                                                it
+                                            )
+                                        )
                                     },
                                     singleLine = true,
                                     textStyle = TextStyle(color = MaterialTheme.typography.body1.color)
@@ -428,6 +432,14 @@ fun FeedScreen(
                                             viewModel.updateFeed()
                                         }
                                     )
+                                    is SubscriptionFolderEmptyModel -> FeedEmptyItem(
+                                        icon = item.icon,
+                                        message = stringResource(id = item.message),
+                                        action = stringResource(id = item.action ?: return@items),
+                                        onClick = {
+                                            viewModel.updateFeed()
+                                        }
+                                    )
                                     else -> throw IllegalArgumentException("Unsupported feed model")
                                 }
                             }
@@ -514,36 +526,39 @@ fun FeedEmptyItem(
     onClick: (() -> Unit)? = null
 ) {
     SRSSTheme {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxHeight()
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Image(
-                painter = painterResource(icon),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(24.dp)
-            )
-            Text(
-                text = message,
-                fontSize = 18.sp,
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.Medium
-            )
-            if (action != null) {
-                TextButton(
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                Image(
+                    painter = painterResource(icon),
+                    contentDescription = null,
                     modifier = Modifier
-                        .padding(24.dp),
-                    onClick = {
-                        onClick?.invoke()
+                        .padding(24.dp)
+                )
+                Text(
+                    text = message,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium
+                )
+                if (action != null) {
+                    TextButton(
+                        modifier = Modifier
+                            .padding(24.dp),
+                        onClick = {
+                            onClick?.invoke()
+                        }
+                    ) {
+                        Text(
+                            text = action,
+                            color = Primary
+                        )
                     }
-                ) {
-                    Text(
-                        text = action,
-                        color = Primary
-                    )
                 }
             }
         }

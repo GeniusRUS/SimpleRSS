@@ -20,6 +20,7 @@ import com.genius.srss.databinding.ActivityHostBinding
 import com.genius.srss.ui.add.folder.AddFolderScreen
 import com.genius.srss.ui.add.subscription.AddSubscriptionScreen
 import com.genius.srss.ui.feed.FeedScreen
+import com.genius.srss.ui.feed.openFeed
 import com.genius.srss.ui.folder.FolderScreen
 import com.genius.srss.ui.subscriptions.SubscriptionScreen
 import com.genius.srss.ui.subscriptions.urlDecode
@@ -60,12 +61,21 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                         }
                     )
                 }
-                composable("addSubscription") {
+                composable(
+                    route = "addSubscription?folderId={folderId}",
+                    arguments = listOf(navArgument("folderId") {
+                        type = NavType.StringType
+                        defaultValue = null
+                        nullable = true
+                    })
+                ) { backStackEntry ->
+                    val folderId = backStackEntry.arguments?.getString("folderId")
                     AddSubscriptionScreen(
+                        folderId = folderId,
                         isCanNavigateUp = navController.previousBackStackEntry != null,
                         navigateOnAdd = { addedFeedUrl ->
                             navController.navigate("feed/${addedFeedUrl}") {
-                                popUpTo("addSubscription") {
+                                popUpTo("addSubscription?folderId={folderId}") {
                                     inclusive = true
                                 }
                             }
@@ -101,7 +111,16 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                     FolderScreen(
                         folderId = folderId ?: return@composable,
                         navigateUp = { navController.navigateUp() },
-                        isCanNavigateUp = navController.previousBackStackEntry != null
+                        isCanNavigateUp = navController.previousBackStackEntry != null,
+                        navigateToFeed = { feedUrl ->
+                            navController.navigate("feed/${feedUrl}")
+                        },
+                        navigateToPost = { postUrl ->
+                            openFeed(context = this@HostActivity, postUrl)
+                        },
+                        navigateToAdd = { folderIdToAdd ->
+                            navController.navigate("addSubscription?folderId=$folderIdToAdd")
+                        }
                     )
                 }
             }

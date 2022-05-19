@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -191,12 +190,13 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
 
 @Composable
 fun AddSubscriptionScreen(
+    folderId: String?,
     isCanNavigateUp: Boolean,
     navigateOnAdd: (String) -> Unit,
     navigateUp: () -> Unit,
     viewModel: AddSubscriptionViewModel = viewModel(
         factory = AddSubscriptionViewModelFactory(
-            null,
+            folderId,
             DIManager.appComponent.network,
             DIManager.appComponent.subscriptionDao
         )
@@ -204,7 +204,7 @@ fun AddSubscriptionScreen(
 ) {
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
-    val state = viewModel.loadingSourceInfoFlow.collectAsState()
+    val state by viewModel.loadingSourceInfoFlow.collectAsState()
     var feedUrl by remember { mutableStateOf<String?>(null) }
     viewModel.sourceAddedFlow.collectAsEffect { addedFeedUrl ->
         navigateOnAdd.invoke(addedFeedUrl.urlEncode())
@@ -254,7 +254,7 @@ fun AddSubscriptionScreen(
                         .imePadding(),
                 ) {
                     OutlinedTextField(
-                        enabled = !state.value.isAvailableToSave,
+                        enabled = !state.isAvailableToSave,
                         value = feedUrl ?: "",
                         label = {
                             Text(text = stringResource(id = R.string.add_new_subscription_address_hint))
@@ -272,7 +272,7 @@ fun AddSubscriptionScreen(
                             .fillMaxWidth()
                     )
                     Button(
-                        enabled = !state.value.isLoading,
+                        enabled = !state.isLoading,
                         onClick = {
                             viewModel.checkOrSave(feedUrl ?: "")
                         },
@@ -283,7 +283,7 @@ fun AddSubscriptionScreen(
                             .fillMaxWidth()
                     ) {
                         Text(
-                            text = if (state.value.isAvailableToSave) {
+                            text = if (state.isAvailableToSave) {
                                 stringResource(id = R.string.add_new_subscription_save)
                             } else {
                                 stringResource(id = R.string.add_new_subscription_check)
@@ -300,6 +300,6 @@ fun AddSubscriptionScreen(
 @Composable
 fun AddSubscriptionPreview() {
     SRSSTheme {
-        AddSubscriptionScreen(isCanNavigateUp = true, navigateOnAdd = {}, navigateUp = { /*TODO*/ })
+        AddSubscriptionScreen(isCanNavigateUp = true, navigateOnAdd = {}, navigateUp = { /*TODO*/ }, folderId = null)
     }
 }
