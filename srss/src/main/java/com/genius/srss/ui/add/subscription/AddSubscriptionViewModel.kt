@@ -1,5 +1,7 @@
 package com.genius.srss.ui.add.subscription
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -28,6 +30,7 @@ interface AddSubscriptionViewModelProvider {
 
 class AddSubscriptionViewModelFactory @AssistedInject constructor(
     @Assisted private val folderId: String?,
+    private val context: Context,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao
 ) : ViewModelProvider.Factory {
@@ -36,6 +39,7 @@ class AddSubscriptionViewModelFactory @AssistedInject constructor(
             @Suppress("UNCHECKED_CAST")
             return AddSubscriptionViewModel(
                 folderId,
+                context,
                 networkSource,
                 subscriptionsDao
             ) as T
@@ -44,17 +48,19 @@ class AddSubscriptionViewModelFactory @AssistedInject constructor(
     }
 }
 
+@SuppressLint("StaticFieldLeak")
 class AddSubscriptionViewModel @AssistedInject constructor(
     @Assisted private val folderId: String?,
+    private val context: Context,
     private val networkSource: INetworkSource,
     private val subscriptionsDao: SubscriptionsDao
 ) : ViewModel() {
 
-    private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
+    private val _errorFlow: MutableSharedFlow<String> = MutableSharedFlow()
     private val _loadingSourceInfoFlow: MutableStateFlow<LoadingSourceInfoState> = MutableStateFlow(LoadingSourceInfoState())
     private val _sourceAddedFlow: MutableSharedFlow<String> = MutableSharedFlow()
 
-    val errorFlow: SharedFlow<Int> = _errorFlow
+    val errorFlow: SharedFlow<String> = _errorFlow
     val loadingSourceInfoFlow: StateFlow<LoadingSourceInfoState> = _loadingSourceInfoFlow
     val sourceAddedFlow: SharedFlow<String> = _sourceAddedFlow
 
@@ -93,9 +99,9 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     isLoading = false
                 )
                 when (e) {
-                    is XmlPullParserException -> _errorFlow.emit(R.string.error_data_or_malformed_exception)
-                    is DataFormatException -> _errorFlow.emit(R.string.error_data_format_exception)
-                    is IllegalArgumentException -> _errorFlow.emit(R.string.error_illegal_argument_url)
+                    is XmlPullParserException -> _errorFlow.emit(context.getString(R.string.error_data_or_malformed_exception))
+                    is DataFormatException -> _errorFlow.emit(context.getString(R.string.error_data_format_exception))
+                    is IllegalArgumentException -> _errorFlow.emit(context.getString(R.string.error_illegal_argument_url))
                 }
             }
         }
@@ -121,7 +127,7 @@ class AddSubscriptionViewModel @AssistedInject constructor(
                     _sourceAddedFlow.emit(state.sourceUrl!!)
                 }
             } catch (linkAlreadyExistedException: SQLiteConstraintException)  {
-                _errorFlow.emit(R.string.error_link_to_folder_already_exist)
+                _errorFlow.emit(context.getString(R.string.error_link_to_folder_already_exist))
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

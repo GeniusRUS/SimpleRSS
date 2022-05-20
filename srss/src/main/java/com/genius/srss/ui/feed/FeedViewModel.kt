@@ -98,8 +98,8 @@ class FeedViewModel(
                         feedContent = listOf(
                             SubscriptionFolderEmptyModel(
                                 icon = R.drawable.ic_vector_warning,
-                                message = R.string.subscription_feed_error,
-                                action = R.string.subscription_feed_error_action
+                                message = context.getString(R.string.subscription_feed_error),
+                                actionText = context.getString(R.string.subscription_feed_error_action)
                             )
                         )
                     )

@@ -76,6 +76,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
+import com.genius.srss.ui.feed.FeedEmptyItem
 import com.genius.srss.ui.theme.ActiveElement
 import com.genius.srss.ui.theme.DefaultBackgroundInverted
 import com.genius.srss.ui.theme.SRSSTheme
@@ -87,6 +88,7 @@ import com.genius.srss.util.MultiFabState
 import com.genius.srss.util.MultiFloatingActionButton
 import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
+import com.genius.srss.util.pointerInputDetectTransformGestures
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.ub.utils.animator
@@ -519,13 +521,15 @@ fun SubscriptionScreen(
     navigateToAddSubscription: () -> Unit,
     viewModel: SubscriptionsViewModel = viewModel(
         factory = SubscriptionsViewModelFactory(
+            DIManager.appComponent.context,
             DIManager.appComponent.subscriptionDao,
             DIManager.appComponent.dataStore
         )
     )
 ) {
-    val state = viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     var toState by remember { mutableStateOf(MultiFabState.COLLAPSED) }
+    var zoom by remember { mutableStateOf(1f) }
     SRSSTheme {
         Surface {
             Scaffold(
@@ -561,7 +565,7 @@ fun SubscriptionScreen(
                             }
                         }
                     )
-                }
+                },
             ) { paddings ->
                 LongPressDraggable(
                     modifier = Modifier.fillMaxSize()
@@ -571,11 +575,26 @@ fun SubscriptionScreen(
                         contentPadding = WindowInsets.systemBars
                             .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
                             .asPaddingValues(),
-                        modifier = Modifier.fillMaxHeight()
+                        modifier = Modifier.fillMaxHeight().pointerInputDetectTransformGestures(
+                            isTransformInProgressChanged = { isInProgress ->
+                                if (!isInProgress) {
+                                    if (zoom > 1F) {
+                                        viewModel.updateFeed(isFull = true)
+                                    } else if (zoom < 1F) {
+                                        viewModel.updateFeed(isFull = false)
+                                    }
+                                    zoom = 1F
+                                }
+                            },
+                            onGesture = { _, _, scale, _ ->
+                                zoom *= scale
+                            }
+                        )
                     ) {
-                        state.value.feedList.forEachIndexed { index, model ->
+                        state.feedList.forEachIndexed { index, model ->
                             when (model) {
                                 is SubscriptionItemModel -> item(
+                                    key = model.getItemId(),
                                     span = {
                                         GridItemSpan(maxLineSpan)
                                     }
@@ -619,7 +638,9 @@ fun SubscriptionScreen(
                                         )
                                     }
                                 }
-                                is SubscriptionFolderItemModel -> item {
+                                is SubscriptionFolderItemModel -> item(
+                                    key = model.getItemId(),
+                                ) {
                                     FolderItem(
                                         id = model.id,
                                         name = model.name,
@@ -635,9 +656,19 @@ fun SubscriptionScreen(
                                         }
                                     )
                                 }
-                                else -> {
-                                    // ignore
+                                is SubscriptionFolderEmptyModel -> item(
+                                    key = model.getItemId(),
+                                ) {
+                                    FeedEmptyItem(
+                                        icon = model.icon,
+                                        message = model.message,
+                                        action = model.actionText,
+                                        onClick = {
+                                            navigateToAddSubscription.invoke()
+                                        }
+                                    )
                                 }
+                                else -> throw IllegalArgumentException("Unsupported feed model: ${model::class.java.simpleName}")
                             }
                         }
                     }

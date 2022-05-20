@@ -1,5 +1,7 @@
 package com.genius.srss.ui.folder
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.text.Editable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -30,6 +32,7 @@ interface FolderViewModelFactory {
 }
 
 class FolderModelFactory @AssistedInject constructor(
+    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val network: INetworkSource,
     private val converters: SRSSConverters,
@@ -39,6 +42,7 @@ class FolderModelFactory @AssistedInject constructor(
         if (modelClass.isAssignableFrom(FolderViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return FolderViewModel(
+                context,
                 subscriptionsDao,
                 network,
                 converters,
@@ -49,7 +53,9 @@ class FolderModelFactory @AssistedInject constructor(
     }
 }
 
+@SuppressLint("StaticFieldLeak")
 class FolderViewModel(
+    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val network: INetworkSource,
     private val converters: SRSSConverters,
@@ -59,7 +65,7 @@ class FolderViewModel(
     private val _state: MutableStateFlow<FolderStateModel> = MutableStateFlow(FolderStateModel(folderId = folderId))
     private val _screenCloseFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
     private val _nameToEditFlow: MutableStateFlow<String?> = MutableStateFlow(null)
-    private var _loadedFeedCountFlow: MutableSharedFlow<Int> = MutableSharedFlow()
+    private var _loadedFeedCountFlow: MutableSharedFlow<String> = MutableSharedFlow()
 
     private val listOfLoadingFeeds = mutableListOf<Deferred<Boolean>>()
 
@@ -75,7 +81,7 @@ class FolderViewModel(
     )
     val screenCloseFlow: SharedFlow<Unit> = _screenCloseFlow
     val nameToEditFlow: StateFlow<String?> = _nameToEditFlow
-    val loadedFeedCountFlow: SharedFlow<Int> = _loadedFeedCountFlow
+    val loadedFeedCountFlow: SharedFlow<String> = _loadedFeedCountFlow
 
     val isInEditMode: Boolean
         get() = _state.value.isInEditMode
@@ -241,7 +247,13 @@ class FolderViewModel(
             val loadedFeeds = listOfLoadingFeeds.awaitAll().count { it }
             val failedToLoadListCount = listOfLoadingFeeds.size - loadedFeeds
             if (failedToLoadListCount > 0) {
-                _loadedFeedCountFlow.emit(failedToLoadListCount)
+                _loadedFeedCountFlow.emit(
+                    context.resources.getQuantityString(
+                        R.plurals.folder_feed_list_not_fully_loaded,
+                        failedToLoadListCount,
+                        failedToLoadListCount
+                    )
+                )
             }
             listOfLoadingFeeds.clear()
             _state.update { state ->
@@ -262,8 +274,8 @@ class FolderViewModel(
                         listOf(
                             SubscriptionFolderEmptyModel(
                                 icon = R.drawable.ic_vector_empty_folder,
-                                message = R.string.subscription_folder_empty,
-                                action = R.string.subscription_folder_add_subscription
+                                message = context.getString(R.string.subscription_folder_empty),
+                                actionText = context.getString(R.string.subscription_folder_add_subscription)
                             )
                         )
                     },

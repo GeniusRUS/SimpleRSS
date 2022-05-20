@@ -141,6 +141,7 @@ fun AddFolderScreen(
     navigateUp: () -> Unit,
     viewModel: AddFolderViewModel = viewModel(
         factory = AddFolderModelFactory(
+            DIManager.appComponent.context,
             DIManager.appComponent.subscriptionDao,
             DIManager.appComponent.generator
         )
@@ -155,7 +156,7 @@ fun AddFolderScreen(
     viewModel.errorFlow.collectAsEffect { error ->
         coroutineScope.launch {
             val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(
-                message = error.toString()
+                message = error
             )
             when (snackbarResult) {
                 SnackbarResult.Dismissed -> {}
@@ -186,7 +187,7 @@ fun AddFolderScreen(
                         elevation = 0.dp,
                         modifier = Modifier.statusBarsPadding()
                     )
-                }
+                },
             ) { padding ->
                 Column(
                     verticalArrangement = Arrangement.Center,

@@ -1,5 +1,7 @@
 package com.genius.srss.ui.subscriptions
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class SubscriptionsViewModelFactory @Inject constructor(
+    private val context: Context,
     private val subscriptionDao: SubscriptionsDao,
     private val dataStore: DataStore<Preferences>
 ) : ViewModelProvider.Factory {
@@ -25,6 +28,7 @@ class SubscriptionsViewModelFactory @Inject constructor(
         if (modelClass.isAssignableFrom(SubscriptionsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return SubscriptionsViewModel(
+                context,
                 subscriptionDao,
                 dataStore
             ) as T
@@ -33,7 +37,9 @@ class SubscriptionsViewModelFactory @Inject constructor(
     }
 }
 
+@SuppressLint("StaticFieldLeak")
 class SubscriptionsViewModel(
+    private val context: Context,
     private val subscriptionDao: SubscriptionsDao,
     private val dataStore: DataStore<Preferences>
 ) : ViewModel() {
@@ -44,7 +50,7 @@ class SubscriptionsViewModel(
     private val _tutorialState: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val _sortingState: MutableStateFlow<Pair<Int, Int>> = MutableStateFlow(Pair(-1, -1))
 
-    private val _updateTriggerState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _isFullListState: MutableStateFlow<Boolean> = MutableStateFlow(_state.value.isFullList)
 
     val errorFlow: SharedFlow<Int> = _errorFlow
     val state: StateFlow<SubscriptionsStateModel> = _state
@@ -52,15 +58,21 @@ class SubscriptionsViewModel(
 
     init {
         viewModelScope.launch {
+            val subscriptions = combine(
+                _isFullListState,
+                subscriptionDao.loadSubscriptions(),
+                subscriptionDao.loadSubscriptionsWithoutFolders()
+            ) { isFullList, allSubscriptions, subscriptionsWithoutFolders ->
+                if (isFullList) {
+                    allSubscriptions
+                } else {
+                    subscriptionsWithoutFolders
+                }
+            }
             combine(
                 subscriptionDao.loadAllFoldersWithAutoSortingIfNeeded(),
-                if (_state.value.isFullList) {
-                    subscriptionDao.loadSubscriptions()
-                } else {
-                    subscriptionDao.loadSubscriptionsWithoutFolders()
-                },
-                _updateTriggerState
-            ) { folders, feeds, _ ->
+                subscriptions
+            ) { folders, feeds ->
                 folders.map {
                     SubscriptionFolderItemModel(
                         it.id,
@@ -81,8 +93,8 @@ class SubscriptionsViewModel(
                             listOf(
                                 SubscriptionFolderEmptyModel(
                                     icon = R.drawable.ic_vector_empty_folder,
-                                    message = R.string.subscription_empty,
-                                    action = R.string.subscription_empty_first
+                                    message = context.getString(R.string.subscription_empty),
+                                    actionText = context.getString(R.string.subscription_empty_first)
                                 )
                             )
                         }
@@ -111,61 +123,14 @@ class SubscriptionsViewModel(
         }
     }
 
-    fun init() {
-        try {
-            viewModelScope.launch {
-                _sortingState.collect { pair ->
-                    val fromPosition = pair.first
-                    val toPosition = pair.second
-                    subscriptionDao.changeFolderSort(fromPosition, toPosition)
-                    updateFeed()
-                }
-            }
-        } catch (e: Exception) {
-            LogUtils.e(TAG, e.message, e)
-        }
-    }
-
     fun updateFeed(isFull: Boolean = _state.value.isFullList) {
         viewModelScope.launch {
-            try {
-                val folders = subscriptionDao.loadAllFoldersWithAutoSortingIfNeeded()
-                val subscriptions = if (isFull) {
-                    subscriptionDao.loadSubscriptions()
-                } else {
-                    subscriptionDao.loadSubscriptionsWithoutFolders()
-                }
-                _state.update { state ->
-                    state.copy(
-                        isFullList = isFull,
-                        /*feedList = merge(
-                            folders.map {
-                                SubscriptionFolderItemModel(
-                                    it.id,
-                                    it.name,
-                                    subscriptionDao.getCrossRefCountByFolderId(it.id)
-                                )
-                            },
-                            subscriptions.map {
-                                SubscriptionItemModel(
-                                    it.title,
-                                    it.urlToLoad
-                                )
-                            }
-                        ).toList().ifEmpty {
-                            listOf(
-                                SubscriptionFolderEmptyModel(
-                                    icon = R.drawable.ic_vector_empty_folder,
-                                    message = R.string.subscription_empty,
-                                    action = R.string.subscription_empty_first
-                                )
-                            )
-                        }*/
-                    )
-                }
-            } catch (e: Exception) {
-                LogUtils.e(TAG, e.message, e)
+            _state.update { state ->
+                state.copy(
+                    isFullList = isFull,
+                )
             }
+            _isFullListState.emit(isFull)
         }
     }
 
@@ -212,7 +177,6 @@ class SubscriptionsViewModel(
                         targetOfMove.id
                     )
                 )
-                _updateTriggerState.emit(_updateTriggerState.value.not())
             } catch (linkAlreadyExistedException: SQLiteConstraintException) {
                 _errorFlow.emit(R.string.error_link_to_folder_already_exist)
             } catch (e: Exception) {

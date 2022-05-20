@@ -414,7 +414,10 @@ fun FeedScreen(
                             .only(WindowInsetsSides.Bottom)
                             .asPaddingValues(),
                         content = {
-                            items(count = state.feedContent.size) { index ->
+                            items(
+                                key = { index -> state.feedContent[index].getItemId() },
+                                count = state.feedContent.size,
+                            ) { index ->
                                 when (val item = state.feedContent[index]) {
                                     is FeedItemModel -> FeedItem(
                                         title = item.title ?: "",
@@ -428,19 +431,21 @@ fun FeedScreen(
                                         icon = item.icon,
                                         message = item.message,
                                         action = item.actionText,
+                                        modifier = Modifier.fillParentMaxHeight(),
                                         onClick = {
                                             viewModel.updateFeed()
                                         }
                                     )
                                     is SubscriptionFolderEmptyModel -> FeedEmptyItem(
                                         icon = item.icon,
-                                        message = stringResource(id = item.message),
-                                        action = stringResource(id = item.action ?: return@items),
+                                        message = item.message,
+                                        action = item.actionText,
+                                        modifier = Modifier.fillParentMaxHeight(),
                                         onClick = {
                                             viewModel.updateFeed()
                                         }
                                     )
-                                    else -> throw IllegalArgumentException("Unsupported feed model")
+                                    else -> throw IllegalArgumentException("Unsupported feed model: ${item::class.java.simpleName}")
                                 }
                             }
                         }
@@ -523,11 +528,12 @@ fun FeedEmptyItem(
     icon: Int,
     message: String,
     action: String?,
+    modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
     SRSSTheme {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = modifier.fillMaxSize()
         ) {
             Column(
                 verticalArrangement = Arrangement.Center,

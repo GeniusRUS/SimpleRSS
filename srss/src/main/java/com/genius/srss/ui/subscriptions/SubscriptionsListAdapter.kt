@@ -196,13 +196,10 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
 
         fun bind(model: SubscriptionFolderEmptyModel) {
             composeView.setContent {
-                val actionText = if (model.action != null) {
-                    stringResource(id = model.action)
-                } else null
                 FeedEmptyItem(
                     icon = model.icon,
-                    message = stringResource(id = model.message),
-                    action = actionText,
+                    message = model.message,
+                    action = model.actionText,
                     onClick = {
                         val position = absoluteAdapterPosition
                         listListener?.onClick(composeView, getItem(position), position)
@@ -225,12 +222,12 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
 
         fun bind(model: SubscriptionFolderEmptyModel) {
             iconImage.setImageDrawable(VectorDrawableCompat.create(itemView.context.resources, model.icon, itemView.context.theme))
-            reasonText.text = itemView.context.getString(model.message)
-            if (model.action == null) {
+            reasonText.text = model.message
+            if (model.actionText == null) {
                 action.isGone = true
             } else {
                 action.isVisible = true
-                action.text = itemView.context.getString(model.action)
+                action.text = model.actionText
             }
         }
 

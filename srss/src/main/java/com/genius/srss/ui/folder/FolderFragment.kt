@@ -221,11 +221,7 @@ class FolderFragment : Fragment(),
                 viewModel.loadedFeedCountFlow.collect { count ->
                     Snackbar.make(
                         binding.rootView,
-                        resources.getQuantityString(
-                            R.plurals.folder_feed_list_not_fully_loaded,
-                            count,
-                            count
-                        ),
+                        count,
                         Snackbar.LENGTH_LONG
                     ).show()
                 }
@@ -390,6 +386,7 @@ fun FolderScreen(
     viewModel: FolderViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
         factory = FolderModelFactory(
             folderId = folderId,
+            context = DIManager.appComponent.context,
             subscriptionsDao = DIManager.appComponent.subscriptionDao,
             converters = DIManager.appComponent.converters,
             network = DIManager.appComponent.network
@@ -409,7 +406,7 @@ fun FolderScreen(
     viewModel.loadedFeedCountFlow.collectAsEffect { count ->
         coroutineScope.launch {
             scaffoldState.snackbarHostState.showSnackbar(
-                message = count.toString()
+                message = count
             )
         }
     }
@@ -510,7 +507,7 @@ fun FolderScreen(
                         elevation = 0.dp,
                         modifier = Modifier.statusBarsPadding()
                     )
-                }
+                },
             ) { paddings ->
                 LazyColumn(
                     contentPadding = WindowInsets.navigationBars
@@ -519,7 +516,9 @@ fun FolderScreen(
                     content = {
                         state.feedList.forEachIndexed { index, model ->
                             when (model) {
-                                is SubscriptionItemModel -> item {
+                                is SubscriptionItemModel -> item(
+                                    key = model.getItemId(),
+                                ) {
                                     val dismissState = rememberDismissState()
                                     if (dismissState.isDismissed(DismissDirection.StartToEnd)) {
                                         viewModel.unlinkFolderByPosition(index)
@@ -559,7 +558,9 @@ fun FolderScreen(
                                         )
                                     }
                                 }
-                                is FeedItemModel -> item {
+                                is FeedItemModel -> item(
+                                    key = model.getItemId(),
+                                ) {
                                     FeedItem(
                                         title = model.title ?: "",
                                         date = model.timestamp?.stringRepresentation,
@@ -569,17 +570,20 @@ fun FolderScreen(
                                         }
                                     )
                                 }
-                                is SubscriptionFolderEmptyModel -> item {
+                                is SubscriptionFolderEmptyModel -> item(
+                                    key = model.getItemId(),
+                                ) {
                                     FeedEmptyItem(
                                         icon = model.icon,
-                                        message = stringResource(id = model.message),
-                                        action = stringResource(id = model.action ?: return@item),
+                                        message = model.message,
+                                        action = model.actionText,
+                                        modifier = Modifier.fillParentMaxHeight(),
                                         onClick = {
                                             navigateToAdd.invoke(folderId)
                                         }
                                     )
                                 }
-                                else -> throw IllegalArgumentException("Unsupported feed model")
+                                else -> throw IllegalArgumentException("Unsupported feed model: ${model::class.java.simpleName}")
                             }
                         }
                     }

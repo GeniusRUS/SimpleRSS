@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -197,6 +198,7 @@ fun AddSubscriptionScreen(
     viewModel: AddSubscriptionViewModel = viewModel(
         factory = AddSubscriptionViewModelFactory(
             folderId,
+            DIManager.appComponent.context,
             DIManager.appComponent.network,
             DIManager.appComponent.subscriptionDao
         )
@@ -212,7 +214,7 @@ fun AddSubscriptionScreen(
     viewModel.errorFlow.collectAsEffect { error ->
         coroutineScope.launch {
             val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(
-                message = error.toString()
+                message = error
             )
             when (snackbarResult) {
                 SnackbarResult.Dismissed -> {}
@@ -245,6 +247,7 @@ fun AddSubscriptionScreen(
                         modifier = Modifier.statusBarsPadding()
                     )
                 },
+                modifier = Modifier.navigationBarsPadding()
             ) { paddings ->
                 Column(
                     verticalArrangement = Arrangement.Center,

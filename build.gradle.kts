@@ -1,4 +1,4 @@
-extra.set("compose_version", "1.2.0-beta01")
+extra.set("compose_version", "1.2.0-beta02")
 
 plugins {
     id("com.android.application") version "7.2.0" apply false

@@ -38,10 +38,8 @@ data class SubscriptionFolderItemModel(
 data class SubscriptionFolderEmptyModel(
     @DrawableRes
     val icon: Int,
-    @StringRes
-    val message: Int,
-    @StringRes
-    val action: Int? = null,
+    val message: String,
+    val actionText: String? = null,
     private val id: String = "empty",
     override val layoutId: Int = R.layout.rv_feed_empty
 ) : BaseSubscriptionModel() {
@@ -56,7 +54,7 @@ data class FeedItemModel(
     val timestamp: Timestamp?,
     override val layoutId: Int = R.layout.rv_feed_item,
 ) : BaseSubscriptionModel() {
-    override fun getItemId(): Int = id.hashCode()
+    override fun getItemId(): Int = id?.hashCode() ?: url.hashCode()
 
     data class Timestamp(
         val date: Date,

@@ -1,5 +1,7 @@
 package com.genius.srss.ui.add.folder
 
+import android.annotation.SuppressLint
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AddFolderModelFactory @Inject constructor(
+    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val generator: IGenerator
 ) : ViewModelProvider.Factory {
@@ -22,6 +25,7 @@ class AddFolderModelFactory @Inject constructor(
         if (modelClass.isAssignableFrom(AddFolderViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return AddFolderViewModel(
+                context,
                 subscriptionsDao,
                 generator
             ) as T
@@ -30,15 +34,17 @@ class AddFolderModelFactory @Inject constructor(
     }
 }
 
+@SuppressLint("StaticFieldLeak")
 class AddFolderViewModel(
+    private val context: Context,
     private val subscriptionsDao: SubscriptionsDao,
     private val generator: IGenerator
 ) : ViewModel() {
 
-    private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
+    private val _errorFlow: MutableSharedFlow<String> = MutableSharedFlow()
     private val _folderCreatedFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
 
-    val errorFlow: SharedFlow<Int> = _errorFlow.apply {
+    val errorFlow: SharedFlow<String> = _errorFlow.apply {
         viewModelScope.launch {
             this@apply.collect {
                 println("Error is $it")
@@ -51,7 +57,7 @@ class AddFolderViewModel(
         viewModelScope.launch {
             try {
                 if (folderName.isEmpty()) {
-                    _errorFlow.emit(R.string.add_new_subscription_folder_must_be_not_empty)
+                    _errorFlow.emit(context.getString(R.string.add_new_subscription_folder_must_be_not_empty))
                     return@launch
                 }
                 val lastIndex = subscriptionsDao.getLastFolderSortIndex() ?: 0
