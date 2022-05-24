@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,11 +40,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
@@ -314,6 +317,7 @@ fun FeedScreen(
     val state by viewModel.state.collectAsState()
     val isInEditMode by viewModel.isInEditMode.collectAsState()
     var newFeedName by remember { mutableStateOf<String?>(null) }
+    val scrollBehavior = remember { TopAppBarDefaults.enterAlwaysScrollBehavior() }
     viewModel.closeFlow.collectAsEffect(block = {
         navigateToUp.invoke()
     })
@@ -325,8 +329,9 @@ fun FeedScreen(
     SRSSTheme {
         Surface {
             Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 topBar = {
-                    MediumTopAppBar(
+                    SmallTopAppBar(
                         title = {
                             if (isInEditMode) {
                                 BasicTextField(
@@ -340,11 +345,13 @@ fun FeedScreen(
                                         )
                                     },
                                     singleLine = true,
-                                    textStyle = TextStyle(color = MaterialTheme.typography.bodyLarge.color)
+                                    textStyle = TextStyle(color = MaterialTheme.typography.bodyLarge.color),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             } else {
                                 Text(
-                                    text = state.title ?: ""
+                                    text = state.title ?: "",
+                                    maxLines = 1
                                 )
                             }
                         },
@@ -396,10 +403,17 @@ fun FeedScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.statusBarsPadding()
+                        modifier = Modifier
+                            .background(
+                                TopAppBarDefaults.smallTopAppBarColors().containerColor(
+                                    scrollFraction = scrollBehavior.scrollFraction
+                                ).value
+                            )
+                            .statusBarsPadding(),
+                        scrollBehavior = scrollBehavior
                     )
                 }
-            ) { paddings ->
+            ) { padding ->
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -408,6 +422,7 @@ fun FeedScreen(
                         state = scrollState,
                         contentPadding = WindowInsets.navigationBars
                             .only(WindowInsetsSides.Bottom)
+                            .add(WindowInsets(top = padding.calculateTopPadding()))
                             .asPaddingValues(),
                         content = {
                             items(
@@ -467,7 +482,7 @@ fun FeedItem(
                     vertical = 6.dp
                 )
                 .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(4.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
                 .clickable {
                     onClick?.invoke()
                 }

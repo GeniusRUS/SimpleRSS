@@ -560,7 +560,7 @@ fun SubscriptionScreen(
                         }
                     )
                 },
-            ) { paddings ->
+            ) { padding ->
                 LongPressDraggable(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -568,6 +568,7 @@ fun SubscriptionScreen(
                         columns = GridCells.Fixed(2),
                         contentPadding = WindowInsets.systemBars
                             .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
+                            .add(WindowInsets(bottom = padding.calculateBottomPadding()))
                             .asPaddingValues(),
                         modifier = Modifier
                             .fillMaxHeight()

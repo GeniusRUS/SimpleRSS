@@ -18,15 +18,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.DismissDirection
@@ -41,12 +45,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -399,6 +405,7 @@ fun FolderScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var newFolderName by remember { mutableStateOf<String?>(null) }
     val state by viewModel.state.collectAsState()
+    val scrollBehavior = remember { TopAppBarDefaults.enterAlwaysScrollBehavior() }
     viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
         newFolderName = nameToEdit
     }
@@ -415,9 +422,10 @@ fun FolderScreen(
     SRSSTheme {
         Surface {
             Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
-                    MediumTopAppBar(
+                    SmallTopAppBar(
                         title = {
                             if (state.isInEditMode) {
                                 BasicTextField(
@@ -431,7 +439,8 @@ fun FolderScreen(
                                         )
                                     },
                                     singleLine = true,
-                                    textStyle = TextStyle(color = MaterialTheme.typography.bodyLarge.color)
+                                    textStyle = TextStyle(color = MaterialTheme.typography.bodyLarge.color),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             } else {
                                 Text(
@@ -503,13 +512,21 @@ fun FolderScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.statusBarsPadding()
+                        scrollBehavior = scrollBehavior,
+                        modifier = Modifier
+                            .background(
+                                TopAppBarDefaults.smallTopAppBarColors().containerColor(
+                                    scrollFraction = scrollBehavior.scrollFraction
+                                ).value
+                            )
+                            .statusBarsPadding()
                     )
                 },
-            ) { paddings ->
+            ) { padding ->
                 LazyColumn(
                     contentPadding = WindowInsets.navigationBars
                         .only(WindowInsetsSides.Bottom)
+                        .add(WindowInsets(top = padding.calculateTopPadding()))
                         .asPaddingValues(),
                     content = {
                         state.feedList.forEachIndexed { index, model ->
