@@ -3,6 +3,7 @@ package com.genius.srss.ui.subscriptions
 import android.animation.AnimatorSet
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -11,6 +12,8 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,8 +50,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -511,6 +517,8 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     }
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
@@ -526,6 +534,9 @@ fun SubscriptionScreen(
     var zoom by remember { mutableStateOf(1f) }
     SRSSTheme {
         Surface {
+            if (state.isTutorialShow) {
+
+            }
             Scaffold(
                 floatingActionButton = {
                     MultiFloatingActionButton(
@@ -560,115 +571,132 @@ fun SubscriptionScreen(
                         }
                     )
                 },
+                modifier = Modifier.apply {
+                    if (state.isTutorialShow) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            blur(10.dp, 10.dp)
+                        } else {
+                            background(MaterialTheme.colorScheme.background.copy(alpha = 0.5F))
+                        }
+                        pointerInteropFilter {
+                            true
+                        }
+                    }
+                }
             ) { padding ->
-                LongPressDraggable(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        contentPadding = WindowInsets.systemBars
-                            .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
-                            .add(WindowInsets(bottom = padding.calculateBottomPadding()))
-                            .asPaddingValues(),
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .pointerInputDetectTransformGestures(
-                                isTransformInProgressChanged = { isInProgress ->
-                                    if (!isInProgress) {
-                                        if (zoom > 1F) {
-                                            viewModelInterface.updateFeed(isFull = true)
-                                        } else if (zoom < 1F) {
-                                            viewModelInterface.updateFeed(isFull = false)
-                                        }
-                                        zoom = 1F
-                                    }
-                                },
-                                onGesture = { _, _, scale, _ ->
-                                    zoom *= scale
-                                }
-                            )
+                Box {
+                    LongPressDraggable(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        state.feedList.forEachIndexed { index, model ->
-                            when (model) {
-                                is SubscriptionItemModel -> item(
-                                    key = model.getItemId(),
-                                    span = {
-                                        GridItemSpan(maxLineSpan)
-                                    }
-                                ) {
-                                    val dismissState = rememberDismissState()
-                                    if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-                                        viewModelInterface.removeSubscriptionByPosition(index)
-                                    }
-                                    SwipeToDismiss(
-                                        directions = setOf(DismissDirection.EndToStart),
-                                        state = dismissState,
-                                        dismissThresholds = { FractionalThreshold(0.25f) },
-                                        background = {
-                                            val scale by animateFloatAsState(
-                                                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
-                                            )
-                                            Box(
-                                                Modifier
-                                                    .fillMaxSize()
-                                                    .padding(horizontal = 20.dp),
-                                                contentAlignment = Alignment.CenterEnd
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(id = R.drawable.ic_vector_delete_outline),
-                                                    contentDescription = stringResource(id = R.string.option_menu_delete),
-                                                    tint = MaterialTheme.colorScheme.error,
-                                                    modifier = Modifier.scale(scale)
-                                                )
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            contentPadding = WindowInsets.systemBars
+                                .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
+                                .add(WindowInsets(bottom = padding.calculateBottomPadding()))
+                                .asPaddingValues(),
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .pointerInputDetectTransformGestures(
+                                    isTransformInProgressChanged = { isInProgress ->
+                                        if (!isInProgress) {
+                                            if (zoom > 1F) {
+                                                viewModelInterface.updateFeed(isFull = true)
+                                            } else if (zoom < 1F) {
+                                                viewModelInterface.updateFeed(isFull = false)
                                             }
+                                            zoom = 1F
+                                        }
+                                    },
+                                    onGesture = { _, _, scale, _ ->
+                                        zoom *= scale
+                                    }
+                                )
+                        ) {
+                            state.feedList.forEachIndexed { index, model ->
+                                when (model) {
+                                    is SubscriptionItemModel -> item(
+                                        key = model.getItemId(),
+                                        span = {
+                                            GridItemSpan(maxLineSpan)
                                         }
                                     ) {
-                                        SubscriptionItem(
-                                            title = model.title ?: "",
-                                            position = index,
-                                            onClick = {
-                                                navigateToFeed.invoke(
-                                                    model.urlToLoad?.urlEncode()
-                                                        ?: return@SubscriptionItem
+                                        val dismissState = rememberDismissState()
+                                        if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                                            viewModelInterface.removeSubscriptionByPosition(index)
+                                        }
+                                        SwipeToDismiss(
+                                            directions = setOf(DismissDirection.EndToStart),
+                                            state = dismissState,
+                                            dismissThresholds = { FractionalThreshold(0.25f) },
+                                            modifier = Modifier.animateItemPlacement(),
+                                            background = {
+                                                val scale by animateFloatAsState(
+                                                    if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                                                )
+                                                Box(
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .padding(horizontal = 20.dp),
+                                                    contentAlignment = Alignment.CenterEnd
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(id = R.drawable.ic_vector_delete_outline),
+                                                        contentDescription = stringResource(id = R.string.option_menu_delete),
+                                                        tint = MaterialTheme.colorScheme.error,
+                                                        modifier = Modifier.scale(scale)
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            SubscriptionItem(
+                                                title = model.title ?: "",
+                                                position = index,
+                                                modifier = Modifier.animateItemPlacement(),
+                                                onClick = {
+                                                    navigateToFeed.invoke(
+                                                        model.urlToLoad?.urlEncode()
+                                                            ?: return@SubscriptionItem
+                                                    )
+                                                }
+                                            )
+                                        }
+                                    }
+                                    is SubscriptionFolderItemModel -> item(
+                                        key = model.getItemId(),
+                                    ) {
+                                        FolderItem(
+                                            id = model.id,
+                                            name = model.name,
+                                            count = model.countOtOfSources,
+                                            modifier = Modifier.animateItemPlacement(),
+                                            onClick = { folderId ->
+                                                navigateToFolder.invoke(folderId)
+                                            },
+                                            onAddFeed = { position ->
+                                                viewModelInterface.handleHolderMove(
+                                                    holderPosition = position,
+                                                    targetPosition = index
                                                 )
                                             }
                                         )
                                     }
-                                }
-                                is SubscriptionFolderItemModel -> item(
-                                    key = model.getItemId(),
-                                ) {
-                                    FolderItem(
-                                        id = model.id,
-                                        name = model.name,
-                                        count = model.countOtOfSources,
-                                        onClick = { folderId ->
-                                            navigateToFolder.invoke(folderId)
-                                        },
-                                        onAddFeed = { position ->
-                                            viewModelInterface.handleHolderMove(
-                                                holderPosition = position,
-                                                targetPosition = index
-                                            )
+                                    is SubscriptionFolderEmptyModel -> item(
+                                        key = model.getItemId(),
+                                        span = {
+                                            GridItemSpan(maxLineSpan)
                                         }
-                                    )
-                                }
-                                is SubscriptionFolderEmptyModel -> item(
-                                    key = model.getItemId(),
-                                    span = {
-                                        GridItemSpan(maxLineSpan)
+                                    ) {
+                                        FeedEmptyItem(
+                                            icon = model.icon,
+                                            message = model.message,
+                                            action = model.actionText,
+                                            onClick = {
+                                                navigateToAddSubscription.invoke()
+                                            }
+                                        )
                                     }
-                                ) {
-                                    FeedEmptyItem(
-                                        icon = model.icon,
-                                        message = model.message,
-                                        action = model.actionText,
-                                        onClick = {
-                                            navigateToAddSubscription.invoke()
-                                        }
-                                    )
+                                    else -> throw IllegalArgumentException("Unsupported feed model: ${model::class.java.simpleName}")
                                 }
-                                else -> throw IllegalArgumentException("Unsupported feed model: ${model::class.java.simpleName}")
                             }
                         }
                     }
@@ -684,11 +712,14 @@ fun FolderItem(
     id: String,
     name: String,
     count: Int,
+    modifier: Modifier = Modifier,
     onClick: (String) -> Unit,
     onAddFeed: (Int) -> Unit
 ) {
     SRSSTheme {
-        DropTarget<Int> { isInBound, position ->
+        DropTarget<Int>(
+            modifier = modifier,
+        ) { isInBound, position ->
             Card(
                 elevation = CardDefaults.cardElevation(2.dp),
                 shape = RoundedCornerShape(8.dp),
@@ -734,11 +765,13 @@ fun FolderItem(
 @Composable
 fun SubscriptionItem(
     @PreviewParameter(SubscriptionItemProvider::class) title: String,
+    modifier: Modifier = Modifier,
     position: Int? = null,
     onClick: (() -> Unit)? = null
 ) {
     SRSSTheme {
         DragTarget(
+            modifier = modifier,
             dataToDrop = position
         ) {
             Card(

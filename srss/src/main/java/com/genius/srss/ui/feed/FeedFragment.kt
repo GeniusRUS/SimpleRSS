@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -94,6 +95,7 @@ import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 class FeedFragment : Fragment(),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
@@ -298,6 +300,7 @@ class FeedFragment : Fragment(),
     }
 }
 
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
 fun FeedScreen(
@@ -434,6 +437,7 @@ fun FeedScreen(
                                         title = item.title ?: "",
                                         date = item.timestamp?.stringRepresentation,
                                         pictureUrl = item.pictureUrl,
+                                        modifier = Modifier.animateItemPlacement(),
                                         onClick = {
                                             openFeed(context, item.url)
                                         }
@@ -472,11 +476,12 @@ fun FeedItem(
     title: String?,
     date: String?,
     pictureUrl: String?,
+    modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
     SRSSTheme {
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .padding(
                     horizontal = 8.dp,
                     vertical = 6.dp

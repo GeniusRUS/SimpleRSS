@@ -1,13 +1,17 @@
 package com.genius.srss.ui.subscriptions
 
 import android.os.Build
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
 import com.genius.srss.R
 import com.genius.srss.ui.theme.SRSSTheme
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
@@ -44,6 +48,8 @@ internal fun PreviewSubscriptionNotEmptyScreen() {
     }
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
@@ -80,6 +86,8 @@ internal fun PreviewSubscriptionEmptyScreen() {
     }
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(
@@ -92,6 +100,8 @@ fun StandardDynamicSubscriptionScreenPreview() {
     PreviewSubscriptionNotEmptyScreen()
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(
@@ -104,6 +114,8 @@ fun EmptyDynamicSubscriptionScreenPreview() {
     PreviewSubscriptionEmptyScreen()
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(

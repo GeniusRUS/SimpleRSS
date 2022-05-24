@@ -183,9 +183,9 @@ class TutorialView @JvmOverloads constructor(
         revealAnimator?.start()
     }
 
-    class Tip(
+    data class Tip(
         @StringRes val message: Int,
-        @DrawableRes val icon: Int? = null
+        @DrawableRes val icon: Int
     )
 
     private class TutorialViewSavedState : BaseSavedState {

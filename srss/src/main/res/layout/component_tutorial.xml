@@ -19,7 +19,7 @@
         android:layout_marginStart="24dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="@tools:sample/lorem/random"/>
+        tools:text="@tools:sample/lorem"/>
 
     <ImageView
         android:id="@+id/icon"
@@ -29,7 +29,8 @@
         android:contentDescription="@string/content_description_image"
         app:layout_constraintTop_toBottomOf="@+id/message"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:src="@android:drawable/btn_star"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/to_previous_tip"

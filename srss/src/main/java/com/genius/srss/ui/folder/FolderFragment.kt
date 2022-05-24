@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,7 +31,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.DismissDirection
@@ -381,6 +381,7 @@ class FolderFragment : Fragment(),
     }
 }
 
+@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
@@ -564,6 +565,7 @@ fun FolderScreen(
                                         SubscriptionItem(
                                             title = model.title ?: "",
                                             position = index,
+                                            modifier = Modifier.animateItemPlacement(),
                                             onClick = {
                                                 navigateToFeed.invoke(
                                                     model.urlToLoad?.urlEncode()
@@ -580,6 +582,7 @@ fun FolderScreen(
                                         title = model.title ?: "",
                                         date = model.timestamp?.stringRepresentation,
                                         pictureUrl = model.pictureUrl,
+                                        modifier = Modifier.animateItemPlacement(),
                                         onClick = {
                                             navigateToPost.invoke(model.url)
                                         }
