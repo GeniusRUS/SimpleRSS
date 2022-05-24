@@ -33,18 +33,20 @@ import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberDismissState
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -82,7 +84,6 @@ import com.genius.srss.ui.subscriptions.SubscriptionItem
 import com.genius.srss.ui.subscriptions.SubscriptionItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
 import com.genius.srss.ui.subscriptions.urlEncode
-import com.genius.srss.ui.theme.ActiveElement
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.google.android.material.snackbar.Snackbar
@@ -374,6 +375,7 @@ class FolderFragment : Fragment(),
     }
 }
 
+@ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
 fun FolderScreen(
@@ -393,8 +395,8 @@ fun FolderScreen(
         )
     )
 ) {
-    val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var newFolderName by remember { mutableStateOf<String?>(null) }
     val state by viewModel.state.collectAsState()
     viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
@@ -405,7 +407,7 @@ fun FolderScreen(
     }
     viewModel.loadedFeedCountFlow.collectAsEffect { count ->
         coroutineScope.launch {
-            scaffoldState.snackbarHostState.showSnackbar(
+            snackbarHostState.showSnackbar(
                 message = count
             )
         }
@@ -413,10 +415,9 @@ fun FolderScreen(
     SRSSTheme {
         Surface {
             Scaffold(
-                scaffoldState = scaffoldState,
+                snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
-                    TopAppBar(
-                        backgroundColor = MaterialTheme.colors.background,
+                    MediumTopAppBar(
                         title = {
                             if (state.isInEditMode) {
                                 BasicTextField(
@@ -430,7 +431,7 @@ fun FolderScreen(
                                         )
                                     },
                                     singleLine = true,
-                                    textStyle = TextStyle(color = MaterialTheme.typography.body1.color)
+                                    textStyle = TextStyle(color = MaterialTheme.typography.bodyLarge.color)
                                 )
                             } else {
                                 Text(
@@ -438,8 +439,8 @@ fun FolderScreen(
                                 )
                             }
                         },
-                        navigationIcon = if (isCanNavigateUp) {
-                            {
+                        navigationIcon = {
+                            if (isCanNavigateUp) {
                                 IconButton(
                                     onClick = {
                                         if (state.isInEditMode) {
@@ -455,8 +456,6 @@ fun FolderScreen(
                                     )
                                 }
                             }
-                        } else {
-                            null
                         },
                         actions = {
                             if (!state.isInEditMode) {
@@ -504,7 +503,6 @@ fun FolderScreen(
                                 }
                             }
                         },
-                        elevation = 0.dp,
                         modifier = Modifier.statusBarsPadding()
                     )
                 },
@@ -540,7 +538,7 @@ fun FolderScreen(
                                                 Icon(
                                                     painter = painterResource(id = R.drawable.ic_vector_link_off),
                                                     contentDescription = stringResource(id = R.string.option_menu_delete),
-                                                    tint = ActiveElement,
+                                                    tint = MaterialTheme.colorScheme.error,
                                                     modifier = Modifier.scale(scale)
                                                 )
                                             }

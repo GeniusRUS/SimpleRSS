@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -34,16 +33,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -81,9 +81,7 @@ import com.genius.srss.ui.subscriptions.FeedEmptyModel
 import com.genius.srss.ui.subscriptions.FeedItemModel
 import com.genius.srss.ui.subscriptions.SubscriptionFolderEmptyModel
 import com.genius.srss.ui.subscriptions.SubscriptionsListAdapter
-import com.genius.srss.ui.theme.Primary
 import com.genius.srss.ui.theme.SRSSTheme
-import com.genius.srss.ui.theme.strokeColor
 import com.ub.utils.base.BaseListAdapter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
@@ -93,6 +91,7 @@ import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+@ExperimentalMaterial3Api
 class FeedFragment : Fragment(),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
@@ -296,6 +295,7 @@ class FeedFragment : Fragment(),
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun FeedScreen(
     feedUrl: String,
@@ -326,8 +326,7 @@ fun FeedScreen(
         Surface {
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        backgroundColor = MaterialTheme.colors.background,
+                    MediumTopAppBar(
                         title = {
                             if (isInEditMode) {
                                 BasicTextField(
@@ -341,7 +340,7 @@ fun FeedScreen(
                                         )
                                     },
                                     singleLine = true,
-                                    textStyle = TextStyle(color = MaterialTheme.typography.body1.color)
+                                    textStyle = TextStyle(color = MaterialTheme.typography.bodyLarge.color)
                                 )
                             } else {
                                 Text(
@@ -349,8 +348,8 @@ fun FeedScreen(
                                 )
                             }
                         },
-                        navigationIcon = if (isCanNavigateUp) {
-                            {
+                        navigationIcon = {
+                            if (isCanNavigateUp) {
                                 IconButton(onClick = {
                                     if (isInEditMode) {
                                         viewModel.changeEditMode(isEdit = false)
@@ -364,8 +363,6 @@ fun FeedScreen(
                                     )
                                 }
                             }
-                        } else {
-                            null
                         },
                         actions = {
                             if (!isInEditMode) {
@@ -399,14 +396,13 @@ fun FeedScreen(
                                 }
                             }
                         },
-                        elevation = 0.dp,
                         modifier = Modifier.statusBarsPadding()
                     )
                 }
             ) { paddings ->
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     LazyColumn(
                         state = scrollState,
@@ -471,7 +467,7 @@ fun FeedItem(
                     vertical = 6.dp
                 )
                 .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, MaterialTheme.colors.strokeColor, RoundedCornerShape(4.dp))
+                .border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant, RoundedCornerShape(4.dp))
                 .clickable {
                     onClick?.invoke()
                 }
@@ -562,7 +558,7 @@ fun FeedEmptyItem(
                     ) {
                         Text(
                             text = action,
-                            color = Primary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

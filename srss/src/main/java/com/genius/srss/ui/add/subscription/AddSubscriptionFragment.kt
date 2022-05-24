@@ -16,19 +16,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Scaffold
-import androidx.compose.material.SnackbarResult
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -189,6 +190,7 @@ class AddSubscriptionFragment : Fragment(R.layout.fragment_add_subscription), Vi
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun AddSubscriptionScreen(
     folderId: String?,
@@ -204,7 +206,7 @@ fun AddSubscriptionScreen(
         )
     )
 ) {
-    val scaffoldState = rememberScaffoldState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.loadingSourceInfoFlow.collectAsState()
     var feedUrl by remember { mutableStateOf<String?>(null) }
@@ -213,7 +215,7 @@ fun AddSubscriptionScreen(
     }
     viewModel.errorFlow.collectAsEffect { error ->
         coroutineScope.launch {
-            val snackbarResult = scaffoldState.snackbarHostState.showSnackbar(
+            val snackbarResult = snackbarHostState.showSnackbar(
                 message = error
             )
             when (snackbarResult) {
@@ -226,13 +228,12 @@ fun AddSubscriptionScreen(
     SRSSTheme {
         Surface {
             Scaffold(
-                scaffoldState = scaffoldState,
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 topBar = {
-                    TopAppBar(
-                        backgroundColor = MaterialTheme.colors.background,
+                    MediumTopAppBar(
                         title = {},
-                        navigationIcon = if (isCanNavigateUp) {
-                            {
+                        navigationIcon = {
+                            if (isCanNavigateUp) {
                                 IconButton(onClick = { navigateUp.invoke() }) {
                                     Icon(
                                         imageVector = Icons.Filled.ArrowBack,
@@ -240,10 +241,7 @@ fun AddSubscriptionScreen(
                                     )
                                 }
                             }
-                        } else {
-                            null
                         },
-                        elevation = 0.dp,
                         modifier = Modifier.statusBarsPadding()
                     )
                 },
@@ -299,6 +297,7 @@ fun AddSubscriptionScreen(
     }
 }
 
+@ExperimentalMaterial3Api
 @Preview(showBackground = true)
 @Composable
 fun AddSubscriptionPreview() {

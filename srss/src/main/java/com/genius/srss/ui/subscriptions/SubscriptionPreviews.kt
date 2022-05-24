@@ -1,19 +1,17 @@
 package com.genius.srss.ui.subscriptions
 
+import android.os.Build
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.genius.srss.R
 import com.genius.srss.ui.theme.SRSSTheme
 
 @ExperimentalMaterialApi
-@Preview(
-    name = "Standard screen state",
-    showBackground = true,
-    locale = "ru"
-)
+@ExperimentalMaterial3Api
 @Composable
-fun StandardSubscriptionScreenPreview() {
+internal fun PreviewSubscriptionNotEmptyScreen() {
     SRSSTheme {
         SubscriptionScreen(
             navigateToFolder = {},
@@ -47,13 +45,9 @@ fun StandardSubscriptionScreenPreview() {
 }
 
 @ExperimentalMaterialApi
-@Preview(
-    name = "Empty screen state",
-    showBackground = true,
-    locale = "ru"
-)
+@ExperimentalMaterial3Api
 @Composable
-fun EmptySubscriptionScreenPreview() {
+internal fun PreviewSubscriptionEmptyScreen() {
     SRSSTheme {
         SubscriptionScreen(
             navigateToFolder = {},
@@ -84,4 +78,41 @@ fun EmptySubscriptionScreenPreview() {
             )
         )
     }
+}
+
+@ExperimentalMaterial3Api
+@ExperimentalMaterialApi
+@Preview(
+    name = "Standard dynamic",
+    showBackground = true,
+    locale = "ru"
+)
+@Composable
+fun StandardDynamicSubscriptionScreenPreview() {
+    PreviewSubscriptionNotEmptyScreen()
+}
+
+@ExperimentalMaterial3Api
+@ExperimentalMaterialApi
+@Preview(
+    name = "Empty dynamic",
+    showBackground = true,
+    locale = "ru"
+)
+@Composable
+fun EmptyDynamicSubscriptionScreenPreview() {
+    PreviewSubscriptionEmptyScreen()
+}
+
+@ExperimentalMaterial3Api
+@ExperimentalMaterialApi
+@Preview(
+    name = "Standard default",
+    showBackground = true,
+    locale = "ru",
+    apiLevel = Build.VERSION_CODES.P
+)
+@Composable
+fun StandardDefaultSubscriptionScreenPreview() {
+    PreviewSubscriptionNotEmptyScreen()
 }

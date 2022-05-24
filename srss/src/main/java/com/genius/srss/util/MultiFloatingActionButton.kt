@@ -18,10 +18,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,7 +32,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -119,7 +118,7 @@ private fun MiniFabItem(
     showLabel: Boolean,
     onFabItemClicked: (item: MultiFabItem) -> Unit
 ) {
-    val fabColor = MaterialTheme.colors.secondary
+    val fabColor = MaterialTheme.colorScheme.secondary
     val shadowColor = colorResource(id = R.color.transparent_black)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -133,7 +132,7 @@ private fun MiniFabItem(
                 modifier = Modifier
                     .alpha(animateFloatAsState(alpha).value)
                     .shadow(animateDpAsState(shadow).value)
-                    .background(color = MaterialTheme.colors.surface)
+                    .background(color = MaterialTheme.colorScheme.surface)
                     .padding(start = 6.dp, end = 6.dp, top = 4.dp, bottom = 4.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -196,7 +195,7 @@ private fun Minimal(
     scale: Float,
     onFabItemClicked: (item: MultiFabItem) -> Unit
 ) {
-    val fabColor = MaterialTheme.colors.secondary
+    val fabColor = MaterialTheme.colorScheme.secondary
     Canvas(
         modifier = Modifier
             .size(32.dp)
@@ -206,7 +205,7 @@ private fun Minimal(
                 indication = rememberRipple(
                     bounded = false,
                     radius = 20.dp,
-                    color = MaterialTheme.colors.onSecondary
+                    color = MaterialTheme.colorScheme.onSecondary
                 )
             )
     ) {

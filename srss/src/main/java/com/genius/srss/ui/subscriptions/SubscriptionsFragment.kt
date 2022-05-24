@@ -27,19 +27,21 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.Text
 import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,7 +67,6 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -77,8 +78,6 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.feed.FeedEmptyItem
-import com.genius.srss.ui.theme.ActiveElement
-import com.genius.srss.ui.theme.DefaultBackgroundInverted
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.DragTarget
 import com.genius.srss.util.DropTarget
@@ -512,6 +511,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     }
 }
 
+@ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
 fun SubscriptionScreen(
@@ -569,21 +569,23 @@ fun SubscriptionScreen(
                         contentPadding = WindowInsets.systemBars
                             .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
                             .asPaddingValues(),
-                        modifier = Modifier.fillMaxHeight().pointerInputDetectTransformGestures(
-                            isTransformInProgressChanged = { isInProgress ->
-                                if (!isInProgress) {
-                                    if (zoom > 1F) {
-                                        viewModelInterface.updateFeed(isFull = true)
-                                    } else if (zoom < 1F) {
-                                        viewModelInterface.updateFeed(isFull = false)
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .pointerInputDetectTransformGestures(
+                                isTransformInProgressChanged = { isInProgress ->
+                                    if (!isInProgress) {
+                                        if (zoom > 1F) {
+                                            viewModelInterface.updateFeed(isFull = true)
+                                        } else if (zoom < 1F) {
+                                            viewModelInterface.updateFeed(isFull = false)
+                                        }
+                                        zoom = 1F
                                     }
-                                    zoom = 1F
+                                },
+                                onGesture = { _, _, scale, _ ->
+                                    zoom *= scale
                                 }
-                            },
-                            onGesture = { _, _, scale, _ ->
-                                zoom *= scale
-                            }
-                        )
+                            )
                     ) {
                         state.feedList.forEachIndexed { index, model ->
                             when (model) {
@@ -614,7 +616,7 @@ fun SubscriptionScreen(
                                                 Icon(
                                                     painter = painterResource(id = R.drawable.ic_vector_delete_outline),
                                                     contentDescription = stringResource(id = R.string.option_menu_delete),
-                                                    tint = ActiveElement,
+                                                    tint = MaterialTheme.colorScheme.error,
                                                     modifier = Modifier.scale(scale)
                                                 )
                                             }
@@ -675,6 +677,7 @@ fun SubscriptionScreen(
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun FolderItem(
     id: String,
@@ -686,10 +689,10 @@ fun FolderItem(
     SRSSTheme {
         DropTarget<Int> { isInBound, position ->
             Card(
-                elevation = 2.dp,
+                elevation = CardDefaults.cardElevation(2.dp),
                 shape = RoundedCornerShape(8.dp),
                 border = if (isInBound) {
-                    BorderStroke(1.dp, DefaultBackgroundInverted)
+                    BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface)
                 } else null,
                 modifier = Modifier
                     .padding(4.dp)
@@ -725,6 +728,7 @@ fun FolderItem(
     }
 }
 
+@ExperimentalMaterial3Api
 @Preview(showBackground = true)
 @Composable
 fun SubscriptionItem(
@@ -737,7 +741,7 @@ fun SubscriptionItem(
             dataToDrop = position
         ) {
             Card(
-                elevation = 2.dp,
+                elevation = CardDefaults.cardElevation(2.dp),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .padding(4.dp)

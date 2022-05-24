@@ -151,6 +151,7 @@ dependencies {
     implementation("androidx.compose.animation:animation-graphics:$composeVer")
     implementation("androidx.compose.ui:ui-tooling-preview:$composeVer")
     implementation("androidx.navigation:navigation-compose:$navigationVer")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha12")
     implementation("androidx.activity:activity-compose:1.4.0")
 
     implementation("com.google.dagger:dagger:$daggerVer")
