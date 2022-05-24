@@ -42,7 +42,7 @@ class SubscriptionsViewModel(
     private val context: Context,
     private val subscriptionDao: SubscriptionsDao,
     private val dataStore: DataStore<Preferences>
-) : ViewModel() {
+) : ViewModel(), ISubscriptionViewModel {
 
     private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
     private val _state: MutableStateFlow<SubscriptionsStateModel> =
@@ -123,18 +123,19 @@ class SubscriptionsViewModel(
         }
     }
 
-    fun updateFeed(isFull: Boolean = _state.value.isFullList) {
+    override fun updateFeed(isFull: Boolean?) {
+        val isFullNotNull = isFull ?: _state.value.isFullList
         viewModelScope.launch {
             _state.update { state ->
                 state.copy(
-                    isFullList = isFull,
+                    isFullList = isFullNotNull,
                 )
             }
-            _isFullListState.emit(isFull)
+            _isFullListState.emit(isFullNotNull)
         }
     }
 
-    fun removeSubscriptionByPosition(position: Int) {
+    override fun removeSubscriptionByPosition(position: Int) {
         viewModelScope.launch {
             try {
                 (_state.value.feedList[position] as? SubscriptionItemModel)?.let { subscription ->
@@ -162,7 +163,7 @@ class SubscriptionsViewModel(
         }
     }
 
-    fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
+    override fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
         viewModelScope.launch {
             try {
                 if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch

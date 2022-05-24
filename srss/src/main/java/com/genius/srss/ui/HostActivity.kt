@@ -6,6 +6,8 @@ import android.webkit.URLUtil
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,12 +19,15 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.genius.srss.MainGraphDirections
 import com.genius.srss.R
 import com.genius.srss.databinding.ActivityHostBinding
+import com.genius.srss.di.DIManager
 import com.genius.srss.ui.add.folder.AddFolderScreen
 import com.genius.srss.ui.add.subscription.AddSubscriptionScreen
 import com.genius.srss.ui.feed.FeedScreen
 import com.genius.srss.ui.feed.openFeed
 import com.genius.srss.ui.folder.FolderScreen
 import com.genius.srss.ui.subscriptions.SubscriptionScreen
+import com.genius.srss.ui.subscriptions.SubscriptionsViewModel
+import com.genius.srss.ui.subscriptions.SubscriptionsViewModelFactory
 import com.genius.srss.ui.subscriptions.urlDecode
 import com.google.android.material.snackbar.Snackbar
 
@@ -46,6 +51,14 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                 startDestination = "subscription"
             ) {
                 composable("subscription") {
+                    val viewModel: SubscriptionsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                        factory = SubscriptionsViewModelFactory(
+                            DIManager.appComponent.context,
+                            DIManager.appComponent.subscriptionDao,
+                            DIManager.appComponent.dataStore
+                        )
+                    )
+                    val state by viewModel.state.collectAsState()
                     SubscriptionScreen(
                         navigateToFolder = { folderId ->
                             navController.navigate("folder/${folderId}")
@@ -58,7 +71,9 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                         },
                         navigateToAddSubscription = {
                             navController.navigate("addSubscription")
-                        }
+                        },
+                        viewModelInterface = viewModel,
+                        state = state
                     )
                 }
                 composable(

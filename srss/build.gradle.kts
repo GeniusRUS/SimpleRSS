@@ -95,6 +95,7 @@ val roomVer = "2.4.2"
 val coroutineVer = "1.6.1"
 val navigationVer = "2.4.2"
 val lifecycleVer = "2.4.1"
+val coilVer = "2.1.0"
 val composeVer = getExtra<String>("compose_version")
 
 dependencies {
@@ -104,7 +105,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.4.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.4.0")
     implementation("androidx.activity:activity-ktx:1.4.0")
@@ -116,10 +117,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:2.3.0")
+    implementation("io.github.unitbean:androidcore:2.4.0")
 
-    implementation("io.coil-kt:coil:2.0.0")
-    implementation("io.coil-kt:coil-compose:2.0.0")
+    implementation("io.coil-kt:coil:$coilVer")
+    implementation("io.coil-kt:coil-compose:$coilVer")
 
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVer")
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVer")

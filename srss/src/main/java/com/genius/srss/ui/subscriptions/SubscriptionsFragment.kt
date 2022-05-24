@@ -519,15 +519,9 @@ fun SubscriptionScreen(
     navigateToFeed: (String) -> Unit,
     navigateToAddFolder: () -> Unit,
     navigateToAddSubscription: () -> Unit,
-    viewModel: SubscriptionsViewModel = viewModel(
-        factory = SubscriptionsViewModelFactory(
-            DIManager.appComponent.context,
-            DIManager.appComponent.subscriptionDao,
-            DIManager.appComponent.dataStore
-        )
-    )
+    viewModelInterface: ISubscriptionViewModel,
+    state: SubscriptionsStateModel
 ) {
-    val state by viewModel.state.collectAsState()
     var toState by remember { mutableStateOf(MultiFabState.COLLAPSED) }
     var zoom by remember { mutableStateOf(1f) }
     SRSSTheme {
@@ -579,9 +573,9 @@ fun SubscriptionScreen(
                             isTransformInProgressChanged = { isInProgress ->
                                 if (!isInProgress) {
                                     if (zoom > 1F) {
-                                        viewModel.updateFeed(isFull = true)
+                                        viewModelInterface.updateFeed(isFull = true)
                                     } else if (zoom < 1F) {
-                                        viewModel.updateFeed(isFull = false)
+                                        viewModelInterface.updateFeed(isFull = false)
                                     }
                                     zoom = 1F
                                 }
@@ -601,7 +595,7 @@ fun SubscriptionScreen(
                                 ) {
                                     val dismissState = rememberDismissState()
                                     if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-                                        viewModel.removeSubscriptionByPosition(index)
+                                        viewModelInterface.removeSubscriptionByPosition(index)
                                     }
                                     SwipeToDismiss(
                                         directions = setOf(DismissDirection.EndToStart),
@@ -649,7 +643,7 @@ fun SubscriptionScreen(
                                             navigateToFolder.invoke(folderId)
                                         },
                                         onAddFeed = { position ->
-                                            viewModel.handleHolderMove(
+                                            viewModelInterface.handleHolderMove(
                                                 holderPosition = position,
                                                 targetPosition = index
                                             )
@@ -658,6 +652,9 @@ fun SubscriptionScreen(
                                 }
                                 is SubscriptionFolderEmptyModel -> item(
                                     key = model.getItemId(),
+                                    span = {
+                                        GridItemSpan(maxLineSpan)
+                                    }
                                 ) {
                                     FeedEmptyItem(
                                         icon = model.icon,

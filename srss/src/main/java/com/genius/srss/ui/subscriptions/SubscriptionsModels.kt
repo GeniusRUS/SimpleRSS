@@ -7,6 +7,12 @@ import com.genius.srss.R
 import com.ub.utils.base.DiffComparable
 import java.util.*
 
+interface ISubscriptionViewModel {
+    fun removeSubscriptionByPosition(position: Int)
+    fun updateFeed(isFull: Boolean? = null)
+    fun handleHolderMove(holderPosition: Int, targetPosition: Int)
+}
+
 data class SubscriptionsStateModel(
     val feedList: List<BaseSubscriptionModel> = listOf(),
     val isFullList: Boolean = false,
