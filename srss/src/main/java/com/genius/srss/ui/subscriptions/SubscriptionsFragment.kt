@@ -728,6 +728,9 @@ fun FolderItem(
                 border = if (isInBound) {
                     BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface)
                 } else null,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
                 modifier = Modifier
                     .padding(4.dp)
                     .fillMaxWidth()
@@ -779,6 +782,9 @@ fun SubscriptionItem(
             Card(
                 elevation = CardDefaults.cardElevation(2.dp),
                 shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
                 modifier = Modifier
                     .padding(4.dp)
                     .fillMaxWidth()

@@ -527,6 +527,18 @@ fun FolderScreen(
                 LazyColumn(
                     contentPadding = WindowInsets.navigationBars
                         .only(WindowInsetsSides.Bottom)
+                        .run {
+                            if (!state.isCombinedMode) {
+                                add(
+                                    WindowInsets(
+                                        bottom = 8.dp,
+                                        top = 8.dp,
+                                        left = 8.dp,
+                                        right = 8.dp
+                                    )
+                                )
+                            } else this
+                        }
                         .add(WindowInsets(top = padding.calculateTopPadding()))
                         .asPaddingValues(),
                     content = {
