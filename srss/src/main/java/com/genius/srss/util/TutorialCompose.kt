@@ -2,6 +2,7 @@ package com.genius.srss.util
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -72,16 +75,16 @@ fun Tutorial(
         )
     )
 
-    val state = remember { mutableStateOf(tips.first()) }
+    var state by remember { mutableStateOf(tips.first()) }
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .clickable {
-                val currentPosition = tips.indexOf(state.value)
+                val currentPosition = tips.indexOf(state)
                 val nextItemOrClose = tips.getOrNull(currentPosition + 1)
                 if (nextItemOrClose != null) {
-                    state.value = nextItemOrClose
+                    state = nextItemOrClose
                 } else {
                     toClose.invoke()
                 }
@@ -97,35 +100,40 @@ fun Tutorial(
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily.SansSerif,
                 textAlign = TextAlign.Center,
-                text = stringResource(id = state.value.message),
+                text = stringResource(id = state.message),
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
             )
             Icon(
-                painter = painterResource(id = state.value.icon),
+                painter = painterResource(id = state.icon),
                 contentDescription = stringResource(id = R.string.content_description_image),
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .padding(24.dp)
             )
         }
-        IconButton(
-            onClick = {
-                val currentPosition = tips.indexOf(state.value)
-                state.value = tips.getOrElse(currentPosition - 1) {
-                    tips.first()
-                }
-            },
+        AnimatedVisibility(
+            visible = state != tips.first(),
             modifier = Modifier
-                .padding(16.dp)
                 .align(Alignment.BottomStart)
-                .navigationBarsPadding()
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_vector_chevron_left),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
-            )
+            IconButton(
+                onClick = {
+                    val currentPosition = tips.indexOf(state)
+                    state = tips.getOrElse(currentPosition - 1) {
+                        tips.first()
+                    }
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .navigationBarsPadding()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_vector_chevron_left),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onBackground,
+                )
+            }
         }
         IconButton(
             onClick = toClose,

@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -54,8 +55,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -533,6 +535,7 @@ fun SubscriptionScreen(
 ) {
     var toState by remember { mutableStateOf(MultiFabState.COLLAPSED) }
     var zoom by remember { mutableStateOf(1f) }
+    var gridHeight by remember { mutableStateOf(0) }
     SRSSTheme {
         Surface {
             Scaffold(
@@ -591,6 +594,9 @@ fun SubscriptionScreen(
                                 .asPaddingValues(),
                             modifier = Modifier
                                 .fillMaxHeight()
+                                .onGloballyPositioned { coordinates ->
+                                    gridHeight = coordinates.size.height
+                                }
                                 .pointerInputDetectTransformGestures(
                                     isTransformInProgressChanged = { isInProgress ->
                                         if (!isInProgress) {
@@ -685,6 +691,9 @@ fun SubscriptionScreen(
                                             icon = model.icon,
                                             message = model.message,
                                             action = model.actionText,
+                                            modifier = Modifier.height(
+                                                with(LocalDensity.current) { gridHeight.toDp() }
+                                            ),
                                             onClick = {
                                                 navigateToAddSubscription.invoke()
                                             }
