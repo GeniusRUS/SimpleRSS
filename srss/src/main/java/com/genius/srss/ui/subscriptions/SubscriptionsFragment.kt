@@ -13,7 +13,6 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -577,7 +577,11 @@ fun SubscriptionScreen(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             blur(10.dp)
                         } else {
-                            background(MaterialTheme.colorScheme.background.copy(alpha = 0.5F))
+                            val color = MaterialTheme.colorScheme.background.copy(alpha = 0.68F)
+                            drawWithContent {
+                                drawContent()
+                                drawRect(color)
+                            }
                         }
                     } else this
                 }

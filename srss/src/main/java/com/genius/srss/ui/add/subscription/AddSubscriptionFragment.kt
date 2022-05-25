@@ -246,14 +246,15 @@ fun AddSubscriptionScreen(
                         modifier = Modifier.statusBarsPadding()
                     )
                 },
-                modifier = Modifier.navigationBarsPadding()
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .imePadding()
             ) { padding ->
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .imePadding(),
+                        .fillMaxHeight(),
                 ) {
                     OutlinedTextField(
                         enabled = !state.isAvailableToSave,
@@ -285,7 +286,7 @@ fun AddSubscriptionScreen(
                             .fillMaxWidth()
                     ) {
                         Text(
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = MaterialTheme.colorScheme.surface,
                             text = if (state.isAvailableToSave) {
                                 stringResource(id = R.string.add_new_subscription_save)
                             } else {

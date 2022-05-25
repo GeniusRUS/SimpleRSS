@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
@@ -186,13 +188,15 @@ fun AddFolderScreen(
                         modifier = Modifier.statusBarsPadding()
                     )
                 },
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .imePadding()
             ) { padding ->
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .imePadding()
                 ) {
                     OutlinedTextField(
                         value = folderName ?: "",
@@ -222,7 +226,10 @@ fun AddFolderScreen(
                             .padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 16.dp)
                             .fillMaxWidth()
                     ) {
-                        Text(text = stringResource(id = R.string.add_new_subscription_folder_save))
+                        Text(
+                            color = MaterialTheme.colorScheme.surface,
+                            text = stringResource(id = R.string.add_new_subscription_folder_save)
+                        )
                     }
                 }
             }

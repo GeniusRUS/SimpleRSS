@@ -13,13 +13,17 @@ import androidx.compose.ui.platform.LocalContext
 private val DarkDefaultColorPalette = darkColorScheme(
     primary = Primary,
     secondary = PrimaryDark,
-    onPrimary = ActiveElement
+    onPrimary = ActiveElement,
+    primaryContainer = ActiveElement,
+    onPrimaryContainer = OnPrimary
 )
 
 private val LightDefaultColorPalette = lightColorScheme(
     primary = Primary,
     secondary = PrimaryDark,
-    onPrimary = ActiveElement
+    onPrimary = ActiveElement,
+    primaryContainer = ActiveElement,
+    onPrimaryContainer = OnPrimary
 )
 
 @Composable
