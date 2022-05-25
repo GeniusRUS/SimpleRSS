@@ -149,13 +149,19 @@ class SubscriptionsViewModel(
         }
     }
 
-    fun skipTutorial() {
+    override fun onEndTutorial() {
         viewModelScope.launch {
             try {
-                dataStore.updateData { preferences ->
+                val tutorialNewState = dataStore.updateData { preferences ->
                     preferences.toMutablePreferences().apply {
                         set(booleanPreferencesKey(IS_TUTORIAL_SHOW), false)
                     }
+                }[booleanPreferencesKey(IS_TUTORIAL_SHOW)] ?: _state.value.isTutorialShow
+                _tutorialState.emit(tutorialNewState)
+                _state.update { state ->
+                    state.copy(
+                        isTutorialShow = tutorialNewState
+                    )
                 }
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)

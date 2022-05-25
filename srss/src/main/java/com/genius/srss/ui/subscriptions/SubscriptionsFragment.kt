@@ -91,6 +91,7 @@ import com.genius.srss.util.LongPressDraggable
 import com.genius.srss.util.MultiFabItem
 import com.genius.srss.util.MultiFabState
 import com.genius.srss.util.MultiFloatingActionButton
+import com.genius.srss.util.Tutorial
 import com.genius.srss.util.TutorialView
 import com.genius.srss.util.launchAndRepeatWithViewLifecycle
 import com.genius.srss.util.pointerInputDetectTransformGestures
@@ -140,7 +141,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 
         binding.tutorial.rootView = binding.innerContent
         binding.tutorial.setSkipCallback {
-            viewModel.skipTutorial()
+            viewModel.onEndTutorial()
         }
         binding.tutorial.setDisplayedTips(
             listOf(
@@ -534,9 +535,6 @@ fun SubscriptionScreen(
     var zoom by remember { mutableStateOf(1f) }
     SRSSTheme {
         Surface {
-            if (state.isTutorialShow) {
-
-            }
             Scaffold(
                 floatingActionButton = {
                     MultiFloatingActionButton(
@@ -571,17 +569,14 @@ fun SubscriptionScreen(
                         }
                     )
                 },
-                modifier = Modifier.apply {
+                modifier = Modifier.run {
                     if (state.isTutorialShow) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            blur(10.dp, 10.dp)
+                            blur(10.dp)
                         } else {
                             background(MaterialTheme.colorScheme.background.copy(alpha = 0.5F))
                         }
-                        pointerInteropFilter {
-                            true
-                        }
-                    }
+                    } else this
                 }
             ) { padding ->
                 Box {
@@ -701,6 +696,13 @@ fun SubscriptionScreen(
                         }
                     }
                 }
+            }
+            if (state.isTutorialShow) {
+                Tutorial(
+                    toClose = {
+                        viewModelInterface.onEndTutorial()
+                    },
+                )
             }
         }
     }

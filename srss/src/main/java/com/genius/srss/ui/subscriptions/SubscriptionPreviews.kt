@@ -1,5 +1,6 @@
 package com.genius.srss.ui.subscriptions
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
@@ -30,6 +31,9 @@ internal fun PreviewSubscriptionNotEmptyScreen() {
                 }
 
                 override fun updateFeed(isFull: Boolean?) {
+                }
+
+                override fun onEndTutorial() {
                 }
             },
             state = SubscriptionsStateModel(
@@ -68,6 +72,9 @@ internal fun PreviewSubscriptionEmptyScreen() {
                 }
 
                 override fun updateFeed(isFull: Boolean?) {
+                }
+
+                override fun onEndTutorial() {
                 }
             },
             state = SubscriptionsStateModel(
@@ -119,10 +126,11 @@ fun EmptyDynamicSubscriptionScreenPreview() {
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(
-    name = "Standard default",
+    name = "Standard default dark",
     showBackground = true,
     locale = "ru",
-    apiLevel = Build.VERSION_CODES.P
+    apiLevel = Build.VERSION_CODES.P,
+    uiMode = UI_MODE_NIGHT_YES
 )
 @Composable
 fun StandardDefaultSubscriptionScreenPreview() {
