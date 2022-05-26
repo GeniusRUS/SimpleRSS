@@ -3,6 +3,7 @@ package com.genius.srss.util
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,27 +91,31 @@ fun Tutorial(
                 }
             }
     ) {
-        Column(
+        Crossfade(
+            targetState = state,
             modifier = Modifier
-                .align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = FontFamily.SansSerif,
-                textAlign = TextAlign.Center,
-                text = stringResource(id = state.message),
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-            )
-            Icon(
-                painter = painterResource(id = state.icon),
-                contentDescription = stringResource(id = R.string.content_description_image),
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .padding(24.dp)
-            )
+                .align(Alignment.Center)
+        ) { state ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = FontFamily.SansSerif,
+                    textAlign = TextAlign.Center,
+                    text = stringResource(id = state.message),
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                )
+                Icon(
+                    painter = painterResource(id = state.icon),
+                    contentDescription = stringResource(id = R.string.content_description_image),
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .padding(24.dp)
+                )
+            }
         }
         AnimatedVisibility(
             visible = state != tips.first(),

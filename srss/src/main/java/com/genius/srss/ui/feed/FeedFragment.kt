@@ -24,15 +24,18 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -57,6 +60,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.painter.BrushPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -75,7 +82,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageScope
 import coil.request.ImageRequest
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFeedBinding
@@ -408,9 +416,11 @@ fun FeedScreen(
                         },
                         modifier = Modifier
                             .background(
-                                TopAppBarDefaults.smallTopAppBarColors().containerColor(
-                                    scrollFraction = scrollBehavior.scrollFraction
-                                ).value
+                                TopAppBarDefaults
+                                    .smallTopAppBarColors()
+                                    .containerColor(
+                                        scrollFraction = scrollBehavior.scrollFraction
+                                    ).value
                             )
                             .statusBarsPadding(),
                         scrollBehavior = scrollBehavior
@@ -492,15 +502,14 @@ fun FeedItem(
                     onClick?.invoke()
                 }
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(pictureUrl)
                     .crossfade(true)
                     .build(),
                 contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.ic_vector_placeholder),
-                error = painterResource(R.drawable.ic_vector_placeholder),
-                fallback = painterResource(R.drawable.ic_vector_placeholder),
+                loading = { FeedPlaceholder() },
+                error = { FeedPlaceholder() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
                     .sizeIn(minHeight = 180.dp, maxHeight = 180.dp)
@@ -595,6 +604,28 @@ fun <T> Flow<T>.collectAsEffect(
     LaunchedEffect(key1 = Unit) {
         onEach(block).flowOn(context).launchIn(this)
     }
+}
+
+@Composable
+fun SubcomposeAsyncImageScope.FeedPlaceholder() {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1F)
+            .padding(135.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = CircleShape
+            )
+    ) {
+
+    }
+    Icon(
+        painter = painterResource(id = R.drawable.ic_vector_placeholder),
+        contentDescription = contentDescription,
+        tint = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .aspectRatio(1F)
+    )
 }
 
 fun openFeed(context: Context, url: String?) {
