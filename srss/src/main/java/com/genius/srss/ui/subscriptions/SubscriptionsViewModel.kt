@@ -42,9 +42,9 @@ class SubscriptionsViewModel(
     private val context: Context,
     private val subscriptionDao: SubscriptionsDao,
     private val dataStore: DataStore<Preferences>
-) : ViewModel(), ISubscriptionViewModel {
+) : ViewModel(), SubscriptionViewModelDelegate {
 
-    private val _errorFlow: MutableSharedFlow<Int> = MutableSharedFlow()
+    private val _errorFlow: MutableSharedFlow<String> = MutableSharedFlow()
     private val _state: MutableStateFlow<SubscriptionsStateModel> =
         MutableStateFlow(SubscriptionsStateModel())
     private val _tutorialState: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -52,7 +52,7 @@ class SubscriptionsViewModel(
 
     private val _isFullListState: MutableStateFlow<Boolean> = MutableStateFlow(_state.value.isFullList)
 
-    val errorFlow: SharedFlow<Int> = _errorFlow
+    val errorFlow: SharedFlow<String> = _errorFlow
     val state: StateFlow<SubscriptionsStateModel> = _state
     val tutorialState: StateFlow<Boolean> = _tutorialState
 
@@ -169,23 +169,17 @@ class SubscriptionsViewModel(
         }
     }
 
-    override fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
+    override fun handleHolderMove(url: String, folderId: String) {
         viewModelScope.launch {
             try {
-                if (holderPosition == RecyclerView.NO_POSITION || targetPosition == RecyclerView.NO_POSITION) return@launch
-                val holderToMove =
-                    _state.value.feedList[holderPosition] as? SubscriptionItemModel ?: return@launch
-                val targetOfMove =
-                    _state.value.feedList[targetPosition] as? SubscriptionFolderItemModel
-                        ?: return@launch
                 subscriptionDao.saveSubscriptionFolderCrossRef(
                     SubscriptionFolderCrossRefDatabaseModel(
-                        holderToMove.urlToLoad ?: return@launch,
-                        targetOfMove.id
+                        url,
+                        folderId
                     )
                 )
             } catch (linkAlreadyExistedException: SQLiteConstraintException) {
-                _errorFlow.emit(R.string.error_link_to_folder_already_exist)
+                _errorFlow.emit(context.getString(R.string.error_link_to_folder_already_exist))
             } catch (e: Exception) {
                 LogUtils.e(TAG, e.message, e)
             }

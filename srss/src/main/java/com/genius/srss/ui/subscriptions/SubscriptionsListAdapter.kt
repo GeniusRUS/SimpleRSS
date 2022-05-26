@@ -153,10 +153,10 @@ class SubscriptionsListAdapter : BaseListAdapter<BaseSubscriptionModel, Recycler
                     DragEvent.ACTION_DROP -> {
                         val position = event.clipData.getItemAt(0).text.toString().toInt()
                         // the dragged item was dropped into this view
-                        longTouchListener?.onDragHolderToPosition(
-                            holderPosition = position,
-                            targetPosition = absoluteAdapterPosition
-                        )
+//                        longTouchListener?.onDragHolderToPosition(
+//                            holderPosition = position,
+//                            targetPosition = absoluteAdapterPosition
+//                        )
                         folderRoot.setBackgroundResource(0)
                         true
                     }

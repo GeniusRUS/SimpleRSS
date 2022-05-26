@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -53,7 +54,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,6 +97,7 @@ import com.ub.utils.LogUtils
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.openSoftKeyboard
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
@@ -381,39 +382,32 @@ class FolderFragment : Fragment(),
     }
 }
 
+/**
+ * TODO saving scroll position on loading items
+ */
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
 fun FolderScreen(
-    folderId: String,
     navigateUp: () -> Unit,
     isCanNavigateUp: Boolean,
     navigateToFeed: (String) -> Unit,
     navigateToPost: (String?) -> Unit,
-    navigateToAdd: (String) -> Unit,
-    viewModel: FolderViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        factory = FolderModelFactory(
-            folderId = folderId,
-            context = DIManager.appComponent.context,
-            subscriptionsDao = DIManager.appComponent.subscriptionDao,
-            converters = DIManager.appComponent.converters,
-            network = DIManager.appComponent.network
-        )
-    )
+    navigateToAdd: () -> Unit,
+    state: FolderStateModel,
+    nameToEditFlow: Flow<String?>?,
+    loadedFeedCountFlow: Flow<String>?,
+    viewModelDelegate: FolderViewModelDelegate
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var newFolderName by remember { mutableStateOf<String?>(null) }
-    val state by viewModel.state.collectAsState()
     val scrollBehavior = remember { TopAppBarDefaults.enterAlwaysScrollBehavior() }
-    viewModel.nameToEditFlow.collectAsEffect { nameToEdit ->
+    nameToEditFlow?.collectAsEffect { nameToEdit ->
         newFolderName = nameToEdit
     }
-    viewModel.screenCloseFlow.collectAsEffect {
-        navigateUp.invoke()
-    }
-    viewModel.loadedFeedCountFlow.collectAsEffect { count ->
+    loadedFeedCountFlow?.collectAsEffect { count ->
         coroutineScope.launch {
             snackbarHostState.showSnackbar(
                 message = count
@@ -433,7 +427,7 @@ fun FolderScreen(
                                     value = newFolderName ?: "",
                                     onValueChange = {
                                         newFolderName = it
-                                        viewModel.checkSaveAvailability(
+                                        viewModelDelegate.checkSaveAvailability(
                                             SpannableStringBuilder.valueOf(
                                                 it
                                             )
@@ -454,7 +448,7 @@ fun FolderScreen(
                                 IconButton(
                                     onClick = {
                                         if (state.isInEditMode) {
-                                            viewModel.changeEditMode(isEdit = false)
+                                            viewModelDelegate.changeEditMode(isEdit = false)
                                         } else {
                                             navigateUp.invoke()
                                         }
@@ -470,7 +464,7 @@ fun FolderScreen(
                         actions = {
                             if (!state.isInEditMode) {
                                 IconButton(onClick = {
-                                    viewModel.changeMode()
+                                    viewModelDelegate.changeMode()
                                 }) {
                                     Icon(
                                         painter = if (state.isCombinedMode) {
@@ -484,7 +478,7 @@ fun FolderScreen(
                             }
                             if (!state.isInEditMode) {
                                 IconButton(onClick = {
-                                    viewModel.changeEditMode(isEdit = true)
+                                    viewModelDelegate.changeEditMode(isEdit = true)
                                 }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_vector_mode),
@@ -494,7 +488,7 @@ fun FolderScreen(
                             }
                             if (state.isInEditMode) {
                                 IconButton(onClick = {
-                                    viewModel.deleteFolder()
+                                    viewModelDelegate.deleteFolder()
                                 }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_delete_outline),
@@ -504,7 +498,7 @@ fun FolderScreen(
                             }
                             if (state.isInEditMode) {
                                 IconButton(onClick = {
-                                    viewModel.updateFolder(newFolderName = newFolderName)
+                                    viewModelDelegate.updateFolder(newFolderName = newFolderName)
                                 }, enabled = state.isAvailableToSave) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_vector_done),
@@ -541,83 +535,83 @@ fun FolderScreen(
                         }
                         .add(WindowInsets(top = padding.calculateTopPadding()))
                         .asPaddingValues(),
-                    content = {
-                        state.feedList.forEachIndexed { index, model ->
-                            when (model) {
-                                is SubscriptionItemModel -> item(
-                                    key = model.getItemId(),
-                                ) {
-                                    val dismissState = rememberDismissState()
-                                    if (dismissState.isDismissed(DismissDirection.StartToEnd)) {
-                                        viewModel.unlinkFolderByPosition(index)
-                                    }
-                                    SwipeToDismiss(
-                                        directions = setOf(DismissDirection.StartToEnd),
-                                        state = dismissState,
-                                        dismissThresholds = { FractionalThreshold(0.25f) },
-                                        background = {
-                                            val scale by animateFloatAsState(
-                                                if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
-                                            )
-                                            Box(
-                                                Modifier
-                                                    .fillMaxSize()
-                                                    .padding(horizontal = 20.dp),
-                                                contentAlignment = Alignment.CenterStart
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(id = R.drawable.ic_vector_link_off),
-                                                    contentDescription = stringResource(id = R.string.option_menu_delete),
-                                                    tint = MaterialTheme.colorScheme.error,
-                                                    modifier = Modifier.scale(scale)
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        SubscriptionItem(
-                                            title = model.title ?: "",
-                                            position = index,
-                                            modifier = Modifier.animateItemPlacement(),
-                                            onClick = {
-                                                navigateToFeed.invoke(
-                                                    model.urlToLoad?.urlEncode()
-                                                        ?: return@SubscriptionItem
-                                                )
-                                            }
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    state.feedList.forEachIndexed { index, model ->
+                        when (model) {
+                            is SubscriptionItemModel -> item(
+                                key = model.getItemId(),
+                            ) {
+                                val dismissState = rememberDismissState()
+                                if (dismissState.isDismissed(DismissDirection.StartToEnd)) {
+                                    viewModelDelegate.unlinkFolderByPosition(index)
+                                }
+                                SwipeToDismiss(
+                                    directions = setOf(DismissDirection.StartToEnd),
+                                    state = dismissState,
+                                    dismissThresholds = { FractionalThreshold(0.25f) },
+                                    background = {
+                                        val scale by animateFloatAsState(
+                                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
                                         )
-                                    }
-                                }
-                                is FeedItemModel -> item(
-                                    key = model.getItemId(),
+                                        Box(
+                                            Modifier
+                                                .fillMaxSize()
+                                                .padding(horizontal = 20.dp),
+                                            contentAlignment = Alignment.CenterStart
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.ic_vector_link_off),
+                                                contentDescription = stringResource(id = R.string.option_menu_delete),
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.scale(scale)
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.animateItemPlacement()
                                 ) {
-                                    FeedItem(
+                                    SubscriptionItem(
                                         title = model.title ?: "",
-                                        date = model.timestamp?.stringRepresentation,
-                                        pictureUrl = model.pictureUrl,
-                                        modifier = Modifier.animateItemPlacement(),
+                                        url = model.urlToLoad,
                                         onClick = {
-                                            navigateToPost.invoke(model.url)
+                                            navigateToFeed.invoke(
+                                                model.urlToLoad?.urlEncode()
+                                                    ?: return@SubscriptionItem
+                                            )
                                         }
                                     )
                                 }
-                                is SubscriptionFolderEmptyModel -> item(
-                                    key = model.getItemId(),
-                                ) {
-                                    FeedEmptyItem(
-                                        icon = model.icon,
-                                        message = model.message,
-                                        action = model.actionText,
-                                        modifier = Modifier.fillParentMaxHeight(),
-                                        onClick = {
-                                            navigateToAdd.invoke(folderId)
-                                        }
-                                    )
-                                }
-                                else -> throw IllegalArgumentException("Unsupported feed model: ${model::class.java.simpleName}")
                             }
+                            is FeedItemModel -> item(
+                                key = model.getItemId(),
+                            ) {
+                                FeedItem(
+                                    title = model.title ?: "",
+                                    date = model.timestamp?.stringRepresentation,
+                                    pictureUrl = model.pictureUrl,
+                                    modifier = Modifier.animateItemPlacement(),
+                                    onClick = {
+                                        navigateToPost.invoke(model.url)
+                                    }
+                                )
+                            }
+                            is SubscriptionFolderEmptyModel -> item(
+                                key = model.getItemId(),
+                            ) {
+                                FeedEmptyItem(
+                                    icon = model.icon,
+                                    message = model.message,
+                                    action = model.actionText,
+                                    modifier = Modifier.fillParentMaxHeight(),
+                                    onClick = {
+                                        navigateToAdd.invoke()
+                                    }
+                                )
+                            }
+                            else -> throw IllegalArgumentException("Unsupported feed model: ${model::class.java.simpleName}")
                         }
                     }
-                )
+                }
             }
         }
     }

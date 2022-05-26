@@ -60,7 +60,7 @@ class FolderViewModel(
     private val network: INetworkSource,
     private val converters: SRSSConverters,
     folderId: String
-) : ViewModel() {
+) : ViewModel(), FolderViewModelDelegate {
 
     private val _state: MutableStateFlow<FolderStateModel> = MutableStateFlow(FolderStateModel(folderId = folderId))
     private val _screenCloseFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
@@ -103,7 +103,7 @@ class FolderViewModel(
         }
     }
 
-    fun unlinkFolderByPosition(position: Int) {
+    override fun unlinkFolderByPosition(position: Int) {
         viewModelScope.launch {
             try {
                 (_state.value.feedList[position] as? SubscriptionItemModel)?.urlToLoad?.let { urlToLoad ->
@@ -119,7 +119,7 @@ class FolderViewModel(
         }
     }
 
-    fun changeEditMode(isEdit: Boolean) {
+    override fun changeEditMode(isEdit: Boolean) {
         _state.update { state ->
             state.copy(
                 isInEditMode = isEdit
@@ -127,7 +127,7 @@ class FolderViewModel(
         }
     }
 
-    fun checkSaveAvailability(newFolderName: Editable?) {
+    override fun checkSaveAvailability(newFolderName: Editable?) {
         if (!_state.value.isInEditMode) return
         viewModelScope.launch {
             try {
@@ -142,7 +142,7 @@ class FolderViewModel(
         }
     }
 
-    fun updateFolder(newFolderName: String?) {
+    override fun updateFolder(newFolderName: String?) {
         viewModelScope.launch {
             try {
                 newFolderName?.let { newName ->
@@ -160,7 +160,7 @@ class FolderViewModel(
         }
     }
 
-    fun changeMode() {
+    override fun changeMode() {
         viewModelScope.launch {
             try {
                 if (_state.value.isCombinedMode) {
@@ -185,7 +185,7 @@ class FolderViewModel(
         }
     }
 
-    fun deleteFolder() {
+    override fun deleteFolder() {
         viewModelScope.launch {
             try {
                 subscriptionsDao.complexRemoveFolderById(folderId = _state.value.folderId)

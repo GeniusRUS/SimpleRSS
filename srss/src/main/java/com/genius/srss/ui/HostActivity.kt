@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,8 +27,11 @@ import com.genius.srss.di.DIManager
 import com.genius.srss.ui.add.folder.AddFolderScreen
 import com.genius.srss.ui.add.subscription.AddSubscriptionScreen
 import com.genius.srss.ui.feed.FeedScreen
+import com.genius.srss.ui.feed.collectAsEffect
 import com.genius.srss.ui.feed.openFeed
+import com.genius.srss.ui.folder.FolderModelFactory
 import com.genius.srss.ui.folder.FolderScreen
+import com.genius.srss.ui.folder.FolderViewModel
 import com.genius.srss.ui.subscriptions.SubscriptionScreen
 import com.genius.srss.ui.subscriptions.SubscriptionsViewModel
 import com.genius.srss.ui.subscriptions.SubscriptionsViewModelFactory
@@ -57,7 +61,7 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                 startDestination = "subscription"
             ) {
                 composable("subscription") {
-                    val viewModel: SubscriptionsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    val viewModel: SubscriptionsViewModel = viewModel(
                         factory = SubscriptionsViewModelFactory(
                             DIManager.appComponent.context,
                             DIManager.appComponent.subscriptionDao,
@@ -78,8 +82,9 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                         navigateToAddSubscription = {
                             navController.navigate("addSubscription")
                         },
-                        viewModelInterface = viewModel,
-                        state = state
+                        viewModelDelegate = viewModel,
+                        state = state,
+                        errors = viewModel.errorFlow
                     )
                 }
                 composable(
@@ -129,8 +134,20 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                     arguments = listOf(navArgument("id") { type = NavType.StringType })
                 ) { backStackEntry ->
                     val folderId = backStackEntry.arguments?.getString("id")
+                    val viewModel: FolderViewModel = viewModel(
+                        factory = FolderModelFactory(
+                            folderId = folderId ?: return@composable,
+                            context = DIManager.appComponent.context,
+                            subscriptionsDao = DIManager.appComponent.subscriptionDao,
+                            converters = DIManager.appComponent.converters,
+                            network = DIManager.appComponent.network
+                        )
+                    )
+                    val state by viewModel.state.collectAsState()
+                    viewModel.screenCloseFlow.collectAsEffect {
+                        navController.navigateUp()
+                    }
                     FolderScreen(
-                        folderId = folderId ?: return@composable,
                         navigateUp = { navController.navigateUp() },
                         isCanNavigateUp = navController.previousBackStackEntry != null,
                         navigateToFeed = { feedUrl ->
@@ -139,9 +156,13 @@ class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {
                         navigateToPost = { postUrl ->
                             openFeed(context = this@HostActivity, postUrl)
                         },
-                        navigateToAdd = { folderIdToAdd ->
-                            navController.navigate("addSubscription?folderId=$folderIdToAdd")
-                        }
+                        navigateToAdd = {
+                            navController.navigate("addSubscription?folderId=$folderId")
+                        },
+                        state = state,
+                        nameToEditFlow = viewModel.nameToEditFlow,
+                        loadedFeedCountFlow = viewModel.loadedFeedCountFlow,
+                        viewModelDelegate = viewModel
                     )
                 }
             }

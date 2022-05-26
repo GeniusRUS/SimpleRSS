@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
@@ -42,12 +43,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -86,6 +90,7 @@ import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
 import com.genius.srss.ui.feed.FeedEmptyItem
+import com.genius.srss.ui.feed.collectAsEffect
 import com.genius.srss.ui.theme.SRSSTheme
 import com.genius.srss.util.DragTarget
 import com.genius.srss.util.DropTarget
@@ -103,6 +108,7 @@ import com.ub.utils.animator
 import com.ub.utils.base.BaseListAdapter
 import com.ub.utils.dpToPx
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -409,8 +415,8 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         viewModel.removeSubscriptionByPosition(position)
     }
 
-    override fun onDragHolderToPosition(holderPosition: Int, targetPosition: Int) {
-        viewModel.handleHolderMove(holderPosition, targetPosition)
+    override fun onDragHolderToPosition(url: String, folderId: String) {
+        viewModel.handleHolderMove(url, folderId)
     }
 
     override fun onChangeFolderSort(fromPosition: Int, toPosition: Int) {
@@ -520,6 +526,11 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
     }
 }
 
+/**
+ * TODO scroll on drag and drop
+ * TODO disable interaction on 2+ fingers gesture
+ * TODO fix snackbar extra padding for multifab
+ */
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalMaterial3Api
@@ -530,15 +541,27 @@ fun SubscriptionScreen(
     navigateToFeed: (String) -> Unit,
     navigateToAddFolder: () -> Unit,
     navigateToAddSubscription: () -> Unit,
-    viewModelInterface: ISubscriptionViewModel,
-    state: SubscriptionsStateModel
+    viewModelDelegate: SubscriptionViewModelDelegate,
+    state: SubscriptionsStateModel,
+    errors: Flow<String>? = null
 ) {
     var toState by remember { mutableStateOf(MultiFabState.COLLAPSED) }
     var zoom by remember { mutableStateOf(1f) }
     var gridHeight by remember { mutableStateOf(0) }
+    val lazyListState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    errors?.collectAsEffect { error ->
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(
+                message = error
+            )
+        }
+    }
     SRSSTheme {
         Surface {
             Scaffold(
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 floatingActionButton = {
                     MultiFloatingActionButton(
                         fabIcon = painterResource(id = R.drawable.ic_vector_add),
@@ -591,6 +614,7 @@ fun SubscriptionScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         LazyVerticalGrid(
+                            state = lazyListState,
                             columns = GridCells.Fixed(2),
                             contentPadding = WindowInsets.systemBars
                                 .add(WindowInsets(bottom = 8.dp, top = 8.dp, left = 8.dp, right = 8.dp))
@@ -605,9 +629,9 @@ fun SubscriptionScreen(
                                     isTransformInProgressChanged = { isInProgress ->
                                         if (!isInProgress) {
                                             if (zoom > 1F) {
-                                                viewModelInterface.updateFeed(isFull = true)
+                                                viewModelDelegate.updateFeed(isFull = true)
                                             } else if (zoom < 1F) {
-                                                viewModelInterface.updateFeed(isFull = false)
+                                                viewModelDelegate.updateFeed(isFull = false)
                                             }
                                             zoom = 1F
                                         }
@@ -627,7 +651,7 @@ fun SubscriptionScreen(
                                     ) {
                                         val dismissState = rememberDismissState()
                                         if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-                                            viewModelInterface.removeSubscriptionByPosition(index)
+                                            viewModelDelegate.removeSubscriptionByPosition(index)
                                         }
                                         SwipeToDismiss(
                                             directions = setOf(DismissDirection.EndToStart),
@@ -655,14 +679,13 @@ fun SubscriptionScreen(
                                         ) {
                                             SubscriptionItem(
                                                 title = model.title ?: "",
-                                                position = index,
-                                                modifier = Modifier.animateItemPlacement(),
+                                                url = model.urlToLoad,
                                                 onClick = {
                                                     navigateToFeed.invoke(
                                                         model.urlToLoad?.urlEncode()
                                                             ?: return@SubscriptionItem
                                                     )
-                                                }
+                                                },
                                             )
                                         }
                                     }
@@ -670,17 +693,16 @@ fun SubscriptionScreen(
                                         key = model.getItemId(),
                                     ) {
                                         FolderItem(
-                                            id = model.id,
                                             name = model.name,
                                             count = model.countOtOfSources,
                                             modifier = Modifier.animateItemPlacement(),
-                                            onClick = { folderId ->
-                                                navigateToFolder.invoke(folderId)
+                                            onClick = {
+                                                navigateToFolder.invoke(model.id)
                                             },
-                                            onAddFeed = { position ->
-                                                viewModelInterface.handleHolderMove(
-                                                    holderPosition = position,
-                                                    targetPosition = index
+                                            onAddFeed = { url ->
+                                                viewModelDelegate.handleHolderMove(
+                                                    url = url,
+                                                    folderId = model.id
                                                 )
                                             }
                                         )
@@ -713,7 +735,7 @@ fun SubscriptionScreen(
             if (state.isTutorialShow) {
                 Tutorial(
                     toClose = {
-                        viewModelInterface.onEndTutorial()
+                        viewModelDelegate.onEndTutorial()
                     },
                 )
             }
@@ -724,19 +746,18 @@ fun SubscriptionScreen(
 @ExperimentalMaterial3Api
 @Composable
 fun FolderItem(
-    id: String,
     name: String,
     count: Int,
     modifier: Modifier = Modifier,
-    onClick: (String) -> Unit,
-    onAddFeed: (Int) -> Unit
+    onClick: () -> Unit,
+    onAddFeed: (String) -> Unit
 ) {
     SRSSTheme {
-        DropTarget<Int>(
+        DropTarget<String>(
             modifier = modifier,
         ) { isInBound, position ->
             Card(
-                elevation = CardDefaults.cardElevation(2.dp),
+                elevation = CardDefaults.elevatedCardElevation(),
                 shape = RoundedCornerShape(8.dp),
                 border = if (isInBound) {
                     BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface)
@@ -748,12 +769,12 @@ fun FolderItem(
                     .padding(4.dp)
                     .fillMaxWidth()
                     .clickable {
-                        onClick.invoke(id)
+                        onClick.invoke()
                     }
             ) {
-                position?.let { position ->
+                position?.let { url ->
                     if (isInBound) {
-                        onAddFeed.invoke(position)
+                        onAddFeed.invoke(url)
                     }
                 }
                 Column(
@@ -784,16 +805,16 @@ fun FolderItem(
 fun SubscriptionItem(
     @PreviewParameter(SubscriptionItemProvider::class) title: String,
     modifier: Modifier = Modifier,
-    position: Int? = null,
+    url: String? = null,
     onClick: (() -> Unit)? = null
 ) {
     SRSSTheme {
         DragTarget(
             modifier = modifier,
-            dataToDrop = position
+            dataToDrop = url
         ) {
             Card(
-                elevation = CardDefaults.cardElevation(2.dp),
+                elevation = CardDefaults.elevatedCardElevation(),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface

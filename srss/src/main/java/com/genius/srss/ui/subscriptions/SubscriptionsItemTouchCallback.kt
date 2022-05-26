@@ -120,7 +120,7 @@ class SubscriptionsItemTouchCallback(
 
     interface TouchListener {
         fun onItemDismiss(position: Int)
-        fun onDragHolderToPosition(holderPosition: Int, targetPosition: Int)
+        fun onDragHolderToPosition(url: String, folderId: String)
         fun onChangeFolderSort(fromPosition: Int, toPosition: Int)
     }
 }

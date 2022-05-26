@@ -23,8 +23,8 @@ internal fun PreviewSubscriptionNotEmptyScreen() {
             navigateToFeed = {},
             navigateToAddFolder = {},
             navigateToAddSubscription = {},
-            viewModelInterface = object : ISubscriptionViewModel {
-                override fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
+            viewModelDelegate = object : SubscriptionViewModelDelegate {
+                override fun handleHolderMove(url: String, folderId: String) {
                 }
 
                 override fun removeSubscriptionByPosition(position: Int) {
@@ -64,8 +64,8 @@ internal fun PreviewSubscriptionEmptyScreen() {
             navigateToFeed = {},
             navigateToAddFolder = {},
             navigateToAddSubscription = {},
-            viewModelInterface = object : ISubscriptionViewModel {
-                override fun handleHolderMove(holderPosition: Int, targetPosition: Int) {
+            viewModelDelegate = object : SubscriptionViewModelDelegate {
+                override fun handleHolderMove(url: String, folderId: String) {
                 }
 
                 override fun removeSubscriptionByPosition(position: Int) {
