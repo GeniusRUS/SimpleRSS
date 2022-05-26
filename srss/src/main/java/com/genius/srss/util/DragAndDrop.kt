@@ -1,23 +1,28 @@
 package com.genius.srss.util
 
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
+import kotlin.math.abs
 
 /**
  * @author https://github.com/cp-radhika-s/Drag_and_drop_jetpack_compose
@@ -129,6 +134,38 @@ fun <T> DropTarget(
         @Suppress("UNCHECKED_CAST") val data =
             if (isCurrentDropTarget && !dragInfo.isDragging) dragInfo.dataToDrop as T? else null
         content(isCurrentDropTarget, data)
+    }
+}
+
+/**
+ * Works but [detectDragGesturesAfterLongPress] in [DragTarget] canceled touch event on folder location
+ */
+fun Modifier.dropScroll(lazyGridState: LazyGridState, dropSizeHeight: Int): Modifier {
+    return composed {
+        val dragInfo = LocalDragTargetInfo.current
+        val dragPosition = dragInfo.dragPosition
+        val dragOffset = dragInfo.dragOffset
+
+        val scrollPosition = dragPosition + dragOffset
+        val offsetFromTop = scrollPosition.y
+        val offsetFromBottom = dropSizeHeight - scrollPosition.y
+
+        LaunchedEffect(key1 = scrollPosition) {
+            if (offsetFromTop in 0F..250F) {
+                when (offsetFromTop) {
+                    in 0F..50F -> lazyGridState.scrollBy(-50F)
+                    in 50F..150F -> lazyGridState.scrollBy(-25F)
+                    in 150F..250F -> lazyGridState.scrollBy(-10F)
+                }
+            } else if (offsetFromBottom in 0F..250F) {
+                when (offsetFromBottom) {
+                    in 0F..50F -> lazyGridState.scrollBy(50F)
+                    in 50F..150F -> lazyGridState.scrollBy(25F)
+                    in 150F..250F -> lazyGridState.scrollBy(10F)
+                }
+            }
+        }
+        this
     }
 }
 

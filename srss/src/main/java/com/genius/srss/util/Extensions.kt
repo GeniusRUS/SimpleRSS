@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.genius.srss.util
 
 import android.content.Context
@@ -13,6 +15,7 @@ import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputScope
@@ -109,6 +112,7 @@ fun Context.getAttrColorValue(@AttrRes resId: Int): Int {
 
 /**
  * @author https://stackoverflow.com/questions/68686117/how-to-detect-the-end-of-transform-gesture-in-jetpack-compose
+ * Need to additional improvements https://towardsdev.com/jetpack-compose-detect-the-number-of-fingers-touching-the-screen-253a1e1179f9
  */
 fun Modifier.pointerInputDetectTransformGestures(
     panZoomLock: Boolean = false,

@@ -527,7 +527,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
 }
 
 /**
- * TODO scroll on drag and drop
+ * TODO scroll on drag and drop. See DragAndDrop::dropScroll
  * TODO disable interaction on 2+ fingers gesture
  * TODO fix snackbar extra padding for multifab
  */
@@ -681,10 +681,7 @@ fun SubscriptionScreen(
                                                 title = model.title ?: "",
                                                 url = model.urlToLoad,
                                                 onClick = {
-                                                    navigateToFeed.invoke(
-                                                        model.urlToLoad?.urlEncode()
-                                                            ?: return@SubscriptionItem
-                                                    )
+                                                    model.urlToLoad?.urlEncode()?.let(navigateToFeed)
                                                 },
                                             )
                                         }

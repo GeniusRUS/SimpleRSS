@@ -305,6 +305,6 @@ fun AddSubscriptionScreen(
 @Composable
 fun AddSubscriptionPreview() {
     SRSSTheme {
-        AddSubscriptionScreen(isCanNavigateUp = true, navigateOnAdd = {}, navigateUp = { /*TODO*/ }, folderId = null)
+        AddSubscriptionScreen(isCanNavigateUp = true, navigateOnAdd = {}, navigateUp = {}, folderId = null)
     }
 }
