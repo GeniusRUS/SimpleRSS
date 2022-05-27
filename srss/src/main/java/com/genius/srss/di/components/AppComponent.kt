@@ -1,7 +1,6 @@
 package com.genius.srss.di.components
 
 import android.content.Context
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -20,7 +19,7 @@ import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Singleton
 @Component(modules = [AppModule::class])
 interface AppComponent {

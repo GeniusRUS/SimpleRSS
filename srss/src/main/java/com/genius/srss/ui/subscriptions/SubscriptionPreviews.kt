@@ -2,7 +2,6 @@ package com.genius.srss.ui.subscriptions
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Build
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -12,7 +11,6 @@ import com.genius.srss.R
 import com.genius.srss.ui.theme.SRSSTheme
 
 @ExperimentalComposeUiApi
-@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
@@ -53,7 +51,6 @@ internal fun PreviewSubscriptionNotEmptyScreen() {
 }
 
 @ExperimentalComposeUiApi
-@ExperimentalFoundationApi
 @ExperimentalMaterialApi
 @ExperimentalMaterial3Api
 @Composable
@@ -94,7 +91,6 @@ internal fun PreviewSubscriptionEmptyScreen() {
 }
 
 @ExperimentalComposeUiApi
-@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(
@@ -108,7 +104,6 @@ fun StandardDynamicSubscriptionScreenPreview() {
 }
 
 @ExperimentalComposeUiApi
-@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(
@@ -122,7 +117,6 @@ fun EmptyDynamicSubscriptionScreenPreview() {
 }
 
 @ExperimentalComposeUiApi
-@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Preview(
