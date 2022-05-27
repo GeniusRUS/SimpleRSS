@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.webkit.URLUtil
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.collectAsState
@@ -38,7 +37,6 @@ import com.genius.srss.ui.subscriptions.SubscriptionsViewModelFactory
 import com.genius.srss.ui.subscriptions.urlDecode
 import com.google.android.material.snackbar.Snackbar
 
-@ExperimentalFoundationApi
 @ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi

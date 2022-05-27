@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,10 +59,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.painter.BrushPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
@@ -308,7 +303,6 @@ class FeedFragment : Fragment(),
     }
 }
 
-@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @Composable
 fun FeedScreen(
@@ -447,7 +441,6 @@ fun FeedScreen(
                                         title = item.title ?: "",
                                         date = item.timestamp?.stringRepresentation,
                                         pictureUrl = item.pictureUrl,
-                                        modifier = Modifier.animateItemPlacement(),
                                         onClick = {
                                             openFeed(context, item.url)
                                         }

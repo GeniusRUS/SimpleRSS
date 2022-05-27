@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -385,7 +384,6 @@ class FolderFragment : Fragment(),
 /**
  * TODO saving scroll position on loading items
  */
-@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
@@ -568,7 +566,6 @@ fun FolderScreen(
                                             )
                                         }
                                     },
-                                    modifier = Modifier.animateItemPlacement()
                                 ) {
                                     SubscriptionItem(
                                         title = model.title ?: "",
@@ -589,7 +586,6 @@ fun FolderScreen(
                                     title = model.title ?: "",
                                     date = model.timestamp?.stringRepresentation,
                                     pictureUrl = model.pictureUrl,
-                                    modifier = Modifier.animateItemPlacement(),
                                     onClick = {
                                         navigateToPost.invoke(model.url)
                                     }

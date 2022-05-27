@@ -12,7 +12,6 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -532,7 +531,6 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
  * TODO fix snackbar extra padding for multifab
  */
 @ExperimentalComposeUiApi
-@ExperimentalFoundationApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
@@ -657,7 +655,6 @@ fun SubscriptionScreen(
                                             directions = setOf(DismissDirection.EndToStart),
                                             state = dismissState,
                                             dismissThresholds = { FractionalThreshold(0.25f) },
-                                            modifier = Modifier.animateItemPlacement(),
                                             background = {
                                                 val scale by animateFloatAsState(
                                                     if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
@@ -692,7 +689,6 @@ fun SubscriptionScreen(
                                         FolderItem(
                                             name = model.name,
                                             count = model.countOtOfSources,
-                                            modifier = Modifier.animateItemPlacement(),
                                             onClick = {
                                                 navigateToFolder.invoke(model.id)
                                             },
