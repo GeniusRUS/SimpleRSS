@@ -9,7 +9,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -37,7 +36,6 @@ import com.genius.srss.ui.subscriptions.SubscriptionsViewModelFactory
 import com.genius.srss.ui.subscriptions.urlDecode
 import com.google.android.material.snackbar.Snackbar
 
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 class HostActivity : AppCompatActivity(/*R.layout.activity_host*/) {

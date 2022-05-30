@@ -74,6 +74,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.navArgs
 import coil.compose.SubcomposeAsyncImage
@@ -97,7 +98,6 @@ import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-@ExperimentalMaterial3Api
 class FeedFragment : Fragment(),
     BaseListAdapter.BaseListClickListener<BaseSubscriptionModel> {
 
@@ -120,6 +120,7 @@ class FeedFragment : Fragment(),
 
     private val arguments: FeedFragmentArgs by navArgs()
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -307,7 +308,7 @@ fun FeedScreen(
     feedUrl: String,
     navigateToUp: () -> Unit,
     isCanNavigateUp: Boolean,
-    viewModel: FeedViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+    viewModel: FeedViewModel = viewModel(
         factory = FeedViewModelFactory(
             feedUrl = feedUrl,
             networkSource = DIManager.appComponent.network,

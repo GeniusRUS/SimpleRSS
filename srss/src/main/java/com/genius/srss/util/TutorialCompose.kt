@@ -21,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -34,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import com.genius.srss.R
 import com.genius.srss.ui.theme.SRSSTheme
 
-@ExperimentalComposeUiApi
 @Composable
 fun Tutorial(
     toClose: () -> Unit,
@@ -156,7 +154,6 @@ fun Tutorial(
     }
 }
 
-@ExperimentalComposeUiApi
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_NO)
 @Composable
 fun TutorialPreview() {
@@ -167,7 +164,6 @@ fun TutorialPreview() {
     }
 }
 
-@ExperimentalComposeUiApi
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun TutorialDarkPreview() {

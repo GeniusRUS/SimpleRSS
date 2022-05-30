@@ -53,7 +53,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
@@ -530,7 +529,6 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
  * TODO disable interaction on 2+ fingers gesture
  * TODO fix snackbar extra padding for multifab
  */
-@ExperimentalComposeUiApi
 @ExperimentalMaterial3Api
 @ExperimentalMaterialApi
 @Composable
