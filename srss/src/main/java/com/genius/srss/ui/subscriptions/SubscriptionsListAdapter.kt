@@ -17,7 +17,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import coil.clear
+import coil.dispose
 import coil.load
 import coil.size.Scale
 import com.genius.srss.R
@@ -208,7 +208,7 @@ class SubscriptionsListAdapter(
             } else {
                 articleTitle.isGone = true
             }
-            articleImage.clear()
+            articleImage.dispose()
             articleImage.load(model.pictureUrl) {
                 scale(Scale.FIT)
                 crossfade(true)
