@@ -93,7 +93,7 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
         }
 
         scaleDetector = ScaleGestureDetector(
-            context,
+            view.context,
             object : SimpleOnScaleGestureListener() {
                 private var scaleFactor = 1f
                 override fun onScale(detector: ScaleGestureDetector): Boolean {

@@ -5,6 +5,7 @@ import android.content.ClipDescription
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.view.DragEvent
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.DragShadowBuilder
@@ -16,7 +17,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import coil.clear
+import coil.dispose
 import coil.load
 import coil.size.Scale
 import com.genius.srss.R
@@ -111,7 +112,7 @@ class SubscriptionsListAdapter(
         init {
             folderName.isSelected = true
             folderContent.setOnClickListener(this)
-            folderContent.setOnDragListener { _, event ->
+            folderContent.setOnDragListener { view, event ->
                 return@setOnDragListener when (event.action) {
                     DragEvent.ACTION_DRAG_STARTED -> {                     // drag has started, return true to tell that you're listening to the drag
                         true
@@ -129,6 +130,13 @@ class SubscriptionsListAdapter(
                     DragEvent.ACTION_DRAG_ENDED ->                     // the drag has ended
                         false
                     DragEvent.ACTION_DRAG_ENTERED -> {
+                        view.performHapticFeedback(
+                            if (VERSION.SDK_INT >= VERSION_CODES.M) {
+                                HapticFeedbackConstants.CONTEXT_CLICK
+                            } else {
+                                HapticFeedbackConstants.VIRTUAL_KEY
+                            }
+                        )
                         folderRoot.setBackgroundResource(R.drawable.shape_default_background_border)
                         false
                     }
@@ -200,7 +208,7 @@ class SubscriptionsListAdapter(
             } else {
                 articleTitle.isGone = true
             }
-            articleImage.clear()
+            articleImage.dispose()
             articleImage.load(model.pictureUrl) {
                 scale(Scale.FIT)
                 crossfade(true)
