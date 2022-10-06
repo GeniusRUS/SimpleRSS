@@ -168,9 +168,11 @@ class SubscriptionsListAdapter(
         private val iconImage: ImageView = binding.icon
         private val reasonText: TextView = binding.message
         private val action: Button = binding.action
+        private val contacts: Button = binding.contacts
 
         init {
             action.setOnClickListener(this)
+            contacts.setOnClickListener(this)
         }
 
         fun bind(model: SubscriptionFolderEmptyModel) {

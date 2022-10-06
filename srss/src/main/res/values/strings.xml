@@ -28,6 +28,11 @@
 
     <string name="folder_go_upward">Scroll to up</string>
 
+    <string name="empty_content_contacts">Contacts</string>
+    <string name="contacts_header">Contacts</string>
+    <string name="contacts_info">Hello. There is no separate site, but someday, maybe there will be. In the meantime, I\'ll leave my contacts below, feel free to ask any questions about this app</string>
+    <string name="open_with">Open with</string>
+
     <string name="subscription_folder_edit_hint">New folder name</string>
     <string name="subscription_subscription_edit_hint">New subscription name</string>
     <string name="subscription_feed_error">Something is wrong with the feed</string>
@@ -48,6 +53,9 @@
     <string name="tutorial_manual_folder_mode">You can change the display mode of feeds in a folder using the button</string>
 
     <string name="content_description_image">Picture</string>
+
+    <string name="github_link" translatable="false">https://github.com/GeniusRUS</string>
+    <string name="email_link" translatable="false">Gen1usRUS@yandex.ru</string>
 
     <plurals name="subscriptions_folder_count_template">
         <item quantity="zero">%1$d = No sources</item>

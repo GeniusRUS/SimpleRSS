@@ -76,4 +76,12 @@
     <action
         android:id="@+id/action_global_addFragment"
         app:destination="@id/addFragment" />
+    <dialog
+        android:id="@+id/contactsBottomSheetDialog"
+        android:name="com.genius.srss.ui.contacts.ContactsBottomSheetDialog"
+        android:label="dialog_contacts"
+        tools:layout="@layout/dialog_contacts" />
+    <action
+        android:id="@+id/action_global_contactsBottomSheetDialog"
+        app:destination="@id/contactsBottomSheetDialog" />
 </navigation>

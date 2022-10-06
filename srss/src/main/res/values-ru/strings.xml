@@ -17,6 +17,11 @@
 
     <string name="folder_go_upward">Наверх</string>
 
+    <string name="empty_content_contacts">Контакты</string>
+    <string name="contacts_header">Контакты</string>
+    <string name="contacts_info">Привет. Отдельного сайта нет, но когда-нибудь, может, появится. А пока что оставлю свои контакты ниже</string>
+    <string name="open_with">Открыть с помощью</string>
+
     <string name="option_menu_delete">Удалить</string>
     <string name="option_menu_save">Сохранить</string>
     <string name="folder_menu_mode">Режим</string>

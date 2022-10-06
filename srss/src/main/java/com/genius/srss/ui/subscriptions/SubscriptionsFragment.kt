@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import by.kirich1409.viewbindingdelegate.ViewBindingProperty
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.genius.srss.MainGraphDirections
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentSubscriptionsBinding
 import com.genius.srss.di.DIManager
@@ -262,7 +263,13 @@ class SubscriptionsFragment : Fragment(R.layout.fragment_subscriptions),
                 findNavController().navigate(direction)
             }
             is SubscriptionFolderEmptyModel -> {
-                onClick(binding.addSubscription)
+                when (view.id) {
+                    R.id.action -> onClick(binding.addSubscription)
+                    R.id.contacts -> {
+                        val direction = MainGraphDirections.actionGlobalContactsBottomSheetDialog()
+                        findNavController().navigate(direction)
+                    }
+                }
             }
             else -> {
                 // no-op

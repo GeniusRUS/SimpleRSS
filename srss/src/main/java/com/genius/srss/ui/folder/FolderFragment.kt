@@ -20,6 +20,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import com.genius.srss.MainGraphDirections
 import com.genius.srss.R
 import com.genius.srss.databinding.FragmentFolderBinding
 import com.genius.srss.di.DIManager
@@ -276,10 +277,18 @@ class FolderFragment : Fragment(),
                 findNavController().navigate(direction)
             }
             is SubscriptionFolderEmptyModel -> {
-                val direction = FolderFragmentDirections.actionFolderFragmentToAddFragment(
-                    folderId = arguments.folderId
-                )
-                findNavController().navigate(direction)
+                when (view.id) {
+                    R.id.action -> {
+                        val direction = FolderFragmentDirections.actionFolderFragmentToAddFragment(
+                            folderId = arguments.folderId
+                        )
+                        findNavController().navigate(direction)
+                    }
+                    R.id.contacts -> {
+                        val direction = MainGraphDirections.actionGlobalContactsBottomSheetDialog()
+                        findNavController().navigate(direction)
+                    }
+                }
             }
             is FeedItemModel -> {
                 val colorScheme = CustomTabColorSchemeParams.Builder()
