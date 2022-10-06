@@ -14,7 +14,7 @@ android {
         applicationId = "com.genius.srss"
         minSdk = 21
         targetSdk = 33
-        versionCode = 5
+        versionCode = 6
         versionName = "1.3.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled = true
