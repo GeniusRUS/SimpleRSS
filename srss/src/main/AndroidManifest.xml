@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:name=".SRSSApplication"
+        android:localeConfig="@xml/locale_config"
         android:theme="@style/Theme.SRSS"
         tools:ignore="UnusedAttribute">
         <activity

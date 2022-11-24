@@ -81,10 +81,10 @@ android {
     }
 }
 
-val daggerVer = "2.44"
+val daggerVer = "2.44.2"
 val roomVer = "2.4.3"
 val coroutineVer = "1.6.4"
-val navigationVer = "2.5.2"
+val navigationVer = "2.5.3"
 val lifecycleVer = "2.5.1"
 
 dependencies {
@@ -97,16 +97,16 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.browser:browser:1.4.0")
-    implementation("androidx.activity:activity-ktx:1.6.0")
-    implementation("androidx.fragment:fragment-ktx:1.5.3")
+    implementation("androidx.activity:activity-ktx:1.6.1")
+    implementation("androidx.fragment:fragment-ktx:1.5.4")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    implementation("com.google.android.material:material:1.6.1")
+    implementation("com.google.android.material:material:1.7.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVer")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer")
 
-    implementation("io.github.unitbean:androidcore:2.5.0")
+    implementation("io.github.unitbean:androidcore:2.6.0")
 
     implementation("io.coil-kt:coil:2.2.2")
 
@@ -136,6 +136,6 @@ dependencies {
     kapt("com.google.dagger:dagger-android-processor:$daggerVer")
 
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.4")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
 }

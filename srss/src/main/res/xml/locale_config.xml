@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<locale-config
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- English -->
+    <locale android:name="en"/>
+
+    <!-- Russian -->
+    <locale android:name="ru"/>
+</locale-config>
