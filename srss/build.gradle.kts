@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.io.BufferedReader
 
 plugins {
     id("com.android.application")
@@ -7,6 +8,18 @@ plugins {
     id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
 }
+
+val commitHash = Runtime
+    .getRuntime()
+    .exec("git rev-parse --short HEAD")
+    .let { process ->
+        process.waitFor()
+        val output = process.inputStream.use {
+            it.bufferedReader().use(BufferedReader::readText)
+        }
+        process.destroy()
+        output.trim()
+    }
 
 android {
     compileSdk = 33
@@ -20,11 +33,18 @@ android {
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
         resourceConfigurations.addAll(listOf("ru", "en"))
+        setProperty("archivesBaseName", "SRSS-${defaultConfig.versionName}-${defaultConfig}-$commitHash")
 
         javaCompileOptions {
             annotationProcessorOptions {
                 argument("room.incremental", "true")
             }
+        }
+    }
+    applicationVariants.all {
+        outputs.all {
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                "SRSS-${defaultConfig.versionName}-$commitHash.apk"
         }
     }
     signingConfigs {
